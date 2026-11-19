@@ -1,35 +1,28 @@
-
 name: Build CrimsonClient
 
 on:
   workflow_dispatch:
+  push:
+    branches: [ main, master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Download source
+      - name: Checkout source
         uses: actions/checkout@v4
-
-      - name: Install Java 21
+      - name: Set up Java 21
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
-
-      - name: Extract project
-        run: unzip -q CrimsonClient-Phone-Build.zip
-
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
       - name: Build JAR
-        working-directory: pvpclient
-        run: |
-          chmod +x gradlew
-          ./gradlew build --no-daemon
-
+        run: chmod +x ./gradlew && ./gradlew build --no-daemon
       - name: Upload JAR
         uses: actions/upload-artifact@v4
         with:
           name: CrimsonClient-1.21.11
-          path: pvpclient/build/libs/*.jar
+          path: build/libs/*.jar
           if-no-files-found: error
