@@ -7,7 +7,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import ru.crimson.client.CrimsonClientClient;
@@ -19,8 +19,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public class CrimsonMenuScreen extends Screen {
-    private static final ResourceLocation LOGO =
-            ResourceLocation.fromNamespaceAndPath("crimsonclient", "textures/gui/crimson_logo.png");
+    private static final Identifier LOGO =
+            Identifier.fromNamespaceAndPath("crimsonclient", "textures/gui/crimson_logo.png");
 
     private final long openTime;
     private float animProgress = 0f;
@@ -202,7 +202,7 @@ public class CrimsonMenuScreen extends Screen {
         return 1f - (float) Math.pow(1 - t, 3);
     }
 
-    private int withAlpha(int color, float alphaMul) {
+    private static int withAlpha(int color, float alphaMul) {
         int a = (color >>> 24) & 0xFF;
         return ((int) (a * alphaMul) << 24) | (color & 0x00FFFFFF);
     }
