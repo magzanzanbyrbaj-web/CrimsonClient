@@ -33,7 +33,7 @@ public final class CustomHitbox {
         MultiBufferSource consumers = context.consumers();
         if (matrices == null || consumers == null) return;
 
-        Vec3 cam = context.gameRenderer().getMainCamera().getPosition();
+        Vec3 cam = context.gameRenderer().getMainCamera().position();
 
         matrices.pushPose();
         matrices.translate(-cam.x, -cam.y, -cam.z);
