@@ -10,7 +10,6 @@ import org.lwjgl.glfw.GLFW;
 import ru.crimson.client.config.CrimsonConfig;
 import ru.crimson.client.gui.CrimsonMenuScreen;
 import ru.crimson.client.hud.HudRenderer;
-
 import ru.crimson.client.visual.TargetEsp;
 import ru.crimson.client.visual.CustomHitbox;
 import ru.crimson.client.visual.BlockOverlay;
@@ -18,9 +17,10 @@ import ru.crimson.client.visual.JumpCircle;
 import ru.crimson.client.visual.CustomSky;
 import ru.crimson.client.visual.HitSound;
 import ru.crimson.client.visual.CriticalEffects;
+import ru.crimson.client.visual.ReachDisplay;
+import ru.crimson.client.visual.PearlTracker;
 
 public class CrimsonClientClient implements ClientModInitializer {
-
     public static KeyMapping openMenuKey;
     public static CrimsonConfig config;
 
@@ -46,6 +46,9 @@ public class CrimsonClientClient implements ClientModInitializer {
 
         HitSound.init();
         CriticalEffects.init();
+
+        ReachDisplay.init();
+        PearlTracker.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.consumeClick()) {
