@@ -21,11 +21,7 @@
     ]
   },
   "mixins": [
-    "crimsonclient.mixins.json",
-    {
-      "config": "crimsonclient.client.mixins.json",
-      "environment": "client"
-    }
+    "crimsonclient.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.3",
