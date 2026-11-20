@@ -1,28 +1,22 @@
-
 package ru.crimson.client.visual;
 
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
 
+/**
+ * Central NoRender state. Actual cancellation of overlays is done via mixins
+ * that call these helpers.
+ */
 public final class NoRender {
 
     private NoRender() {}
 
     public static void init() {
-        HudRenderCallback.EVENT.register((graphics, tickCounter) -> {
-            Minecraft mc = Minecraft.getInstance();
+        // State only. Mixins query the helpers below.
+    }
 
-            if (mc.player == null || mc.level == null) return;
-
-            CrimsonConfig c = CrimsonClientClient.config;
-            if (!c.noRender) return;
-
-            // HUD overlays are handled by their respective render hooks.
-            // This class provides the central toggle state.
-        });
+    public static boolean isEnabled() {
+        return CrimsonClientClient.config.noRender;
     }
 
     public static boolean hideFire() {
