@@ -6,6 +6,8 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
@@ -16,287 +18,233 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public class CrimsonMenuScreen extends Screen {
-    private static final int RED = 0xFFFF3548;
-    private static final int WHITE = 0xFFF4F2F5;
-    private static final int MUTED = 0xFF9B98A5;
+    private static final Identifier FONT =
+            Identifier.fromNamespaceAndPath("crimsonclient", "inter");
+
+    private static final int RED = 0xFFFF4055;
+    private static final int WHITE = 0xFFF5F3F7;
+    private static final int MUTED = 0xFF9295A5;
 
     private static final String[] CATEGORIES = {
             "Combat", "Movement", "Player", "Visuals", "Client", "Configs"
     };
 
-    private final CrimsonConfig config;
-    private final long openedAt;
-    private int selectedCategory = 3;
-    private float animation = 0;
-
+    private final CrimsonConfig cfg;
+    private final long openedAt = System.currentTimeMillis();
     private final List<Feature> features = new ArrayList<>();
 
-    private int panelX, panelY, panelW, panelH;
-    private int sidebarW = 142;
-    private int contentX, contentY, contentW;
+    private int selected = 3;
+    private float anim = 1f;
+
+    private int px, py, pw, ph;
+    private int sidebar, cx, cw;
 
     public CrimsonMenuScreen() {
         super(Component.literal("Crimson Client"));
-        config = CrimsonClientClient.config;
-        openedAt = System.currentTimeMillis();
+        cfg = CrimsonClientClient.config;
         buildFeatures();
     }
 
     private void buildFeatures() {
-        features.clear();
+        add("Target HUD", "Target health and distance", () -> cfg.targetHud, v -> cfg.targetHud = v, 0);
+        add("Hit Particles", "Visual hit particles", () -> cfg.hitParticles, v -> cfg.hitParticles = v, 0);
+        add("Damage Numbers", "Damage number visuals", () -> cfg.damageNumbers, v -> cfg.damageNumbers = v, 0);
+        add("Hitmarker", "Hit confirmation indicator", () -> cfg.hitmarker, v -> cfg.hitmarker = v, 0);
+        add("Critical Effects", "Critical hit visuals", () -> cfg.criticalEffects, v -> cfg.criticalEffects = v, 0);
 
-        add("Watermark", "FPS, ping and client branding", () -> config.watermark, v -> config.watermark = v, 4);
-        add("Target HUD", "Target information and health bar", () -> config.targetHud, v -> config.targetHud = v, 0);
-        add("Armor HUD", "Armor equipment display", () -> config.armorHud, v -> config.armorHud = v, 2);
-        add("Totem Counter", "Counts totems in inventory", () -> config.totemCounter, v -> config.totemCounter = v, 2);
-        add("Keystrokes", "Keyboard and mouse display", () -> config.keystrokes, v -> config.keystrokes = v, 4);
-        add("Module List", "Enabled modules on screen", () -> config.moduleList, v -> config.moduleList = v, 4);
-        add("Inventory HUD", "Inventory items display", () -> config.inventoryHud, v -> config.inventoryHud = v, 2);
-        add("Potion HUD", "Active potion effects", () -> config.potionHud, v -> config.potionHud = v, 2);
-        add("Durability HUD", "Item durability information", () -> config.durabilityHud, v -> config.durabilityHud = v, 2);
+        add("Armor HUD", "Equipment display", () -> cfg.armorHud, v -> cfg.armorHud = v, 2);
+        add("Totem Counter", "Inventory totem count", () -> cfg.totemCounter, v -> cfg.totemCounter = v, 2);
+        add("Inventory HUD", "Inventory item display", () -> cfg.inventoryHud, v -> cfg.inventoryHud = v, 2);
+        add("Potion HUD", "Active potion effects", () -> cfg.potionHud, v -> cfg.potionHud = v, 2);
+        add("Durability HUD", "Item durability", () -> cfg.durabilityHud, v -> cfg.durabilityHud = v, 2);
 
-        add("Hit Particles", "Visual hit particle effects", () -> config.hitParticles, v -> config.hitParticles = v, 0);
-        add("Damage Numbers", "Damage number display", () -> config.damageNumbers, v -> config.damageNumbers = v, 0);
-        add("Hitmarker", "Visual hit confirmation", () -> config.hitmarker, v -> config.hitmarker = v, 0);
-        add("Critical Effects", "Critical hit visuals", () -> config.criticalEffects, v -> config.criticalEffects = v, 0);
+        add("Smooth Sword", "Sword animation", () -> cfg.smoothSword, v -> cfg.smoothSword = v, 3);
+        add("Item Switch", "Item switch animation", () -> cfg.itemSwitchAnim, v -> cfg.itemSwitchAnim = v, 3);
+        add("Totem Animation", "Totem animation", () -> cfg.totemAnimation, v -> cfg.totemAnimation = v, 3);
+        add("Custom Crosshair", "Custom crosshair", () -> cfg.customCrosshair, v -> cfg.customCrosshair = v, 3);
+        add("Custom Sky", "Sky visuals", () -> cfg.customSky, v -> cfg.customSky = v, 3);
+        add("Inventory Blur", "Inventory background effect", () -> cfg.inventoryBlur, v -> cfg.inventoryBlur = v, 3);
 
-        add("Smooth Sword", "Smoother sword animation", () -> config.smoothSword, v -> config.smoothSword = v, 3);
-        add("Item Switch Anim", "Item switching animation", () -> config.itemSwitchAnim, v -> config.itemSwitchAnim = v, 3);
-        add("Totem Animation", "Totem animation effects", () -> config.totemAnimation, v -> config.totemAnimation = v, 3);
-        add("Custom Crosshair", "Custom crosshair style", () -> config.customCrosshair, v -> config.customCrosshair = v, 3);
-        add("Custom Sky", "Custom sky visuals", () -> config.customSky, v -> config.customSky = v, 3);
-        add("Inventory Blur", "Blur behind inventory", () -> config.inventoryBlur, v -> config.inventoryBlur = v, 3);
-
-        add("Fullbright", "Increased world brightness", () -> config.fullbright, v -> config.fullbright = v, 4);
-        add("Reduce Particles", "Reduce particle rendering", () -> config.reduceParticles, v -> config.reduceParticles = v, 4);
-        add("Optimization", "Client optimization mode", () -> config.optimized, v -> config.optimized = v, 4);
-        add("Menu Animation", "Animated menu transitions", () -> config.glassAnimation, v -> config.glassAnimation = v, 4);
+        add("Watermark", "Logo, FPS and ping", () -> cfg.watermark, v -> cfg.watermark = v, 4);
+        add("Keystrokes", "Keyboard display", () -> cfg.keystrokes, v -> cfg.keystrokes = v, 4);
+        add("Module List", "Enabled module list", () -> cfg.moduleList, v -> cfg.moduleList = v, 4);
+        add("Fullbright", "World brightness", () -> cfg.fullbright, v -> cfg.fullbright = v, 4);
+        add("Reduce Particles", "Reduce particle rendering", () -> cfg.reduceParticles, v -> cfg.reduceParticles = v, 4);
+        add("Optimization", "Client optimization", () -> cfg.optimized, v -> cfg.optimized = v, 4);
+        add("Menu Animation", "Menu animations", () -> cfg.glassAnimation, v -> cfg.glassAnimation = v, 4);
     }
 
-    private void add(String name, String description, BooleanSupplier getter,
-                     Consumer<Boolean> setter, int category) {
-        features.add(new Feature(name, description, getter, setter, category));
+    private void add(String name, String desc, BooleanSupplier get,
+                     Consumer<Boolean> set, int category) {
+        features.add(new Feature(name, desc, get, set, category));
     }
 
-    private void calculateLayout() {
-        panelW = Math.min(620, width - 24);
-        panelH = Math.min(390, height - 24);
-
-        panelX = (width - panelW) / 2;
-        panelY = (height - panelH) / 2;
-
-        sidebarW = Math.min(145, panelW / 3);
-        contentX = panelX + sidebarW + 18;
-        contentY = panelY + 54;
-        contentW = panelW - sidebarW - 34;
+    private void layout() {
+        pw = Math.min(540, width - 20);
+        ph = Math.min(340, height - 20);
+        px = (width - pw) / 2;
+        py = (height - ph) / 2;
+        sidebar = 124;
+        cx = px + sidebar + 18;
+        cw = pw - sidebar - 34;
     }
 
     @Override
     protected void init() {
-        calculateLayout();
+        layout();
+    }
+
+    private void text(GuiGraphics g, String value, int x, int y, int color, boolean shadow) {
+        Component component = Component.literal(value)
+                .setStyle(Style.EMPTY.withFont(FONT));
+        g.drawString(font, component, x, y, color, shadow);
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
-        calculateLayout();
+        layout();
 
         float t = Mth.clamp((System.currentTimeMillis() - openedAt) / 260f, 0f, 1f);
-        animation = config.glassAnimation ? 1f - (float) Math.pow(1f - t, 3f) : 1f;
+        anim = cfg.glassAnimation ? 1f - (float) Math.pow(1f - t, 3) : 1f;
 
-        g.fill(0, 0, width, height, 0x66030710);
+        g.fill(0, 0, width, height, 0x88030812);
 
-        int lift = (int) ((1f - animation) * 12);
-        int py = panelY + lift;
+        int lift = (int) ((1f - anim) * 9);
+        int y = py + lift;
 
-        rounded(g, panelX + 5, py + 7, panelW, panelH, 17, 0x70000000);
-        rounded(g, panelX, py, panelW, panelH, 17, alpha(0xE5111420));
-        rounded(g, panelX + 1, py + 1, panelW - 2, panelH - 2, 16, alpha(0xD91A1D2B));
+        rounded(g, px + 3, y + 5, pw, ph, 16, 0x66000000);
+        rounded(g, px, y, pw, ph, 16, alpha(0xED111521));
+        rounded(g, px + 1, y + 1, pw - 2, ph - 2, 15, alpha(0xD91B2030));
+        rounded(g, px + 14, y + 1, pw - 28, 2, 1, alpha(RED));
 
-        rounded(g, panelX + 1, py + 1, sidebarW, panelH - 2, 15, alpha(0xB90B0E17));
-        rounded(g, panelX + 16, py + 1, panelW - 32, 2, 1, alpha(RED));
+        rounded(g, px + 1, y + 1, sidebar, ph - 2, 14, alpha(0xB80B0F19));
+        g.fill(px + sidebar, y + 16, px + sidebar + 1, y + ph - 16, alpha(0x33FFFFFF));
 
-        g.fill(panelX + sidebarW, py + 18, panelX + sidebarW + 1,
-                py + panelH - 18, alpha(0x33FFFFFF));
-
-        drawSidebar(g, mouseX, mouseY, py);
-        drawHeader(g, py);
-        drawFeatures(g, mouseX, mouseY, py);
+        drawSidebar(g, mouseX, mouseY, y);
+        drawHeader(g, y);
+        drawCards(g, mouseX, mouseY, y);
 
         super.render(g, mouseX, mouseY, partialTick);
     }
 
-    private void drawSidebar(GuiGraphics g, int mx, int my, int py) {
-        int sx = panelX + 13;
-        int sy = py + 17;
-
-        g.drawString(font, "C", sx + 3, sy + 1, alpha(RED), true);
-        g.drawString(font, "CRIMSON", sx + 20, sy, alpha(WHITE), true);
-        g.drawString(font, "CLIENT", sx + 20, sy + 11, alpha(MUTED), false);
-
-        int y = sy + 43;
+    private void drawSidebar(GuiGraphics g, int mx, int my, int y) {
+        rounded(g, px + 13, y + 14, 27, 27, 8, alpha(0xFF55202F));
+        text(g, "C", px + 22, y + 23, alpha(0xFFFF6374), true);
+        text(g, "CRIMSON", px + 46, y + 17, alpha(WHITE), true);
+        text(g, "CLIENT", px + 46, y + 29, alpha(MUTED), false);
 
         for (int i = 0; i < CATEGORIES.length; i++) {
-            int bx = panelX + 9;
-            int by = y + i * 34;
-            int bw = sidebarW - 18;
-            int bh = 27;
+            int bx = px + 8;
+            int by = y + 57 + i * 34;
+            int bw = sidebar - 16;
+            boolean active = selected == i;
+            boolean hover = hit(mx, my, bx, by, bw, 28);
 
-            boolean selected = selectedCategory == i;
-            boolean hover = inside(mx, my, bx, by, bw, bh);
-
-            if (selected) {
-                rounded(g, bx, by, bw, bh, 7, alpha(0xB33D202D));
-                rounded(g, bx, by, 3, bh, 2, alpha(RED));
+            if (active) {
+                rounded(g, bx, by, bw, 28, 7, alpha(0xAA482331));
+                rounded(g, bx, by + 4, 2, 20, 1, alpha(RED));
             } else if (hover) {
-                rounded(g, bx, by, bw, bh, 7, alpha(0x553B3D4B));
+                rounded(g, bx, by, bw, 28, 7, alpha(0x553B4052));
             }
 
-            String symbol = switch (i) {
-                case 0 -> "⚔";
-                case 1 -> "↗";
-                case 2 -> "◆";
-                case 3 -> "◈";
-                case 4 -> "⚙";
-                default -> "▣";
-            };
+            text(g, CATEGORIES[i], bx + 12, by + 10,
+                    alpha(active ? WHITE : MUTED), false);
 
-            g.drawString(font, symbol, bx + 10, by + 9,
-                    alpha(selected ? RED : MUTED), false);
+            int count = 0;
+            for (Feature f : features) if (f.category == i) count++;
 
-            g.drawString(font, CATEGORIES[i], bx + 27, by + 9,
-                    alpha(selected ? WHITE : MUTED), false);
-
-            int count = countCategory(i);
-            String amount = String.valueOf(count);
-            g.drawString(font, amount, bx + bw - font.width(amount) - 8,
-                    by + 9, alpha(MUTED), false);
+            String n = String.valueOf(count);
+            text(g, n, bx + bw - widthOf(n) - 9, by + 10, alpha(MUTED), false);
         }
 
-        int profileY = py + panelH - 49;
-        rounded(g, panelX + 9, profileY, sidebarW - 18, 37, 8, alpha(0x553A3D4D));
-        rounded(g, panelX + 15, profileY + 7, 23, 23, 6, alpha(0xFF542A39));
-        g.drawString(font, "C", panelX + 23, profileY + 15, alpha(WHITE), true);
+        int profileY = y + ph - 43;
+        rounded(g, px + 8, profileY, sidebar - 16, 33, 7, alpha(0x553C4050));
+        rounded(g, px + 13, profileY + 5, 22, 22, 6, alpha(0xFF542432));
+        text(g, "C", px + 21, profileY + 12, alpha(WHITE), true);
 
-        String playerName = Minecraft.getInstance().player == null
+        String player = Minecraft.getInstance().player == null
                 ? "Player" : Minecraft.getInstance().player.getName().getString();
 
-        g.drawString(font, trim(playerName, 13), panelX + 44,
-                profileY + 8, alpha(WHITE), false);
-        g.drawString(font, "Crimson User", panelX + 44,
-                profileY + 20, alpha(MUTED), false);
+        text(g, player.length() > 12 ? player.substring(0, 12) : player,
+                px + 41, profileY + 7, alpha(WHITE), false);
+        text(g, "Crimson user", px + 41, profileY + 19, alpha(MUTED), false);
     }
 
-    private void drawHeader(GuiGraphics g, int py) {
-        String title = CATEGORIES[selectedCategory];
-        g.drawString(font, title, contentX, py + 20, alpha(WHITE), true);
-        g.drawString(font, "Manage your client modules",
-                contentX, py + 34, alpha(MUTED), false);
+    private void drawHeader(GuiGraphics g, int y) {
+        text(g, CATEGORIES[selected], cx, y + 19, alpha(WHITE), true);
+        text(g, "Visual modules and settings", cx, y + 33, alpha(MUTED), false);
 
-        int searchW = Math.min(160, contentW / 2);
-        int searchX = panelX + panelW - searchW - 17;
-
-        rounded(g, searchX, py + 16, searchW, 25, 7, alpha(0x77383D4C));
-        g.drawString(font, "⌕  Search modules...", searchX + 9,
-                py + 25, alpha(MUTED), false);
+        rounded(g, px + pw - 123, y + 15, 108, 23, 7, alpha(0x77373D4D));
+        text(g, "MODULES", px + pw - 108, y + 23, alpha(MUTED), false);
     }
 
-    private void drawFeatures(GuiGraphics g, int mx, int my, int py) {
+    private void drawCards(GuiGraphics g, int mx, int my, int y) {
         List<Feature> visible = new ArrayList<>();
+        for (Feature f : features) if (f.category == selected) visible.add(f);
 
-        for (Feature feature : features) {
-            if (feature.category == selectedCategory) visible.add(feature);
-        }
-
-        if (selectedCategory == 5) {
-            g.drawString(font, "CONFIGURATION", contentX, py + 75, alpha(WHITE), true);
-            g.drawString(font, "Your settings are saved automatically.",
-                    contentX, py + 94, alpha(MUTED), false);
+        if (selected == 5) {
+            text(g, "CONFIGURATION", cx, y + 72, alpha(WHITE), true);
+            text(g, "Settings are saved automatically.", cx, y + 91, alpha(MUTED), false);
             return;
         }
 
-        int columns = contentW >= 330 ? 2 : 1;
-        int gap = 10;
-        int cardW = (contentW - gap * (columns - 1)) / columns;
-        int cardH = 66;
+        int columns = cw > 300 ? 2 : 1;
+        int gap = 8;
+        int cardW = (cw - gap * (columns - 1)) / columns;
+        int cardH = 53;
 
         for (int i = 0; i < visible.size(); i++) {
-            Feature feature = visible.get(i);
-
+            Feature f = visible.get(i);
             int col = i % columns;
             int row = i / columns;
+            int x = cx + col * (cardW + gap);
+            int cy = y + 62 + row * (cardH + 8);
 
-            int x = contentX + col * (cardW + gap);
-            int y = py + 65 + row * (cardH + 10);
+            boolean enabled = f.get.getAsBoolean();
+            boolean hover = hit(mx, my, x, cy, cardW, cardH);
 
-            boolean enabled = feature.enabled.getAsBoolean();
-            boolean hover = inside(mx, my, x, y, cardW, cardH);
+            rounded(g, x, cy, cardW, cardH, 8,
+                    alpha(enabled ? 0x883C202D : 0x66343A4B));
+            rounded(g, x, cy, cardW, 1, 1,
+                    alpha(enabled ? 0xCCFF5365 : 0x55727A8C));
 
-            rounded(g, x, y, cardW, cardH, 9,
-                    alpha(enabled ? 0x713C202B : 0x66323848));
+            text(g, f.name, x + 10, cy + 11, alpha(WHITE), true);
 
-            rounded(g, x, y, cardW, 1, 1,
-                    alpha(enabled ? 0xAAFF5365 : 0x446F7587));
+            String desc = f.desc.length() > 23 ? f.desc.substring(0, 20) + "..." : f.desc;
+            text(g, desc, x + 10, cy + 27, alpha(MUTED), false);
 
-            g.drawString(font, feature.name, x + 12, y + 13,
-                    alpha(WHITE), true);
+            int sx = x + cardW - 34;
+            int sy = cy + 10;
 
-            g.drawString(font, trim(feature.description, 27),
-                    x + 12, y + 29, alpha(MUTED), false);
-
-            int sw = 29;
-            int sh = 15;
-            int tx = x + cardW - sw - 12;
-            int ty = y + 12;
-
-            rounded(g, tx, ty, sw, sh, 8,
+            rounded(g, sx, sy, 25, 13, 7,
                     alpha(enabled ? 0xFFFF4355 : 0xFF555A68));
+            rounded(g, enabled ? sx + 14 : sx + 2, sy + 2, 9, 9, 5, alpha(WHITE));
 
-            int knobX = enabled ? tx + sw - 12 : tx + 3;
-            rounded(g, knobX, ty + 3, 9, 9, 5, alpha(WHITE));
-
-            if (hover) {
-                rounded(g, x, y + cardH - 2, cardW, 2, 1, alpha(0x66FF4355));
-            }
+            if (hover) rounded(g, x + 5, cy + cardH - 2, cardW - 10, 1, 1, alpha(RED));
         }
     }
 
-    private int countCategory(int category) {
-        int count = 0;
-        for (Feature feature : features) {
-            if (feature.category == category) count++;
-        }
-        return count;
+    private int widthOf(String s) {
+        return font.width(Component.literal(s).setStyle(Style.EMPTY.withFont(FONT)));
     }
 
-    private boolean inside(int mx, int my, int x, int y, int w, int h) {
+    private boolean hit(int mx, int my, int x, int y, int w, int h) {
         return mx >= x && mx <= x + w && my >= y && my <= y + h;
     }
 
-    private String trim(String value, int max) {
-        if (value.length() <= max) return value;
-        return value.substring(0, Math.max(0, max - 3)) + "...";
-    }
-
     private int alpha(int color) {
-        int a = color >>> 24;
-        return ((int) (a * animation) << 24) | (color & 0x00FFFFFF);
+        return ((int) (((color >>> 24) & 255) * anim) << 24) | (color & 0xFFFFFF);
     }
 
-    private static void rounded(GuiGraphics g, int x, int y, int w,
-                                int h, int radius, int color) {
+    private static void rounded(GuiGraphics g, int x, int y, int w, int h, int r, int color) {
         if (w <= 0 || h <= 0) return;
-
-        int r = Math.max(1, Math.min(radius, Math.min(w / 2, h / 2)));
+        r = Math.max(1, Math.min(r, Math.min(w / 2, h / 2)));
 
         for (int row = 0; row < r; row++) {
-            int inset = (int) Math.ceil(r - Math.sqrt(
-                    r * r - (r - row) * (r - row)));
-
+            int inset = (int) Math.ceil(r - Math.sqrt(r * r - (r - row) * (r - row)));
             g.fill(x + inset, y + row, x + w - inset, y + row + 1, color);
-            g.fill(x + inset, y + h - row - 1,
-                    x + w - inset, y + h - row, color);
+            g.fill(x + inset, y + h - row - 1, x + w - inset, y + h - row, color);
         }
-
         g.fill(x, y + r, x + w, y + h - r, color);
     }
 
@@ -307,40 +255,34 @@ public class CrimsonMenuScreen extends Screen {
             int my = (int) event.y();
 
             for (int i = 0; i < CATEGORIES.length; i++) {
-                int bx = panelX + 9;
-                int by = panelY + 17 + 43 + i * 34;
-
-                if (inside(mx, my, bx, by, sidebarW - 18, 27)) {
-                    selectedCategory = i;
+                if (hit(mx, my, px + 8, py + 57 + i * 34, sidebar - 16, 28)) {
+                    selected = i;
                     return true;
                 }
             }
 
             List<Feature> visible = new ArrayList<>();
-            for (Feature feature : features) {
-                if (feature.category == selectedCategory) visible.add(feature);
-            }
+            for (Feature f : features) if (f.category == selected) visible.add(f);
 
-            int columns = contentW >= 330 ? 2 : 1;
-            int gap = 10;
-            int cardW = (contentW - gap * (columns - 1)) / columns;
-            int cardH = 66;
+            int columns = cw > 300 ? 2 : 1;
+            int gap = 8;
+            int cardW = (cw - gap * (columns - 1)) / columns;
+            int cardH = 53;
 
             for (int i = 0; i < visible.size(); i++) {
                 int col = i % columns;
                 int row = i / columns;
-                int x = contentX + col * (cardW + gap);
-                int y = panelY + 65 + row * (cardH + 10);
+                int x = cx + col * (cardW + gap);
+                int cy = py + 62 + row * (cardH + 8);
 
-                if (inside(mx, my, x, y, cardW, cardH)) {
-                    Feature feature = visible.get(i);
-                    feature.setter.accept(!feature.enabled.getAsBoolean());
-                    config.save();
+                if (hit(mx, my, x, cy, cardW, cardH)) {
+                    Feature f = visible.get(i);
+                    f.set.accept(!f.get.getAsBoolean());
+                    cfg.save();
                     return true;
                 }
             }
         }
-
         return super.mouseClicked(event, doubleClick);
     }
 
@@ -349,20 +291,6 @@ public class CrimsonMenuScreen extends Screen {
         return false;
     }
 
-    private static class Feature {
-        final String name;
-        final String description;
-        final BooleanSupplier enabled;
-        final Consumer<Boolean> setter;
-        final int category;
-
-        Feature(String name, String description, BooleanSupplier enabled,
-                Consumer<Boolean> setter, int category) {
-            this.name = name;
-            this.description = description;
-            this.enabled = enabled;
-            this.setter = setter;
-            this.category = category;
-        }
-    }
+    private record Feature(String name, String desc, BooleanSupplier get,
+                           Consumer<Boolean> set, int category) {}
 }
