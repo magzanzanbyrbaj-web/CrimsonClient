@@ -19,11 +19,13 @@ public class CrimsonClientClient implements ClientModInitializer {
     public void onInitializeClient() {
         config = CrimsonConfig.load();
 
-        openMenuKey = KeyBindingHelper.registerKeyBinding(new KeyMapping(
-            "key.crimsonclient.open_menu",
-            GLFW.GLFW_KEY_RIGHT_SHIFT,
-            "category.crimsonclient"
-        ));
+        openMenuKey = KeyBindingHelper.registerKeyBinding(
+            new KeyMapping(
+                "key.crimsonclient.open_menu",
+                GLFW.GLFW_KEY_RIGHT_SHIFT,
+                KeyMapping.Category.MISC
+            )
+        );
 
         HudRenderer.init();
 
