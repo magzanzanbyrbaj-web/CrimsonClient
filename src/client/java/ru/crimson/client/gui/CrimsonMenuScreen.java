@@ -1,3 +1,4 @@
+
 package ru.crimson.client.gui;
 
 import net.minecraft.client.Minecraft;
@@ -6,6 +7,7 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.client.resources.sounds.SimpleSoundInstance;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.util.Mth;
 import ru.crimson.client.CrimsonClientClient;
@@ -17,6 +19,8 @@ import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 public class CrimsonMenuScreen extends Screen {
+    private static final ResourceLocation LOGO =
+            ResourceLocation.fromNamespaceAndPath("crimsonclient", "textures/gui/crimson_logo.png");
 
     private final long openTime;
     private float animProgress = 0f;
@@ -25,14 +29,11 @@ public class CrimsonMenuScreen extends Screen {
     private int currentTab = 0;
 
     private static final String[] TABS = {"HUD", "Visuals", "Utilities"};
-
-    private static final int PANEL_GLASS = 0xAA3A0A0A;
-    private static final int PANEL_BORDER = 0xFFAA2222;
-    private static final int ACCENT = 0xFFFF3333;
+    private static final int ACCENT = 0xFFFF3434;
     private static final int TEXT_MAIN = 0xFFFFEEEE;
-    private static final int TEXT_DIM = 0xFFCCAAAA;
-    private static final int TOGGLE_ON = 0xFF44FF66;
-    private static final int TOGGLE_OFF = 0xFFAA3333;
+    private static final int TEXT_DIM = 0xFFBFAAAA;
+    private static final int TOGGLE_ON = 0xFFFF6666;
+    private static final int TOGGLE_OFF = 0xFF777070;
 
     public CrimsonMenuScreen() {
         super(Component.literal("Crimson Client"));
@@ -43,14 +44,12 @@ public class CrimsonMenuScreen extends Screen {
 
     private void playOpenSound() {
         Minecraft.getInstance().getSoundManager().play(
-            SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.2f, 0.7f)
-        );
+                SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.2f, 0.7f));
     }
 
     private void playClickSound() {
         Minecraft.getInstance().getSoundManager().play(
-            SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 1.0f)
-        );
+                SimpleSoundInstance.forUI(SoundEvents.UI_BUTTON_CLICK.value(), 1.0f, 1.0f));
     }
 
     @Override
@@ -58,37 +57,27 @@ public class CrimsonMenuScreen extends Screen {
         buttons.clear();
 
         int centerX = width / 2;
-        int panelW = 220;
-        int startY = height / 2 - 110;
-        int btnW = 200;
-        int btnH = 22;
-        int gap = 4;
-        int left = centerX - panelW / 2 + 10;
-        int tabW = 70;
+        int panelW = Math.min(370, width - 24);
+        int panelX = centerX - panelW / 2;
+        int panelY = Math.max(8, height / 2 - 180);
+        int tabW = Math.min(100, (panelW - 36) / 3);
 
         for (int i = 0; i < TABS.length; i++) {
             final int tab = i;
-
             buttons.add(new GlassButton(
-                centerX - (TABS.length * tabW) / 2 + i * tabW,
-                startY - 30,
-                tabW - 4,
-                20,
-                TABS[i],
-                currentTab == i,
-                () -> {
-                    currentTab = tab;
-                    playClickSound();
-                    init();
-                },
-                true
-            ));
+                    centerX - (TABS.length * tabW) / 2 + i * tabW,
+                    panelY + 67, tabW - 5, 22, TABS[i], currentTab == i,
+                    () -> {
+                        currentTab = tab;
+                        playClickSound();
+                        init();
+                    }, true));
         }
 
         List<ToggleEntry> entries = new ArrayList<>();
 
         if (currentTab == 0) {
-            entries.add(new ToggleEntry("Watermark (Name+FPS+Ping)", () -> config.watermark, v -> config.watermark = v));
+            entries.add(new ToggleEntry("Watermark", () -> config.watermark, v -> config.watermark = v));
             entries.add(new ToggleEntry("Target HUD", () -> config.targetHud, v -> config.targetHud = v));
             entries.add(new ToggleEntry("Armor HUD", () -> config.armorHud, v -> config.armorHud = v));
             entries.add(new ToggleEntry("Totem Counter", () -> config.totemCounter, v -> config.totemCounter = v));
@@ -115,37 +104,31 @@ public class CrimsonMenuScreen extends Screen {
             entries.add(new ToggleEntry("Menu Animation", () -> config.glassAnimation, v -> config.glassAnimation = v));
         }
 
-        int y = startY + 5;
+        int btnW = panelW - 38;
+        int y = panelY + 99;
+        int btnH = 21;
+        int gap = 4;
 
-        for (ToggleEntry e : entries) {
-            buttons.add(new GlassButton(
-                left, y, btnW, btnH,
-                e.name,
-                e.getter.getAsBoolean(),
-                () -> {
-                    e.setter.accept(!e.getter.getAsBoolean());
-                    config.save();
-                    playClickSound();
-                }
-            ));
+        for (ToggleEntry entry : entries) {
+            buttons.add(new GlassButton(panelX + 19, y, btnW, btnH, entry.name,
+                    entry.getter.getAsBoolean(), () -> {
+                entry.setter.accept(!entry.getter.getAsBoolean());
+                config.save();
+                playClickSound();
+            }));
             y += btnH + gap;
         }
 
-        buttons.add(new GlassButton(
-            centerX - 50, y + 10, 100, 24,
-            "Close", false,
-            () -> {
-                playClickSound();
-                onClose();
-            },
-            true
-        ));
+        buttons.add(new GlassButton(centerX - 48, panelY + 337, 96, 23, "CLOSE", false, () -> {
+            playClickSound();
+            onClose();
+        }, true));
     }
 
     private static class ToggleEntry {
-        String name;
-        BooleanSupplier getter;
-        Consumer<Boolean> setter;
+        final String name;
+        final BooleanSupplier getter;
+        final Consumer<Boolean> setter;
 
         ToggleEntry(String name, BooleanSupplier getter, Consumer<Boolean> setter) {
             this.name = name;
@@ -158,27 +141,39 @@ public class CrimsonMenuScreen extends Screen {
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         g.fill(0, 0, width, height, 0x99000000);
 
-        float t = (System.currentTimeMillis() - openTime) / 300f;
+        float t = (System.currentTimeMillis() - openTime) / 360f;
         animProgress = config.glassAnimation ? Mth.clamp(t, 0f, 1f) : 1f;
         float alpha = easeOutCubic(animProgress);
 
         int centerX = width / 2;
-        int panelW = 240;
-        int panelH = 280;
+        int panelW = Math.min(370, width - 24);
+        int panelH = 370;
         int panelX = centerX - panelW / 2;
-        int panelY = height / 2 - panelH / 2 - 10;
+        int panelY = Math.max(8, height / 2 - panelH / 2);
 
-        g.fill(panelX, panelY, panelX + panelW, panelY + panelH, withAlpha(PANEL_GLASS, alpha));
-        g.fill(panelX, panelY, panelX + panelW, panelY + 2, withAlpha(ACCENT, alpha));
-        g.fill(panelX, panelY + panelH - 2, panelX + panelW, panelY + panelH, withAlpha(ACCENT, alpha));
-        g.fill(panelX, panelY, panelX + 2, panelY + panelH, withAlpha(ACCENT, alpha));
-        g.fill(panelX + panelW - 2, panelY, panelX + panelW, panelY + panelH, withAlpha(ACCENT, alpha));
+        roundedRect(g, panelX + 3, panelY + 5, panelW, panelH, 15,
+                withAlpha(0x99000000, alpha));
+        roundedRect(g, panelX, panelY, panelW, panelH, 15,
+                withAlpha(0xD9161012, alpha));
+        roundedRect(g, panelX + 1, panelY + 1, panelW - 2, panelH - 2, 14,
+                withAlpha(0xA52A171B, alpha));
+        roundedRect(g, panelX + 10, panelY + 1, panelW - 20, 2, 1,
+                withAlpha(ACCENT, alpha));
 
-        String title = "Crimson Client";
-        g.drawString(font, title, centerX - font.width(title) / 2, panelY + 8, withAlpha(TEXT_MAIN, alpha), true);
+        g.fill(panelX + 16, panelY + 43, panelX + panelW - 16, panelY + 44,
+                withAlpha(0x55FFFFFF, alpha));
+        g.fill(panelX + 14, panelY + 16, panelX + 15, panelY + panelH - 16,
+                withAlpha(0x55FF7777, alpha));
+        g.fill(panelX + panelW - 15, panelY + 16, panelX + panelW - 14, panelY + panelH - 16,
+                withAlpha(0x55FF7777, alpha));
 
-        String subtitle = "Right Shift to open";
-        g.drawString(font, subtitle, centerX - font.width(subtitle) / 2, panelY + 20, withAlpha(TEXT_DIM, alpha), false);
+        int logoSize = 38;
+        g.blit(LOGO, centerX - 88, panelY + 8, 0, 0, logoSize, logoSize, 256, 256);
+
+        g.drawString(font, "CRIMSON", centerX - 42, panelY + 14,
+                withAlpha(TEXT_MAIN, alpha), true);
+        g.drawString(font, "CLIENT  •  VISUAL EXPERIENCE", centerX - 42, panelY + 27,
+                withAlpha(TEXT_DIM, alpha), false);
 
         for (GlassButton btn : buttons) {
             btn.render(g, mouseX, mouseY, alpha, font);
@@ -187,27 +182,38 @@ public class CrimsonMenuScreen extends Screen {
         super.render(g, mouseX, mouseY, partialTick);
     }
 
+    private static void roundedRect(GuiGraphics g, int x, int y, int w, int h, int r, int color) {
+        if (w <= 0 || h <= 0) return;
+
+        int radius = Math.max(1, Math.min(r, Math.min(w / 2, h / 2)));
+
+        for (int row = 0; row < radius; row++) {
+            int inset = (int) Math.ceil(radius - Math.sqrt(
+                    radius * radius - (radius - row) * (radius - row)));
+
+            g.fill(x + inset, y + row, x + w - inset, y + row + 1, color);
+            g.fill(x + inset, y + h - row - 1, x + w - inset, y + h - row, color);
+        }
+
+        g.fill(x, y + radius, x + w, y + h - radius, color);
+    }
+
     private float easeOutCubic(float t) {
         return 1f - (float) Math.pow(1 - t, 3);
     }
 
     private int withAlpha(int color, float alphaMul) {
-        int a = (color >> 24) & 0xFF;
-        if (a == 0) a = 0xFF;
-        a = (int) (a * alphaMul);
-        return (a << 24) | (color & 0x00FFFFFF);
+        int a = (color >>> 24) & 0xFF;
+        return ((int) (a * alphaMul) << 24) | (color & 0x00FFFFFF);
     }
 
     @Override
     public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        double mouseX = event.x();
-        double mouseY = event.y();
-
         if (event.button() == 0) {
             for (GlassButton btn : buttons) {
-                if (btn.isHovered((int) mouseX, (int) mouseY)) {
+                if (btn.isHovered((int) event.x(), (int) event.y())) {
                     btn.onClick.run();
-                    this.init();
+                    if (!btn.label.equals("CLOSE")) init();
                     return true;
                 }
             }
@@ -228,17 +234,18 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private static class GlassButton {
-        int x, y, w, h;
-        String label;
-        boolean toggled;
-        boolean isClose;
-        Runnable onClick;
+        final int x, y, w, h;
+        final String label;
+        final boolean toggled;
+        final boolean tab;
+        final Runnable onClick;
 
         GlassButton(int x, int y, int w, int h, String label, boolean toggled, Runnable onClick) {
             this(x, y, w, h, label, toggled, onClick, false);
         }
 
-        GlassButton(int x, int y, int w, int h, String label, boolean toggled, Runnable onClick, boolean isClose) {
+        GlassButton(int x, int y, int w, int h, String label, boolean toggled,
+                    Runnable onClick, boolean tab) {
             this.x = x;
             this.y = y;
             this.w = w;
@@ -246,40 +253,47 @@ public class CrimsonMenuScreen extends Screen {
             this.label = label;
             this.toggled = toggled;
             this.onClick = onClick;
-            this.isClose = isClose;
+            this.tab = tab;
         }
 
         boolean isHovered(int mx, int my) {
             return mx >= x && mx <= x + w && my >= y && my <= y + h;
         }
 
-        void render(GuiGraphics g, int mx, int my, float alpha, net.minecraft.client.gui.Font font) {
+        void render(GuiGraphics g, int mx, int my, float alpha,
+                    net.minecraft.client.gui.Font font) {
             boolean hover = isHovered(mx, my);
-            int bg = hover ? 0xCC5A1515 : 0xAA2A0A0A;
-            int borderCol = hover ? ACCENT : PANEL_BORDER;
 
-            g.fill(x, y, x + w, y + h, withAlpha(bg, alpha));
-            g.fill(x, y, x + w, y + 1, withAlpha(borderCol, alpha));
-            g.fill(x, y + h - 1, x + w, y + h, withAlpha(borderCol, alpha));
-            g.fill(x, y, x + 1, y + h, withAlpha(borderCol, alpha));
-            g.fill(x + w - 1, y, x + w, y + h, withAlpha(borderCol, alpha));
+            int bg;
+            if (tab) {
+                bg = toggled ? 0xD9A51F28 : (hover ? 0xB94A252B : 0x8A24191C);
+            } else {
+                bg = hover ? 0xD95B2028 : 0x8F24191C;
+            }
 
-            int textColor = isClose ? TEXT_DIM : TEXT_MAIN;
-            int tw = font.width(label);
-            g.drawString(font, label, x + (w - tw) / 2, y + (h - 8) / 2, withAlpha(textColor, alpha), false);
+            int border = hover || (tab && toggled) ? 0xFFFF555F : 0x77D94A52;
 
-            if (!isClose) {
+            roundedRect(g, x, y, w, h, 7, withAlpha(bg, alpha));
+            roundedRect(g, x, y, w, 1, 1, withAlpha(border, alpha));
+
+            int textColor = tab && toggled ? 0xFFFFFFFF : TEXT_MAIN;
+            int textX = tab ? x + (w - font.width(label)) / 2 : x + 11;
+
+            g.drawString(font, label, textX, y + (h - 8) / 2,
+                    withAlpha(textColor, alpha), false);
+
+            if (!tab) {
                 String state = toggled ? "ON" : "OFF";
                 int stateCol = toggled ? TOGGLE_ON : TOGGLE_OFF;
-                g.drawString(font, state, x + w - font.width(state) - 6, y + (h - 8) / 2, withAlpha(stateCol, alpha), false);
-            }
-        }
 
-        private int withAlpha(int color, float alphaMul) {
-            int a = (color >> 24) & 0xFF;
-            if (a == 0) a = 0xFF;
-            a = (int) (a * alphaMul);
-            return (a << 24) | (color & 0x00FFFFFF);
+                g.drawString(font, state, x + w - font.width(state) - 10,
+                        y + (h - 8) / 2, withAlpha(stateCol, alpha), false);
+
+                if (toggled) {
+                    roundedRect(g, x + 3, y + 5, 3, h - 10, 2,
+                            withAlpha(ACCENT, alpha));
+                }
+            }
         }
     }
 }
