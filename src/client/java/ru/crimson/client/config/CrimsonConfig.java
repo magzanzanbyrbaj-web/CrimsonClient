@@ -11,13 +11,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CrimsonConfig {
-
-    private static final Gson GSON =
-            new GsonBuilder().setPrettyPrinting().create();
-
-    private static final Path CONFIG_PATH =
-            FabricLoader.getInstance().getConfigDir()
-                    .resolve("crimsonclient.json");
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Path CONFIG_PATH = FabricLoader.getInstance()
+            .getConfigDir().resolve("crimsonclient.json");
 
     // HUD
     public boolean watermark = true;
@@ -60,36 +56,40 @@ public class CrimsonConfig {
     public boolean hideWeather = false;
     public boolean hideParticles = false;
 
-    // Target ESP settings
+    // Target ESP
     public boolean targetEspParticles = true;
     public boolean targetEspRing = true;
     public int targetEspStyle = 0;
     public int targetEspColor = 0xFFFF4055;
 
-    // Hit sound settings
+    // Hit Sound
     public int hitSoundType = 0;
     public float hitSoundVolume = 0.8f;
 
-    // Crosshair settings
+    // Critical Effects: 0 Staircase, 1 Ghosts, 2 Spiral, 3 Burst
+    public int criticalStyle = 0;
+
+    // Crosshair
     public int crosshairStyle = 0;
     public int crosshairColor = 0xFFFF4055;
     public float crosshairSize = 5.0f;
     public float crosshairGap = 3.0f;
 
-    // Jump circle settings
+    // Jump Circle
     public int jumpCircleColor = 0xFFFF4055;
     public float jumpCircleSize = 1.0f;
+    public float jumpCircleThickness = 4.5f;
     public boolean jumpCircleFade = true;
 
-    // Hitbox settings
+    // Hitbox
     public int hitboxColor = 0xFFFF4055;
     public float hitboxWidth = 1.5f;
 
-    // Sky settings
+    // Sky
     public int skyColor = 0xFF48202F;
     public int skyStyle = 0;
 
-    // Block overlay settings
+    // Block Overlay
     public int blockOverlayStyle = 0;
     public int blockOverlayColor = 0xFFFF4055;
     public boolean blockOverlayGradient = true;
@@ -103,34 +103,25 @@ public class CrimsonConfig {
 
     public float menuScale = 1.0f;
     public int particleLimit = 50;
-
     public String watermarkText = "Crimson";
 
     // HUD positions
     public int watermarkX = -1;
     public int watermarkY = 7;
-
     public int targetHudX = -1;
     public int targetHudY = -1;
-
     public int armorHudX = -1;
     public int armorHudY = -1;
-
     public int totemHudX = -1;
     public int totemHudY = -1;
-
     public int keystrokesX = 5;
     public int keystrokesY = 43;
-
     public int moduleListX = 5;
     public int moduleListY = 100;
-
     public int inventoryHudX = -1;
     public int inventoryHudY = -1;
-
     public int potionHudX = -1;
     public int potionHudY = 42;
-
     public int durabilityHudX = -1;
     public int durabilityHudY = -1;
 
@@ -141,14 +132,9 @@ public class CrimsonConfig {
                         Files.readString(CONFIG_PATH),
                         CrimsonConfig.class
                 );
-
-                if (config != null) {
-                    return config;
-                }
+                if (config != null) return config;
             } catch (Exception e) {
-                CrimsonClient.LOGGER.error(
-                        "Failed to load Crimson config", e
-                );
+                CrimsonClient.LOGGER.error("Failed to load Crimson config", e);
             }
         }
 
@@ -160,15 +146,9 @@ public class CrimsonConfig {
     public void save() {
         try {
             Files.createDirectories(CONFIG_PATH.getParent());
-
-            Files.writeString(
-                    CONFIG_PATH,
-                    GSON.toJson(this)
-            );
+            Files.writeString(CONFIG_PATH, GSON.toJson(this));
         } catch (IOException e) {
-            CrimsonClient.LOGGER.error(
-                    "Failed to save Crimson config", e
-            );
+            CrimsonClient.LOGGER.error("Failed to save Crimson config", e);
         }
     }
 }
