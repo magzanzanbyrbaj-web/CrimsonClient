@@ -1,3 +1,4 @@
+
 package ru.crimson.client.hud;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -5,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -88,11 +90,14 @@ public class HudRenderer {
         float dist = mc.player.distanceTo(living);
 
         g.drawString(mc.font, name, x + 4, y + 4, 0xFFFFEEEE, false);
+
         String hpStr = String.format("%.1f / %.1f", hp, maxHp);
         g.drawString(mc.font, hpStr, x + 4, y + 14, 0xFFFF6666, false);
 
         String distance = String.format("%.1fm", dist);
-        g.drawString(mc.font, distance, x + w - mc.font.width(distance) - 4, y + 4, 0xFFAAAAAA, false);
+        g.drawString(mc.font, distance,
+                x + w - mc.font.width(distance) - 4,
+                y + 4, 0xFFAAAAAA, false);
 
         int barW = w - 8;
         int barX = x + 4;
@@ -115,13 +120,13 @@ public class HudRenderer {
         int y = screenH / 2 - 40;
 
         ItemStack[] armor = {
-            player.getInventory().armor.get(3),
-            player.getInventory().armor.get(2),
-            player.getInventory().armor.get(1),
-            player.getInventory().armor.get(0)
+            player.getItemBySlot(EquipmentSlot.HEAD),
+            player.getItemBySlot(EquipmentSlot.CHEST),
+            player.getItemBySlot(EquipmentSlot.LEGS),
+            player.getItemBySlot(EquipmentSlot.FEET)
         };
 
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < armor.length; i++) {
             ItemStack stack = armor[i];
             int iy = y + i * 20;
 
@@ -141,8 +146,10 @@ public class HudRenderer {
         int count = 0;
 
         for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
-            ItemStack s = player.getInventory().getItem(i);
-            if (s.is(Items.TOTEM_OF_UNDYING)) count += s.getCount();
+            ItemStack stack = player.getInventory().getItem(i);
+            if (stack.is(Items.TOTEM_OF_UNDYING)) {
+                count += stack.getCount();
+            }
         }
 
         if (count == 0) return;
@@ -175,11 +182,23 @@ public class HudRenderer {
         drawKey(g, x, y + size + gap, size, "A", a);
         drawKey(g, x + size + gap, y + size + gap, size, "S", s);
         drawKey(g, x + 2 * (size + gap), y + size + gap, size, "D", d);
-        drawKey(g, x, y + 2 * (size + gap), size + (size + gap) / 2, "LMB", lmb);
-        drawKey(g, x + size + gap + (size + gap) / 2, y + 2 * (size + gap), size + (size + gap) / 2, "RMB", rmb);
+
+        drawKey(g, x, y + 2 * (size + gap),
+                size + (size + gap) / 2, "LMB", lmb);
+
+        drawKey(g, x + size + gap + (size + gap) / 2,
+                y + 2 * (size + gap),
+                size + (size + gap) / 2, "RMB", rmb);
     }
 
-    private static void drawKey(GuiGraphics g, int x, int y, int w, String label, boolean pressed) {
+    private static void drawKey(
+            GuiGraphics g,
+            int x,
+            int y,
+            int w,
+            String label,
+            boolean pressed
+    ) {
         int bg = pressed ? 0xCCAA2222 : 0xAA1A0505;
         int border = pressed ? 0xFFFF5555 : 0xFF662222;
 
@@ -190,7 +209,8 @@ public class HudRenderer {
         g.fill(x + w - 1, y, x + w, y + 16, border);
 
         int tw = mc.font.width(label);
-        g.drawString(mc.font, label, x + (w - tw) / 2, y + 4, pressed ? 0xFFFFFFFF : 0xFFCCCCCC, false);
+        g.drawString(mc.font, label, x + (w - tw) / 2, y + 4,
+                pressed ? 0xFFFFFFFF : 0xFFCCCCCC, false);
     }
 
     private static void renderModuleList(GuiGraphics g) {
@@ -221,10 +241,10 @@ public class HudRenderer {
         int x = 4;
         int y = 100;
 
-        for (String m : modules) {
-            int tw = mc.font.width(m);
+        for (String module : modules) {
+            int tw = mc.font.width(module);
             g.fill(x, y, x + tw + 6, y + 11, 0xAA1A0505);
-            g.drawString(mc.font, m, x + 3, y + 1, 0xFFFF6666, false);
+            g.drawString(mc.font, module, x + 3, y + 1, 0xFFFF6666, false);
             y += 12;
         }
     }
@@ -238,10 +258,12 @@ public class HudRenderer {
 
         for (var effect : player.getActiveEffects()) {
             String name = effect.getEffect().value().getDisplayName().getString();
-            int amp = effect.getAmplifier() + 1;
-            int sec = effect.getDuration() / 20;
+            int amplifier = effect.getAmplifier() + 1;
+            int seconds = effect.getDuration() / 20;
 
-            String text = name + " " + amp + " " + (sec / 60) + ":" + String.format("%02d", sec % 60);
+            String text = name + " " + amplifier + " "
+                    + (seconds / 60) + ":"
+                    + String.format("%02d", seconds % 60);
 
             g.fill(x, y, x + 115, y + 12, 0xAA1A0505);
             g.drawString(mc.font, text, x + 3, y + 2, 0xFFAAFFAA, false);
@@ -262,18 +284,24 @@ public class HudRenderer {
         if (!main.isEmpty() && main.isDamageableItem()) {
             int max = main.getMaxDamage();
             int left = max - main.getDamageValue();
-            g.drawString(mc.font, left + "/" + max, x, y, left < max / 5 ? 0xFFFF3333 : 0xFFAAAAAA, true);
+
+            g.drawString(mc.font, left + "/" + max, x, y,
+                    left < max / 5 ? 0xFFFF3333 : 0xFFAAAAAA, true);
         }
 
         if (!off.isEmpty() && off.isDamageableItem()) {
             int max = off.getMaxDamage();
             int left = max - off.getDamageValue();
-            g.drawString(mc.font, left + "/" + max, x, y + 12, left < max / 5 ? 0xFFFF3333 : 0xFFAAAAAA, true);
+
+            g.drawString(mc.font, left + "/" + max, x, y + 12,
+                    left < max / 5 ? 0xFFFF3333 : 0xFFAAAAAA, true);
         }
     }
 
     private static void renderInventoryHud(GuiGraphics g) {
-        g.drawString(mc.font, "Inv", 4, mc.getWindow().getGuiScaledHeight() - 20, 0xFF888888, false);
+        g.drawString(mc.font, "Inv", 4,
+                mc.getWindow().getGuiScaledHeight() - 20,
+                0xFF888888, false);
     }
 
     private static void renderCustomCrosshair(GuiGraphics g) {
@@ -289,12 +317,12 @@ public class HudRenderer {
     private static void renderHitmarker(GuiGraphics g) {
         int cx = mc.getWindow().getGuiScaledWidth() / 2;
         int cy = mc.getWindow().getGuiScaledHeight() / 2;
-        int s = 8;
+        int size = 8;
         int color = 0xAAFF3333;
 
-        g.fill(cx - s, cy - s, cx - s + 2, cy - s + 2, color);
-        g.fill(cx + s - 2, cy - s, cx + s, cy - s + 2, color);
-        g.fill(cx - s, cy + s - 2, cx - s + 2, cy + s, color);
-        g.fill(cx + s - 2, cy + s - 2, cx + s, cy + s, color);
+        g.fill(cx - size, cy - size, cx - size + 2, cy - size + 2, color);
+        g.fill(cx + size - 2, cy - size, cx + size, cy - size + 2, color);
+        g.fill(cx - size, cy + size - 2, cx - size + 2, cy + size, color);
+        g.fill(cx + size - 2, cy + size - 2, cx + size, cy + size, color);
     }
-                }
+}
