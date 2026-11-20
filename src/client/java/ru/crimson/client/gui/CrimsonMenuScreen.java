@@ -1,4 +1,3 @@
-
 package ru.crimson.client.gui;
 
 import net.minecraft.client.Minecraft;
@@ -45,6 +44,10 @@ public class CrimsonMenuScreen extends Screen {
     private int px, py, pw, ph;
     private int sidebar, cx, cw;
 
+    // Side settings panel (opens on RMB)
+    private Feature settingsFeature;
+    private int settingsScroll;
+
     public CrimsonMenuScreen() {
         super(Component.literal("Crimson Client"));
         cfg = CrimsonClientClient.config;
@@ -52,6 +55,7 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void buildFeatures() {
+        // Combat
         add("Target HUD", "Target health and distance",
                 () -> cfg.targetHud, v -> cfg.targetHud = v, 0);
         add("Hit Particles", "Visual hit particles",
@@ -62,7 +66,12 @@ public class CrimsonMenuScreen extends Screen {
                 () -> cfg.hitmarker, v -> cfg.hitmarker = v, 0);
         add("Critical Effects", "Critical hit visuals",
                 () -> cfg.criticalEffects, v -> cfg.criticalEffects = v, 0);
+        add("Target ESP", "Particles & ring on hit target",
+                () -> cfg.targetEsp, v -> cfg.targetEsp = v, 0);
+        add("Hit Sound", "Custom sound on hit",
+                () -> cfg.hitSound, v -> cfg.hitSound = v, 0);
 
+        // Player
         add("Armor HUD", "Equipment display",
                 () -> cfg.armorHud, v -> cfg.armorHud = v, 2);
         add("Totem Counter", "Inventory totem count",
@@ -74,19 +83,29 @@ public class CrimsonMenuScreen extends Screen {
         add("Durability HUD", "Item durability",
                 () -> cfg.durabilityHud, v -> cfg.durabilityHud = v, 2);
 
+        // Visuals
         add("Smooth Sword", "Sword animation",
                 () -> cfg.smoothSword, v -> cfg.smoothSword = v, 3);
         add("Item Switch", "Item switch animation",
                 () -> cfg.itemSwitchAnim, v -> cfg.itemSwitchAnim = v, 3);
         add("Totem Animation", "Totem animation",
                 () -> cfg.totemAnimation, v -> cfg.totemAnimation = v, 3);
-        add("Custom Crosshair", "Custom crosshair",
+        add("Custom Crosshair", "Custom crosshair (hides vanilla)",
                 () -> cfg.customCrosshair, v -> cfg.customCrosshair = v, 3);
-        add("Custom Sky", "Sky visuals",
+        add("Custom Sky", "Sky color / style",
                 () -> cfg.customSky, v -> cfg.customSky = v, 3);
         add("Inventory Blur", "Inventory background effect",
                 () -> cfg.inventoryBlur, v -> cfg.inventoryBlur = v, 3);
+        add("Jump Circle", "Circle under feet on jump",
+                () -> cfg.jumpCircle, v -> cfg.jumpCircle = v, 3);
+        add("Custom Hitbox", "Player hitboxes (no invisible)",
+                () -> cfg.customHitbox, v -> cfg.customHitbox = v, 3);
+        add("Block Overlay", "RGB / gradient block outline",
+                () -> cfg.blockOverlay, v -> cfg.blockOverlay = v, 3);
+        add("No Render", "Hide fire, portal, weather...",
+                () -> cfg.noRender, v -> cfg.noRender = v, 3);
 
+        // Client
         add("Watermark", "Logo, FPS and ping",
                 () -> cfg.watermark, v -> cfg.watermark = v, 4);
         add("Keystrokes", "Keyboard display",
@@ -110,8 +129,8 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void layout() {
-        pw = Math.min(540, width - 20);
-        ph = Math.min(340, height - 20);
+        pw = Math.min(560, width - 20);
+        ph = Math.min(360, height - 20);
         px = (width - pw) / 2;
         py = (height - ph) / 2;
         sidebar = 124;
@@ -202,6 +221,10 @@ public class CrimsonMenuScreen extends Screen {
         drawHeader(g, y);
         drawCards(g, mouseX, mouseY, y);
 
+        if (settingsFeature != null) {
+            drawSettingsPanel(g, mouseX, mouseY, y);
+        }
+
         super.render(g, mouseX, mouseY, partialTick);
     }
 
@@ -267,7 +290,7 @@ public class CrimsonMenuScreen extends Screen {
         text(g, searching ? "Search results" : CATEGORIES[selected],
                 cx, y + 19, alpha(WHITE), true);
 
-        text(g, "Visual modules and settings",
+        text(g, "LMB toggle · RMB settings",
                 cx, y + 33, alpha(MUTED), false);
 
         rounded(g, px + pw - 123, y + 15, 108, 23,
@@ -311,11 +334,12 @@ public class CrimsonMenuScreen extends Screen {
 
             boolean enabled = f.get.getAsBoolean();
             boolean hover = hit(mx, my, x, cy, cardW, cardH);
+            boolean isSettings = settingsFeature == f;
 
             rounded(g, x, cy, cardW, cardH, 8,
                     alpha(enabled ? 0x883C202D : 0x66343A4B));
             rounded(g, x, cy, cardW, 1, 1,
-                    alpha(enabled ? 0xCCFF5365 : 0x55727A8C));
+                    alpha(enabled || isSettings ? 0xCCFF5365 : 0x55727A8C));
 
             text(g, f.name, x + 10, cy + 11,
                     alpha(WHITE), true);
@@ -335,11 +359,92 @@ public class CrimsonMenuScreen extends Screen {
             rounded(g, enabled ? sx + 14 : sx + 2,
                     sy + 2, 9, 9, 5, alpha(WHITE));
 
-            if (hover) {
+            if (hover || isSettings) {
                 rounded(g, x + 5, cy + cardH - 2,
                         cardW - 10, 1, 1, alpha(RED));
             }
         }
+    }
+
+    private void drawSettingsPanel(GuiGraphics g, int mx, int my, int y) {
+        int panelW = 190;
+        int panelX = px + pw + 8;
+        int panelY = y + 40;
+        int panelH = ph - 50;
+
+        if (panelX + panelW > width - 8) {
+            panelX = px - panelW - 8;
+        }
+
+        rounded(g, panelX + 2, panelY + 3, panelW, panelH, 12, 0x66000000);
+        rounded(g, panelX, panelY, panelW, panelH, 12, alpha(0xF0111521));
+        rounded(g, panelX + 1, panelY + 1, panelW - 2, panelH - 2, 11, alpha(0xE01B2030));
+        rounded(g, panelX + 10, panelY + 1, panelW - 20, 2, 1, alpha(RED));
+
+        text(g, settingsFeature.name, panelX + 12, panelY + 12, alpha(WHITE), true);
+        text(g, "Settings", panelX + 12, panelY + 26, alpha(MUTED), false);
+
+        int ly = panelY + 48;
+        int left = panelX + 12;
+        int right = panelX + panelW - 12;
+
+        // Generic toggles depending on feature
+        if (settingsFeature.name.equals("No Render")) {
+            ly = toggleRow(g, "Hide Fire", () -> cfg.hideFire, v -> cfg.hideFire = v, left, right, ly, mx, my);
+            ly = toggleRow(g, "Hide Hurt Cam", () -> cfg.hideHurtCamera, v -> cfg.hideHurtCamera = v, left, right, ly, mx, my);
+            ly = toggleRow(g, "Hide Portal", () -> cfg.hidePortal, v -> cfg.hidePortal = v, left, right, ly, mx, my);
+            ly = toggleRow(g, "Hide Pumpkin", () -> cfg.hidePumpkin, v -> cfg.hidePumpkin = v, left, right, ly, mx, my);
+            ly = toggleRow(g, "Hide Vignette", () -> cfg.hideVignette, v -> cfg.hideVignette = v, left, right, ly, mx, my);
+            ly = toggleRow(g, "Hide Nausea", () -> cfg.hideNausea, v -> cfg.hideNausea = v, left, right, ly, mx, my);
+            ly = toggleRow(g, "Hide Weather", () -> cfg.hideWeather, v -> cfg.hideWeather = v, left, right, ly, mx, my);
+            ly = toggleRow(g, "Hide Particles", () -> cfg.hideParticles, v -> cfg.hideParticles = v, left, right, ly, mx, my);
+        } else if (settingsFeature.name.equals("Target ESP")) {
+            ly = toggleRow(g, "Ring", () -> cfg.targetEspRing, v -> cfg.targetEspRing = v, left, right, ly, mx, my);
+            ly = toggleRow(g, "Particles", () -> cfg.targetEspParticles, v -> cfg.targetEspParticles = v, left, right, ly, mx, my);
+        } else if (settingsFeature.name.equals("Hit Sound")) {
+            text(g, "Type: " + cfg.hitSoundType, left, ly, alpha(WHITE), false);
+            ly += 16;
+            text(g, "Volume: " + String.format("%.1f", cfg.hitSoundVolume), left, ly, alpha(MUTED), false);
+            ly += 18;
+            text(g, "LMB type+ · RMB type-", left, ly, alpha(MUTED), false);
+        } else if (settingsFeature.name.equals("Custom Crosshair")) {
+            text(g, "Style: " + cfg.crosshairStyle, left, ly, alpha(WHITE), false);
+            ly += 16;
+            text(g, "Size: " + String.format("%.1f", cfg.crosshairSize), left, ly, alpha(MUTED), false);
+            ly += 16;
+            text(g, "Gap: " + String.format("%.1f", cfg.crosshairGap), left, ly, alpha(MUTED), false);
+        } else if (settingsFeature.name.equals("Jump Circle")) {
+            ly = toggleRow(g, "Fade", () -> cfg.jumpCircleFade, v -> cfg.jumpCircleFade = v, left, right, ly, mx, my);
+            text(g, "Size: " + String.format("%.1f", cfg.jumpCircleSize), left, ly, alpha(MUTED), false);
+        } else if (settingsFeature.name.equals("Custom Hitbox")) {
+            text(g, "Width: " + String.format("%.1f", cfg.hitboxWidth), left, ly, alpha(MUTED), false);
+        } else if (settingsFeature.name.equals("Block Overlay")) {
+            ly = toggleRow(g, "Gradient / RGB", () -> cfg.blockOverlayGradient, v -> cfg.blockOverlayGradient = v, left, right, ly, mx, my);
+            text(g, "Style: " + cfg.blockOverlayStyle, left, ly, alpha(WHITE), false);
+            ly += 16;
+            text(g, "Width: " + String.format("%.1f", cfg.blockOverlayWidth), left, ly, alpha(MUTED), false);
+        } else if (settingsFeature.name.equals("Custom Sky")) {
+            text(g, "Style: " + cfg.skyStyle, left, ly, alpha(WHITE), false);
+            ly += 16;
+            text(g, "Color set in config", left, ly, alpha(MUTED), false);
+        } else {
+            text(g, "No extra settings", left, ly, alpha(MUTED), false);
+        }
+
+        // Close hint
+        text(g, "RMB outside to close", panelX + 12, panelY + panelH - 18, alpha(MUTED), false);
+    }
+
+    private int toggleRow(GuiGraphics g, String label, BooleanSupplier get, Consumer<Boolean> set,
+                          int left, int right, int y, int mx, int my) {
+        boolean on = get.getAsBoolean();
+        text(g, label, left, y + 2, alpha(WHITE), false);
+
+        int sx = right - 28;
+        rounded(g, sx, y, 25, 13, 7, alpha(on ? 0xFFFF4355 : 0xFF555A68));
+        rounded(g, on ? sx + 14 : sx + 2, y + 2, 9, 9, 5, alpha(WHITE));
+
+        return y + 20;
     }
 
     private int widthOf(String s) {
@@ -382,41 +487,109 @@ public class CrimsonMenuScreen extends Screen {
             return super.mouseClicked(event, doubleClick);
         }
 
-        if (event.button() == 0) {
-            int mx = (int) event.x();
-            int my = (int) event.y();
+        int mx = (int) event.x();
+        int my = (int) event.y();
+        int button = event.button();
 
+        // Category sidebar
+        if (button == 0) {
             for (int i = 0; i < CATEGORIES.length; i++) {
                 if (hit(mx, my, px + 8, py + 57 + i * 34,
                         sidebar - 16, 28)) {
                     selected = i;
+                    settingsFeature = null;
                     if (searchBox != null) searchBox.setValue("");
                     return true;
                 }
             }
+        }
 
-            List<Feature> visible = filteredFeatures();
-            int columns = cw > 300 ? 2 : 1;
-            int gap = 8;
-            int cardW = (cw - gap * (columns - 1)) / columns;
-            int cardH = 53;
+        // Settings panel clicks
+        if (settingsFeature != null) {
+            int panelW = 190;
+            int panelX = px + pw + 8;
+            int panelY = py + 40;
+            int panelH = ph - 50;
+            if (panelX + panelW > width - 8) panelX = px - panelW - 8;
 
-            for (int i = 0; i < visible.size(); i++) {
-                int col = i % columns;
-                int row = i / columns;
-                int x = cx + col * (cardW + gap);
-                int cy = py + 77 + row * (cardH + 8);
+            if (hit(mx, my, panelX, panelY, panelW, panelH)) {
+                // Handle specific toggles inside panel
+                handleSettingsClick(mx, my, panelX, panelY, button);
+                cfg.save();
+                return true;
+            } else if (button == 1) {
+                // RMB outside closes settings
+                settingsFeature = null;
+                return true;
+            }
+        }
 
-                if (hit(mx, my, x, cy, cardW, cardH)) {
-                    Feature f = visible.get(i);
+        List<Feature> visible = filteredFeatures();
+        int columns = cw > 300 ? 2 : 1;
+        int gap = 8;
+        int cardW = (cw - gap * (columns - 1)) / columns;
+        int cardH = 53;
+
+        for (int i = 0; i < visible.size(); i++) {
+            int col = i % columns;
+            int row = i / columns;
+            int x = cx + col * (cardW + gap);
+            int cy = py + 77 + row * (cardH + 8);
+
+            if (hit(mx, my, x, cy, cardW, cardH)) {
+                Feature f = visible.get(i);
+
+                if (button == 0) {
+                    // LMB = toggle
                     f.set.accept(!f.get.getAsBoolean());
                     cfg.save();
+                    return true;
+                } else if (button == 1) {
+                    // RMB = open settings side panel
+                    settingsFeature = (settingsFeature == f) ? null : f;
                     return true;
                 }
             }
         }
 
         return super.mouseClicked(event, doubleClick);
+    }
+
+    private void handleSettingsClick(int mx, int my, int panelX, int panelY, int button) {
+        int ly = panelY + 48;
+        int left = panelX + 12;
+        int right = panelX + 190 - 12;
+
+        if (settingsFeature.name.equals("No Render")) {
+            ly = tryToggle(mx, my, ly, "Hide Fire", () -> cfg.hideFire, v -> cfg.hideFire = v, left, right);
+            ly = tryToggle(mx, my, ly, "Hide Hurt Cam", () -> cfg.hideHurtCamera, v -> cfg.hideHurtCamera = v, left, right);
+            ly = tryToggle(mx, my, ly, "Hide Portal", () -> cfg.hidePortal, v -> cfg.hidePortal = v, left, right);
+            ly = tryToggle(mx, my, ly, "Hide Pumpkin", () -> cfg.hidePumpkin, v -> cfg.hidePumpkin = v, left, right);
+            ly = tryToggle(mx, my, ly, "Hide Vignette", () -> cfg.hideVignette, v -> cfg.hideVignette = v, left, right);
+            ly = tryToggle(mx, my, ly, "Hide Nausea", () -> cfg.hideNausea, v -> cfg.hideNausea = v, left, right);
+            ly = tryToggle(mx, my, ly, "Hide Weather", () -> cfg.hideWeather, v -> cfg.hideWeather = v, left, right);
+            tryToggle(mx, my, ly, "Hide Particles", () -> cfg.hideParticles, v -> cfg.hideParticles = v, left, right);
+        } else if (settingsFeature.name.equals("Target ESP")) {
+            ly = tryToggle(mx, my, ly, "Ring", () -> cfg.targetEspRing, v -> cfg.targetEspRing = v, left, right);
+            tryToggle(mx, my, ly, "Particles", () -> cfg.targetEspParticles, v -> cfg.targetEspParticles = v, left, right);
+        } else if (settingsFeature.name.equals("Hit Sound")) {
+            if (button == 0) cfg.hitSoundType = (cfg.hitSoundType + 1) % 7;
+            else if (button == 1) cfg.hitSoundType = (cfg.hitSoundType + 6) % 7;
+        } else if (settingsFeature.name.equals("Jump Circle")) {
+            tryToggle(mx, my, ly, "Fade", () -> cfg.jumpCircleFade, v -> cfg.jumpCircleFade = v, left, right);
+        } else if (settingsFeature.name.equals("Block Overlay")) {
+            tryToggle(mx, my, ly, "Gradient / RGB", () -> cfg.blockOverlayGradient, v -> cfg.blockOverlayGradient = v, left, right);
+        }
+    }
+
+    private int tryToggle(int mx, int my, int y, String label,
+                          BooleanSupplier get, Consumer<Boolean> set,
+                          int left, int right) {
+        int sx = right - 28;
+        if (hit(mx, my, sx, y, 25, 13)) {
+            set.accept(!get.getAsBoolean());
+        }
+        return y + 20;
     }
 
     @Override
@@ -427,4 +600,4 @@ public class CrimsonMenuScreen extends Screen {
     private record Feature(String name, String desc,
                            BooleanSupplier get, Consumer<Boolean> set,
                            int category) {}
-}
+    }
