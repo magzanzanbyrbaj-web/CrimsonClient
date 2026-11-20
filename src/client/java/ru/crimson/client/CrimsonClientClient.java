@@ -1,3 +1,4 @@
+
 package ru.crimson.client;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -15,6 +16,8 @@ import ru.crimson.client.visual.CustomHitbox;
 import ru.crimson.client.visual.BlockOverlay;
 import ru.crimson.client.visual.JumpCircle;
 import ru.crimson.client.visual.CustomSky;
+import ru.crimson.client.visual.HitSound;
+import ru.crimson.client.visual.CriticalEffects;
 
 public class CrimsonClientClient implements ClientModInitializer {
 
@@ -40,6 +43,9 @@ public class CrimsonClientClient implements ClientModInitializer {
         BlockOverlay.init();
         JumpCircle.init();
         CustomSky.init();
+
+        HitSound.init();
+        CriticalEffects.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.consumeClick()) {
