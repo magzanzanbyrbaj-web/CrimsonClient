@@ -1,3 +1,4 @@
+
 package ru.crimson.client.visual;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -43,8 +44,7 @@ public final class JumpCircle {
 
             boolean onGround = player.onGround();
 
-            if (wasOnGround && !onGround
-                    && player.getDeltaMovement().y > 0) {
+            if (wasOnGround && !onGround && player.getDeltaMovement().y > 0) {
                 CIRCLES.add(new Circle(
                         player.getX(),
                         player.getY(),
@@ -84,44 +84,48 @@ public final class JumpCircle {
         Vec3 cam = context.gameRenderer().getMainCamera().position();
 
         matrices.pushPose();
-        matrices.translate(-cam.x, -cam.y, -cam.z);
+        try {
+            matrices.translate(-cam.x, -cam.y, -cam.z);
 
-        Matrix4f matrix = matrices.last().pose();
-        VertexConsumer buffer = consumers.getBuffer(RenderTypes.lines());
+            Matrix4f matrix = matrices.last().pose();
+            VertexConsumer buffer = consumers.getBuffer(RenderTypes.lines());
 
-        for (Circle circle : CIRCLES) {
-            float progress = circle.age / 18f;
-            float alpha = circle.fade ? 1f - progress : 0.85f;
+            for (Circle circle : CIRCLES) {
+                float progress = circle.age / 18f;
+                float alpha = circle.fade ? 1f - progress : 0.85f;
 
-            if (alpha <= 0.02f) continue;
+                if (alpha <= 0.02f) continue;
 
-            float radius = circle.baseSize * (0.6f + progress * 1.4f);
+                float radius = circle.baseSize * (0.6f + progress * 1.4f);
 
-            int color = circle.color;
-            float r = ((color >> 16) & 255) / 255f;
-            float g = ((color >> 8) & 255) / 255f;
-            float b = (color & 255) / 255f;
+                int color = circle.color;
+                float r = ((color >> 16) & 255) / 255f;
+                float g = ((color >> 8) & 255) / 255f;
+                float b = (color & 255) / 255f;
 
-            for (int i = 0; i < 48; i++) {
-                double angle1 = Math.PI * 2.0 * i / 48;
-                double angle2 = Math.PI * 2.0 * (i + 1) / 48;
+                for (int i = 0; i < 48; i++) {
+                    double angle1 = Math.PI * 2.0 * i / 48;
+                    double angle2 = Math.PI * 2.0 * (i + 1) / 48;
 
-                float x1 = (float) (circle.x + Math.cos(angle1) * radius);
-                float z1 = (float) (circle.z + Math.sin(angle1) * radius);
-                float x2 = (float) (circle.x + Math.cos(angle2) * radius);
-                float z2 = (float) (circle.z + Math.sin(angle2) * radius);
+                    float x1 = (float) (circle.x + Math.cos(angle1) * radius);
+                    float z1 = (float) (circle.z + Math.sin(angle1) * radius);
+                    float x2 = (float) (circle.x + Math.cos(angle2) * radius);
+                    float z2 = (float) (circle.z + Math.sin(angle2) * radius);
 
-                buffer.addVertex(matrix, x1, (float) (circle.y + 0.02), z1)
-                        .setColor(r, g, b, alpha)
-                        .setNormal(0, 1, 0);
+                    buffer.addVertex(matrix, x1, (float) (circle.y + 0.02), z1)
+                            .setColor(r, g, b, alpha)
+                            .setNormal(0, 1, 0);
+                    buffer.setLineWidth(1.5f);
 
-                buffer.addVertex(matrix, x2, (float) (circle.y + 0.02), z2)
-                        .setColor(r, g, b, alpha)
-                        .setNormal(0, 1, 0);
+                    buffer.addVertex(matrix, x2, (float) (circle.y + 0.02), z2)
+                            .setColor(r, g, b, alpha)
+                            .setNormal(0, 1, 0);
+                    buffer.setLineWidth(1.5f);
+                }
             }
+        } finally {
+            matrices.popPose();
         }
-
-        matrices.popPose();
     }
 
     private static final class Circle {
