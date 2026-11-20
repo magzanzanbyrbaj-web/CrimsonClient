@@ -1,3 +1,4 @@
+
 package ru.crimson.client.visual;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -38,8 +39,7 @@ public final class TargetEsp {
             if (config.targetEsp && attackDown && !wasAttackDown
                     && client.screen == null
                     && client.crosshairPickEntity instanceof LivingEntity living
-                    && living != client.player
-                    && living.isAlive()
+                    && living != client.player && living.isAlive()
                     && !living.isInvisible()) {
                 target = living;
                 ticksLeft = 18;
@@ -67,7 +67,7 @@ public final class TargetEsp {
 
     private static void renderWorld(WorldRenderContext context) {
         CrimsonConfig config = CrimsonClientClient.config;
-        if (!config.targetEsp || target == null || !target.isAlive()) return;
+        if (config == null || !config.targetEsp || target == null || !target.isAlive()) return;
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
@@ -78,58 +78,56 @@ public final class TargetEsp {
 
         Vec3 cam = context.gameRenderer().getMainCamera().position();
 
-        double x = target.getX();
-        double y = target.getY();
-        double z = target.getZ();
-
         matrices.pushPose();
-        matrices.translate(-cam.x, -cam.y, -cam.z);
+        try {
+            matrices.translate(-cam.x, -cam.y, -cam.z);
 
-        Matrix4f matrix = matrices.last().pose();
-        VertexConsumer buffer = consumers.getBuffer(RenderTypes.lines());
+            Matrix4f matrix = matrices.last().pose();
+            VertexConsumer buffer = consumers.getBuffer(RenderTypes.lines());
 
-        int color = config.targetEspColor;
-        float r = ((color >> 16) & 255) / 255f;
-        float g = ((color >> 8) & 255) / 255f;
-        float b = (color & 255) / 255f;
-        float a = 0.75f + 0.2f * (float) Math.sin(animationTick * 0.3);
+            int color = config.targetEspColor;
+            float r = ((color >> 16) & 255) / 255f;
+            float g = ((color >> 8) & 255) / 255f;
+            float b = (color & 255) / 255f;
+            float a = 0.75f + 0.2f * (float) Math.sin(animationTick * 0.3);
 
-        float height = target.getBbHeight();
-        float width = target.getBbWidth() * 0.55f;
+            float height = target.getBbHeight();
+            float width = target.getBbWidth() * 0.55f;
 
-        for (int i = 0; i < 6; i++) {
-            double angle = Math.PI * 2.0 * i / 6 + animationTick * 0.15;
-            float px = (float) (x + Math.cos(angle) * width);
-            float pz = (float) (z + Math.sin(angle) * width);
+            for (int i = 0; i < 6; i++) {
+                double angle = Math.PI * 2.0 * i / 6 + animationTick * 0.15;
+                float px = (float) (target.getX() + Math.cos(angle) * width);
+                float pz = (float) (target.getZ() + Math.sin(angle) * width);
 
-            vertex(buffer, matrix, px, (float) y, pz, r, g, b, a);
-            vertex(buffer, matrix, px, (float) (y + height), pz, r, g, b, a * 0.3f);
-        }
-
-        if (config.targetEspRing) {
-            float progress = 1f - ticksLeft / 18f;
-            float radius = width * (0.8f + progress * 1.6f);
-            float alpha = a * (1f - progress);
-
-            for (int i = 0; i < 40; i++) {
-                double a1 = Math.PI * 2.0 * i / 40;
-                double a2 = Math.PI * 2.0 * (i + 1) / 40;
-
-                vertex(buffer, matrix,
-                        (float) (x + Math.cos(a1) * radius),
-                        (float) (y + 0.05),
-                        (float) (z + Math.sin(a1) * radius),
-                        r, g, b, alpha);
-
-                vertex(buffer, matrix,
-                        (float) (x + Math.cos(a2) * radius),
-                        (float) (y + 0.05),
-                        (float) (z + Math.sin(a2) * radius),
-                        r, g, b, alpha);
+                vertex(buffer, matrix, px, (float) target.getY(), pz, r, g, b, a);
+                vertex(buffer, matrix, px, (float) (target.getY() + height), pz, r, g, b, a * 0.3f);
             }
-        }
 
-        matrices.popPose();
+            if (config.targetEspRing) {
+                float progress = 1f - ticksLeft / 18f;
+                float radius = width * (0.8f + progress * 1.6f);
+                float alpha = a * (1f - progress);
+
+                for (int i = 0; i < 40; i++) {
+                    double a1 = Math.PI * 2.0 * i / 40;
+                    double a2 = Math.PI * 2.0 * (i + 1) / 40;
+
+                    vertex(buffer, matrix,
+                            (float) (target.getX() + Math.cos(a1) * radius),
+                            (float) (target.getY() + 0.05),
+                            (float) (target.getZ() + Math.sin(a1) * radius),
+                            r, g, b, alpha);
+
+                    vertex(buffer, matrix,
+                            (float) (target.getX() + Math.cos(a2) * radius),
+                            (float) (target.getY() + 0.05),
+                            (float) (target.getZ() + Math.sin(a2) * radius),
+                            r, g, b, alpha);
+                }
+            }
+        } finally {
+            matrices.popPose();
+        }
     }
 
     private static void vertex(VertexConsumer buffer, Matrix4f matrix,
@@ -138,6 +136,7 @@ public final class TargetEsp {
         buffer.addVertex(matrix, x, y, z)
                 .setColor(r, g, b, a)
                 .setNormal(0, 1, 0);
+        buffer.setLineWidth(1.5f);
     }
 
     private static void spawnEffects(Minecraft client,
