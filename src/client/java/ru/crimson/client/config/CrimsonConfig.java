@@ -34,6 +34,23 @@ public class CrimsonConfig {
     public boolean targetEsp = false;
     public boolean hitSound = false;
 
+    // New features
+    public boolean reachDisplay = true;
+    public boolean pearlTracker = true;
+    public boolean fpsBoost = false;
+
+    // Theme
+    public int themePrimary = 0xFF111521;
+    public int themeSecondary = 0xFF1B2030;
+    public int themeAccent = 0xFFFF4055;
+    public int themeText = 0xFFF5F3F7;
+    public float panelOpacity = 0.92f;
+
+    // Menu
+    // 0 Fade, 1 Slide, 2 Zoom, 3 Smooth, 4 Off
+    public int menuAnimation = 0;
+    public float menuScale = 1.0f;
+
     // Visuals
     public boolean smoothSword = false;
     public boolean itemSwitchAnim = true;
@@ -65,8 +82,9 @@ public class CrimsonConfig {
     // Hit Sound
     public int hitSoundType = 0;
     public float hitSoundVolume = 0.8f;
+    public float hitSoundPitch = 1.0f;
 
-    // Critical Effects: 0 Staircase, 1 Ghosts, 2 Spiral, 3 Burst
+    // Critical Effects
     public int criticalStyle = 0;
 
     // Crosshair
@@ -100,8 +118,6 @@ public class CrimsonConfig {
     public boolean reduceParticles = true;
     public boolean optimized = true;
     public boolean glassAnimation = true;
-
-    public float menuScale = 1.0f;
     public int particleLimit = 50;
     public String watermarkText = "Crimson";
 
