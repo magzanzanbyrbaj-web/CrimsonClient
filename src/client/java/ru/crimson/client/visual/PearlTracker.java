@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.projectile.ThrownEnderpearl;
+import net.minecraft.world.entity.projectile.throwableitemprojectile.ThrownEnderpearl;
 import net.minecraft.world.phys.Vec3;
 import ru.crimson.client.CrimsonClientClient;
 
@@ -49,7 +49,6 @@ public final class PearlTracker {
             double vy = velocity.y;
             double vz = velocity.z;
 
-            // Approximate pearl flight prediction.
             for (int tick = 0; tick < 100; tick++) {
                 x += vx;
                 y += vy;
@@ -72,7 +71,8 @@ public final class PearlTracker {
                     "Estimated: %.0f  %.0f  %.0f", x, y, z);
 
             int boxWidth = Math.max(mc.font.width(title),
-                    Math.max(mc.font.width(distance), mc.font.width(prediction))) + 14;
+                    Math.max(mc.font.width(distance),
+                    mc.font.width(prediction))) + 14;
 
             int px = screenWidth / 2 + 12;
             int py = screenHeight / 2 + 32;
