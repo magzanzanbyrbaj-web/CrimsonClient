@@ -10,6 +10,7 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.util.Mth;
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
@@ -23,6 +24,8 @@ import java.util.function.Consumer;
 public class CrimsonMenuScreen extends Screen {
     private static final Identifier FONT =
             Identifier.fromNamespaceAndPath("crimsonclient", "inter");
+    private static final Identifier LOGO =
+            Identifier.fromNamespaceAndPath("crimsonclient", "crimson_logo.png");
 
     private static final int RED = 0xFFFF4055;
     private static final int WHITE = 0xFFF5F3F7;
@@ -163,7 +166,9 @@ public class CrimsonMenuScreen extends Screen {
 
     private void drawSidebar(GuiGraphics g, int mx, int my, int y) {
         rounded(g, px + 13, y + 14, 27, 27, 8, alpha(0xFF55202F));
-        text(g, "D", px + 22, y + 23, alpha(0xFFFF6374), true);
+        g.blit(RenderPipelines.GUI_TEXTURED, LOGO,
+                px + 13, y + 14, 0f, 0f, 27, 27, 128, 128);
+
         text(g, "CRIMSON", px + 46, y + 17, alpha(WHITE), true);
         text(g, "CLIENT", px + 46, y + 29, alpha(MUTED), false);
 
@@ -194,7 +199,8 @@ public class CrimsonMenuScreen extends Screen {
         int profileY = y + ph - 43;
         rounded(g, px + 8, profileY, sidebar - 16, 33, 7, alpha(0x553C4050));
         rounded(g, px + 13, profileY + 5, 22, 22, 6, alpha(0xFF542432));
-        text(g, "D", px + 21, profileY + 12, alpha(WHITE), true);
+        g.blit(RenderPipelines.GUI_TEXTURED, LOGO,
+                px + 13, profileY + 5, 0f, 0f, 22, 22, 128, 128);
 
         String player = Minecraft.getInstance().player == null
                 ? "Player" : Minecraft.getInstance().player.getName().getString();
