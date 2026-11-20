@@ -1,3 +1,4 @@
+
 package ru.crimson.client.visual;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -26,7 +27,7 @@ public final class BlockOverlay {
 
     private static void render(WorldRenderContext context) {
         CrimsonConfig config = CrimsonClientClient.config;
-        if (!config.blockOverlay) return;
+        if (config == null || !config.blockOverlay) return;
 
         Minecraft mc = Minecraft.getInstance();
         if (mc.level == null || mc.player == null || mc.hitResult == null) return;
@@ -35,7 +36,6 @@ public final class BlockOverlay {
         BlockHitResult hit = (BlockHitResult) mc.hitResult;
         BlockPos pos = hit.getBlockPos();
         BlockState state = mc.level.getBlockState(pos);
-
         if (state.isAir()) return;
 
         VoxelShape shape = state.getShape(mc.level, pos);
@@ -46,37 +46,41 @@ public final class BlockOverlay {
         if (matrices == null || consumers == null) return;
 
         Vec3 cam = context.gameRenderer().getMainCamera().position();
+        float lineWidth = Math.max(1.0f, config.blockOverlayWidth);
 
         matrices.pushPose();
-        matrices.translate(-cam.x, -cam.y, -cam.z);
-        matrices.translate(pos.getX(), pos.getY(), pos.getZ());
+        try {
+            matrices.translate(-cam.x, -cam.y, -cam.z);
+            matrices.translate(pos.getX(), pos.getY(), pos.getZ());
 
-        Matrix4f matrix = matrices.last().pose();
-        VertexConsumer buffer = consumers.getBuffer(RenderTypes.lines());
-        buffer.setLineWidth(Math.max(1.0f, config.blockOverlayWidth));
+            Matrix4f matrix = matrices.last().pose();
+            VertexConsumer buffer = consumers.getBuffer(RenderTypes.lines());
 
-        boolean gradient = config.blockOverlayGradient;
-        float hue = (System.currentTimeMillis() % 4000L) / 4000f;
+            boolean gradient = config.blockOverlayGradient;
+            float hue = (System.currentTimeMillis() % 4000L) / 4000f;
 
-        float[] first = gradient
-                ? hsvToRgb(hue, 0.85f, 1f)
-                : colorToFloat(config.blockOverlayColor);
+            float[] first = gradient
+                    ? hsvToRgb(hue, 0.85f, 1f)
+                    : colorToFloat(config.blockOverlayColor);
 
-        float[] second = gradient
-                ? hsvToRgb((hue + 0.25f) % 1f, 0.9f, 1f)
-                : first;
+            float[] second = gradient
+                    ? hsvToRgb((hue + 0.25f) % 1f, 0.9f, 1f)
+                    : first;
 
-        shape.forAllEdges((x1, y1, z1, x2, y2, z2) -> {
-            buffer.addVertex(matrix, (float) x1, (float) y1, (float) z1)
-                    .setColor(first[0], first[1], first[2], 0.95f)
-                    .setNormal(0, 1, 0);
+            shape.forAllEdges((x1, y1, z1, x2, y2, z2) -> {
+                buffer.addVertex(matrix, (float) x1, (float) y1, (float) z1)
+                        .setColor(first[0], first[1], first[2], 0.95f)
+                        .setNormal(0, 1, 0);
+                buffer.setLineWidth(lineWidth);
 
-            buffer.addVertex(matrix, (float) x2, (float) y2, (float) z2)
-                    .setColor(second[0], second[1], second[2], 0.95f)
-                    .setNormal(0, 1, 0);
-        });
-
-        matrices.popPose();
+                buffer.addVertex(matrix, (float) x2, (float) y2, (float) z2)
+                        .setColor(second[0], second[1], second[2], 0.95f)
+                        .setNormal(0, 1, 0);
+                buffer.setLineWidth(lineWidth);
+            });
+        } finally {
+            matrices.popPose();
+        }
     }
 
     private static float[] colorToFloat(int color) {
