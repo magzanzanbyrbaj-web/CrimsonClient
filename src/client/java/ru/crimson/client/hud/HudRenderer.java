@@ -5,7 +5,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
@@ -20,8 +20,8 @@ import java.util.List;
 public class HudRenderer {
     private static final Minecraft mc = Minecraft.getInstance();
 
-    private static final ResourceLocation LOGO =
-            ResourceLocation.fromNamespaceAndPath("crimsonclient", "textures/gui/crimson_logo.png");
+    private static final Identifier LOGO =
+            Identifier.fromNamespaceAndPath("crimsonclient", "textures/gui/crimson_logo.png");
 
     private static long lastHitmarker = 0;
 
