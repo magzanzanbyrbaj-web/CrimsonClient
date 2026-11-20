@@ -46,9 +46,7 @@ public final class JumpCircle {
 
             if (wasOnGround && !onGround && player.getDeltaMovement().y > 0) {
                 CIRCLES.add(new Circle(
-                        player.getX(),
-                        player.getY(),
-                        player.getZ(),
+                        player.getX(), player.getY(), player.getZ(),
                         config.jumpCircleSize,
                         config.jumpCircleColor,
                         config.jumpCircleFade
@@ -61,10 +59,7 @@ public final class JumpCircle {
             while (iterator.hasNext()) {
                 Circle circle = iterator.next();
                 circle.age++;
-
-                if (circle.age > 18) {
-                    iterator.remove();
-                }
+                if (circle.age > 18) iterator.remove();
             }
         });
 
@@ -93,7 +88,6 @@ public final class JumpCircle {
             for (Circle circle : CIRCLES) {
                 float progress = circle.age / 18f;
                 float alpha = circle.fade ? 1f - progress : 0.85f;
-
                 if (alpha <= 0.02f) continue;
 
                 float radius = circle.baseSize * (0.6f + progress * 1.4f);
@@ -129,9 +123,7 @@ public final class JumpCircle {
     }
 
     private static final class Circle {
-        final double x;
-        final double y;
-        final double z;
+        final double x, y, z;
         final float baseSize;
         final int color;
         final boolean fade;
