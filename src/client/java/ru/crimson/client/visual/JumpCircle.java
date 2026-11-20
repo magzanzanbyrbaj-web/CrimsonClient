@@ -1,16 +1,15 @@
 package ru.crimson.client.visual;
 
-import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
-import net.minecraft.util.Mth;
-import net.minecraft.world.phys.Vec3;
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
+import net.minecraft.world.phys.Vec3;
 import org.joml.Matrix4f;
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
@@ -20,7 +19,6 @@ import java.util.Iterator;
 import java.util.List;
 
 public final class JumpCircle {
-
     private static final List<Circle> CIRCLES = new ArrayList<>();
     private static boolean wasOnGround = true;
 
@@ -35,21 +33,22 @@ public final class JumpCircle {
             }
 
             CrimsonConfig config = CrimsonClientClient.config;
+            LocalPlayer player = client.player;
+
             if (!config.jumpCircle) {
                 CIRCLES.clear();
-                wasOnGround = client.player.onGround();
+                wasOnGround = player.onGround();
                 return;
             }
 
-            LocalPlayer p = client.player;
-            boolean onGround = p.onGround();
+            boolean onGround = player.onGround();
 
-            // Detect jump (left ground)
-            if (wasOnGround && !onGround && p.getDeltaMovement().y > 0.0) {
+            if (wasOnGround && !onGround
+                    && player.getDeltaMovement().y > 0) {
                 CIRCLES.add(new Circle(
-                        p.getX(),
-                        p.getY(),
-                        p.getZ(),
+                        player.getX(),
+                        player.getY(),
+                        player.getZ(),
                         config.jumpCircleSize,
                         config.jumpCircleColor,
                         config.jumpCircleFade
@@ -58,18 +57,18 @@ public final class JumpCircle {
 
             wasOnGround = onGround;
 
-            // Update lifetime
-            Iterator<Circle> it = CIRCLES.iterator();
-            while (it.hasNext()) {
-                Circle c = it.next();
-                c.age++;
-                if (c.age > 18) {
-                    it.remove();
+            Iterator<Circle> iterator = CIRCLES.iterator();
+            while (iterator.hasNext()) {
+                Circle circle = iterator.next();
+                circle.age++;
+
+                if (circle.age > 18) {
+                    iterator.remove();
                 }
             }
         });
 
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(JumpCircle::render);
+        WorldRenderEvents.BEFORE_TRANSLUCENT.register(JumpCircle::render);
     }
 
     private static void render(WorldRenderContext context) {
@@ -78,47 +77,47 @@ public final class JumpCircle {
         Minecraft mc = Minecraft.getInstance();
         if (mc.player == null) return;
 
-        PoseStack matrices = context.matrixStack();
+        PoseStack matrices = context.matrices();
         MultiBufferSource consumers = context.consumers();
         if (matrices == null || consumers == null) return;
 
-        Vec3 cam = context.camera().getPosition();
+        Vec3 cam = context.gameRenderer().getMainCamera().getPosition();
+
         matrices.pushPose();
         matrices.translate(-cam.x, -cam.y, -cam.z);
 
         Matrix4f matrix = matrices.last().pose();
-        VertexConsumer buffer = consumers.getBuffer(RenderType.lines());
+        VertexConsumer buffer = consumers.getBuffer(RenderTypes.lines());
 
-        for (Circle c : CIRCLES) {
-            float progress = c.age / 18f;
-            float alpha = c.fade ? (1f - progress) : 0.85f;
+        for (Circle circle : CIRCLES) {
+            float progress = circle.age / 18f;
+            float alpha = circle.fade ? 1f - progress : 0.85f;
+
             if (alpha <= 0.02f) continue;
 
-            float radius = c.baseSize * (0.6f + progress * 1.4f);
-            int color = c.color;
-            float r = ((color >> 16) & 0xFF) / 255f;
-            float g = ((color >> 8) & 0xFF) / 255f;
-            float b = (color & 0xFF) / 255f;
-            float a = alpha * 0.9f;
+            float radius = circle.baseSize * (0.6f + progress * 1.4f);
 
-            int segments = 48;
-            double prevX = c.x + radius;
-            double prevZ = c.z;
+            int color = circle.color;
+            float r = ((color >> 16) & 255) / 255f;
+            float g = ((color >> 8) & 255) / 255f;
+            float b = (color & 255) / 255f;
 
-            for (int i = 1; i <= segments; i++) {
-                double angle = (Math.PI * 2.0 * i) / segments;
-                double x = c.x + Math.cos(angle) * radius;
-                double z = c.z + Math.sin(angle) * radius;
+            for (int i = 0; i < 48; i++) {
+                double angle1 = Math.PI * 2.0 * i / 48;
+                double angle2 = Math.PI * 2.0 * (i + 1) / 48;
 
-                buffer.addVertex(matrix, (float) prevX, (float) (c.y + 0.02), (float) prevZ)
-                        .setColor(r, g, b, a)
-                        .setNormal(0, 1, 0);
-                buffer.addVertex(matrix, (float) x, (float) (c.y + 0.02), (float) z)
-                        .setColor(r, g, b, a)
+                float x1 = (float) (circle.x + Math.cos(angle1) * radius);
+                float z1 = (float) (circle.z + Math.sin(angle1) * radius);
+                float x2 = (float) (circle.x + Math.cos(angle2) * radius);
+                float z2 = (float) (circle.z + Math.sin(angle2) * radius);
+
+                buffer.addVertex(matrix, x1, (float) (circle.y + 0.02), z1)
+                        .setColor(r, g, b, alpha)
                         .setNormal(0, 1, 0);
 
-                prevX = x;
-                prevZ = z;
+                buffer.addVertex(matrix, x2, (float) (circle.y + 0.02), z2)
+                        .setColor(r, g, b, alpha)
+                        .setNormal(0, 1, 0);
             }
         }
 
@@ -126,13 +125,16 @@ public final class JumpCircle {
     }
 
     private static final class Circle {
-        final double x, y, z;
+        final double x;
+        final double y;
+        final double z;
         final float baseSize;
         final int color;
         final boolean fade;
         int age;
 
-        Circle(double x, double y, double z, float size, int color, boolean fade) {
+        Circle(double x, double y, double z,
+               float size, int color, boolean fade) {
             this.x = x;
             this.y = y;
             this.z = z;
