@@ -11,9 +11,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CrimsonConfig {
-    private static final Gson GSON =
-            new GsonBuilder().setPrettyPrinting().create();
-
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
     private static final Path CONFIG_PATH =
             FabricLoader.getInstance().getConfigDir().resolve("crimsonclient.json");
 
@@ -47,8 +45,34 @@ public class CrimsonConfig {
     public int particleLimit = 50;
 
     public String watermarkText = "Crimson";
-    public int watermarkX = 4;
-    public int watermarkY = 4;
+
+    // HUD positions. -1 means automatic position.
+    public int watermarkX = -1;
+    public int watermarkY = 7;
+
+    public int targetHudX = -1;
+    public int targetHudY = -1;
+
+    public int armorHudX = -1;
+    public int armorHudY = -1;
+
+    public int totemHudX = -1;
+    public int totemHudY = -1;
+
+    public int keystrokesX = 5;
+    public int keystrokesY = 43;
+
+    public int moduleListX = 5;
+    public int moduleListY = 100;
+
+    public int inventoryHudX = -1;
+    public int inventoryHudY = -1;
+
+    public int potionHudX = -1;
+    public int potionHudY = 42;
+
+    public int durabilityHudX = -1;
+    public int durabilityHudY = -1;
 
     public static CrimsonConfig load() {
         if (Files.exists(CONFIG_PATH)) {
@@ -57,10 +81,7 @@ public class CrimsonConfig {
                         Files.readString(CONFIG_PATH),
                         CrimsonConfig.class
                 );
-
-                if (cfg != null) {
-                    return cfg;
-                }
+                if (cfg != null) return cfg;
             } catch (Exception e) {
                 CrimsonClient.LOGGER.error("Failed to load config", e);
             }
