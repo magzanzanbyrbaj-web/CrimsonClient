@@ -23,16 +23,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HudRenderer {
+
     private static final Minecraft mc = Minecraft.getInstance();
 
     private static final Identifier FONT =
             Identifier.fromNamespaceAndPath("crimsonclient", "inter");
-
-    private static final Identifier LOGO =
-            Identifier.fromNamespaceAndPath(
-                    "crimsonclient",
-                    "textures/gui/crimson_logo.png"
-            );
 
     private static long lastHitmarker;
 
@@ -131,17 +126,11 @@ public class HudRenderer {
 
         panel(g, px, py, w, h);
 
-        g.blit(
-                LOGO,
-                px + 6,
-                py + 3,
-                0,
-                0,
-                20,
-                20,
-                256,
-                256
-        );
+        // Built-in Crimson logo. No external PNG required.
+        rounded(g, px + 6, py + 3, 20, 20, 6, 0xFF55202F);
+        rounded(g, px + 8, py + 5, 16, 16, 5, 0xFF8F3044);
+
+        drawText(g, "C", px + 12, py + 9, 0xFFFF6374, true);
 
         drawText(g, brand, px + 31, py + 5, 0xFFFFF3F5, true);
         drawText(g, stats, px + 31, py + 16, 0xFFB8B5C2, false);
@@ -180,53 +169,23 @@ public class HudRenderer {
         float maxHp = Math.max(1, target.getMaxHealth());
         float percent = Math.min(1f, hp / maxHp);
 
-        String distance = String.format(
-                "%.1fm",
-                mc.player.distanceTo(target)
-        );
+        String distance = String.format("%.1fm",
+                mc.player.distanceTo(target));
 
         drawText(g, name, px + 48, py + 9, 0xFFF6F3F6, true);
+        drawText(g, String.format("%.1f HP", hp),
+                px + 48, py + 22, 0xFFFF7584, false);
 
-        drawText(
-                g,
-                String.format("%.1f HP", hp),
-                px + 48,
-                py + 22,
-                0xFFFF7584,
-                false
-        );
-
-        drawText(
-                g,
-                distance,
+        drawText(g, distance,
                 px + w - mc.font.width(distance) - 8,
-                py + 22,
-                0xFFAAA8B4,
-                false
-        );
+                py + 22, 0xFFAAA8B4, false);
 
-        rounded(
-                g,
-                px + 48,
-                py + 38,
-                w - 57,
-                5,
-                2,
-                0xFF35212A
-        );
+        rounded(g, px + 48, py + 38, w - 57, 5, 2, 0xFF35212A);
 
         int fill = (int) ((w - 57) * percent);
 
         if (fill > 0) {
-            rounded(
-                    g,
-                    px + 48,
-                    py + 38,
-                    fill,
-                    5,
-                    2,
-                    0xFFFF4358
-            );
+            rounded(g, px + 48, py + 38, fill, 5, 2, 0xFFFF4358);
         }
     }
 
@@ -255,12 +214,7 @@ public class HudRenderer {
 
             if (!armor[i].isEmpty()) {
                 g.renderItem(armor[i], px + 2, iy + 2);
-                g.renderItemDecorations(
-                        mc.font,
-                        armor[i],
-                        px + 2,
-                        iy + 2
-                );
+                g.renderItemDecorations(mc.font, armor[i], px + 2, iy + 2);
             }
         }
     }
@@ -273,10 +227,7 @@ public class HudRenderer {
     ) {
         int count = 0;
 
-        for (int i = 0;
-             i < mc.player.getInventory().getContainerSize();
-             i++) {
-
+        for (int i = 0; i < mc.player.getInventory().getContainerSize(); i++) {
             ItemStack stack = mc.player.getInventory().getItem(i);
 
             if (stack.is(Items.TOTEM_OF_UNDYING)) {
@@ -291,85 +242,25 @@ public class HudRenderer {
 
         panel(g, px, py, 43, 22);
 
-        g.renderItem(
-                new ItemStack(Items.TOTEM_OF_UNDYING),
-                px + 2,
-                py + 3
-        );
+        g.renderItem(new ItemStack(Items.TOTEM_OF_UNDYING), px + 2, py + 3);
 
-        drawText(
-                g,
-                "x" + count,
-                px + 23,
-                py + 8,
-                0xFFFFD66B,
-                true
-        );
+        drawText(g, "x" + count, px + 23, py + 8,
+                0xFFFFD66B, true);
     }
 
-    private static void renderKeys(
-            GuiGraphics g,
-            CrimsonConfig c
-    ) {
+    private static void renderKeys(GuiGraphics g, CrimsonConfig c) {
         int px = c.keystrokesX;
         int py = c.keystrokesY;
 
         int s = 18;
         int gap = 2;
 
-        key(
-                g,
-                px + s + gap,
-                py,
-                s,
-                "W",
-                mc.options.keyUp.isDown()
-        );
-
-        key(
-                g,
-                px,
-                py + s + gap,
-                s,
-                "A",
-                mc.options.keyLeft.isDown()
-        );
-
-        key(
-                g,
-                px + s + gap,
-                py + s + gap,
-                s,
-                "S",
-                mc.options.keyDown.isDown()
-        );
-
-        key(
-                g,
-                px + 2 * (s + gap),
-                py + s + gap,
-                s,
-                "D",
-                mc.options.keyRight.isDown()
-        );
-
-        key(
-                g,
-                px,
-                py + 2 * (s + gap),
-                28,
-                "LMB",
-                mc.options.keyAttack.isDown()
-        );
-
-        key(
-                g,
-                px + 30,
-                py + 2 * (s + gap),
-                28,
-                "RMB",
-                mc.options.keyUse.isDown()
-        );
+        key(g, px + s + gap, py, s, "W", mc.options.keyUp.isDown());
+        key(g, px, py + s + gap, s, "A", mc.options.keyLeft.isDown());
+        key(g, px + s + gap, py + s + gap, s, "S", mc.options.keyDown.isDown());
+        key(g, px + 2 * (s + gap), py + s + gap, s, "D", mc.options.keyRight.isDown());
+        key(g, px, py + 2 * (s + gap), 28, "LMB", mc.options.keyAttack.isDown());
+        key(g, px + 30, py + 2 * (s + gap), 28, "RMB", mc.options.keyUse.isDown());
     }
 
     private static void key(
@@ -380,30 +271,17 @@ public class HudRenderer {
             String label,
             boolean down
     ) {
-        rounded(
-                g,
-                x,
-                y,
-                w,
-                17,
-                4,
-                down ? 0xDD8D293B : 0xBB111521
-        );
+        rounded(g, x, y, w, 17, 4,
+                down ? 0xDD8D293B : 0xBB111521);
 
-        drawText(
-                g,
-                label,
+        drawText(g, label,
                 x + (w - mc.font.width(label)) / 2,
                 y + 5,
                 down ? 0xFFFFFFFF : 0xFFD0CCD5,
-                false
-        );
+                false);
     }
 
-    private static void renderModules(
-            GuiGraphics g,
-            CrimsonConfig c
-    ) {
+    private static void renderModules(GuiGraphics g, CrimsonConfig c) {
         List<String> list = new ArrayList<>();
 
         if (c.watermark) list.add("Watermark");
@@ -421,15 +299,7 @@ public class HudRenderer {
             int w = mc.font.width(name) + 13;
 
             panel(g, px, py, w, 15);
-
-            drawText(
-                    g,
-                    name,
-                    px + 6,
-                    py + 4,
-                    0xFFFF7787,
-                    false
-            );
+            drawText(g, name, px + 6, py + 4, 0xFFFF7787, false);
 
             py += 17;
         }
@@ -453,13 +323,7 @@ public class HudRenderer {
 
             if (!stack.isEmpty()) {
                 g.renderItem(stack, sx + 1, py + 1);
-
-                g.renderItemDecorations(
-                        mc.font,
-                        stack,
-                        sx + 1,
-                        py + 1
-                );
+                g.renderItemDecorations(mc.font, stack, sx + 1, py + 1);
             }
         }
     }
@@ -474,10 +338,8 @@ public class HudRenderer {
         int py = c.potionHudY;
 
         for (var effect : mc.player.getActiveEffects()) {
-            String name = effect.getEffect()
-                    .value()
-                    .getDisplayName()
-                    .getString();
+            String name = effect.getEffect().value()
+                    .getDisplayName().getString();
 
             int seconds = effect.getDuration() / 20;
 
@@ -487,15 +349,7 @@ public class HudRenderer {
                     String.format("%02d", seconds % 60);
 
             panel(g, px, py, 125, 16);
-
-            drawText(
-                    g,
-                    line,
-                    px + 5,
-                    py + 4,
-                    0xFFB7F5C4,
-                    false
-            );
+            drawText(g, line, px + 5, py + 4, 0xFFB7F5C4, false);
 
             py += 18;
         }
@@ -516,39 +370,25 @@ public class HudRenderer {
         if (!main.isEmpty() && main.isDamageableItem()) {
             int left = main.getMaxDamage() - main.getDamageValue();
 
-            drawText(
-                    g,
-                    left + "/" + main.getMaxDamage(),
-                    px,
-                    py,
+            drawText(g, left + "/" + main.getMaxDamage(),
+                    px, py,
                     left < main.getMaxDamage() / 5
-                            ? 0xFFFF4355
-                            : 0xFFCCCCCC,
-                    true
-            );
+                            ? 0xFFFF4355 : 0xFFCCCCCC,
+                    true);
         }
 
         if (!off.isEmpty() && off.isDamageableItem()) {
             int left = off.getMaxDamage() - off.getDamageValue();
 
-            drawText(
-                    g,
-                    left + "/" + off.getMaxDamage(),
-                    px,
-                    py + 12,
+            drawText(g, left + "/" + off.getMaxDamage(),
+                    px, py + 12,
                     left < off.getMaxDamage() / 5
-                            ? 0xFFFF4355
-                            : 0xFFCCCCCC,
-                    true
-            );
+                            ? 0xFFFF4355 : 0xFFCCCCCC,
+                    true);
         }
     }
 
-    private static void renderCrosshair(
-            GuiGraphics g,
-            int sw,
-            int sh
-    ) {
+    private static void renderCrosshair(GuiGraphics g, int sw, int sh) {
         int cx = sw / 2;
         int cy = sh / 2;
 
@@ -557,11 +397,7 @@ public class HudRenderer {
         g.fill(cx - 1, cy - 1, cx + 1, cy + 1, 0xFFFFFFFF);
     }
 
-    private static void renderHitmarker(
-            GuiGraphics g,
-            int sw,
-            int sh
-    ) {
+    private static void renderHitmarker(GuiGraphics g, int sw, int sh) {
         int cx = sw / 2;
         int cy = sh / 2;
 
@@ -599,13 +435,8 @@ public class HudRenderer {
                 * sh / mc.getWindow().getScreenHeight();
 
         if (down && !wasMouseDown) {
-            HudBox box = findBox(
-                    c,
-                    sw,
-                    sh,
-                    (int) mouseX,
-                    (int) mouseY
-            );
+            HudBox box = findBox(c, sw, sh,
+                    (int) mouseX, (int) mouseY);
 
             if (box != null) {
                 dragging = box.id;
@@ -639,102 +470,62 @@ public class HudRenderer {
         List<HudBox> boxes = new ArrayList<>();
 
         if (c.watermark) {
-            boxes.add(new HudBox(
-                    "watermark",
+            boxes.add(new HudBox("watermark",
                     x(c.watermarkX, (sw - 145) / 2),
-                    c.watermarkY,
-                    145,
-                    27
-            ));
+                    c.watermarkY, 145, 27));
         }
 
         if (c.targetHud) {
-            boxes.add(new HudBox(
-                    "target",
+            boxes.add(new HudBox("target",
                     x(c.targetHudX, sw / 2 + 20),
-                    y(c.targetHudY, sh / 2 + 25),
-                    166,
-                    53
-            ));
+                    y(c.targetHudY, sh / 2 + 25), 166, 53));
         }
 
         if (c.armorHud) {
-            boxes.add(new HudBox(
-                    "armor",
+            boxes.add(new HudBox("armor",
                     x(c.armorHudX, sw - 27),
-                    y(c.armorHudY, sh / 2 - 40),
-                    20,
-                    80
-            ));
+                    y(c.armorHudY, sh / 2 - 40), 20, 80));
         }
 
         if (c.totemCounter) {
-            boxes.add(new HudBox(
-                    "totem",
+            boxes.add(new HudBox("totem",
                     x(c.totemHudX, sw / 2 + 90),
-                    y(c.totemHudY, sh - 52),
-                    43,
-                    22
-            ));
+                    y(c.totemHudY, sh - 52), 43, 22));
         }
 
         if (c.keystrokes) {
-            boxes.add(new HudBox(
-                    "keys",
-                    c.keystrokesX,
-                    c.keystrokesY,
-                    58,
-                    58
-            ));
+            boxes.add(new HudBox("keys",
+                    c.keystrokesX, c.keystrokesY, 58, 58));
         }
 
         if (c.moduleList) {
-            boxes.add(new HudBox(
-                    "modules",
-                    c.moduleListX,
-                    c.moduleListY,
-                    115,
-                    120
-            ));
+            boxes.add(new HudBox("modules",
+                    c.moduleListX, c.moduleListY, 115, 120));
         }
 
         if (c.inventoryHud) {
-            boxes.add(new HudBox(
-                    "inventory",
+            boxes.add(new HudBox("inventory",
                     x(c.inventoryHudX, (sw - 180) / 2),
-                    y(c.inventoryHudY, sh - 91),
-                    180,
-                    19
-            ));
+                    y(c.inventoryHudY, sh - 91), 180, 19));
         }
 
         if (c.potionHud) {
-            boxes.add(new HudBox(
-                    "potions",
+            boxes.add(new HudBox("potions",
                     x(c.potionHudX, sw - 130),
-                    c.potionHudY,
-                    125,
-                    90
-            ));
+                    c.potionHudY, 125, 90));
         }
 
         if (c.durabilityHud) {
-            boxes.add(new HudBox(
-                    "durability",
+            boxes.add(new HudBox("durability",
                     x(c.durabilityHudX, sw / 2 + 10),
-                    y(c.durabilityHudY, sh - 60),
-                    70,
-                    25
-            ));
+                    y(c.durabilityHudY, sh - 60), 70, 25));
         }
 
         for (int i = boxes.size() - 1; i >= 0; i--) {
             HudBox b = boxes.get(i);
 
-            if (mx >= b.x &&
-                    mx <= b.x + b.w &&
-                    my >= b.y &&
-                    my <= b.y + b.h) {
+            if (mx >= b.x && mx <= b.x + b.w &&
+                    my >= b.y && my <= b.y + b.h) {
                 return b;
             }
         }
@@ -753,42 +544,34 @@ public class HudRenderer {
                 c.watermarkX = x;
                 c.watermarkY = y;
             }
-
             case "target" -> {
                 c.targetHudX = x;
                 c.targetHudY = y;
             }
-
             case "armor" -> {
                 c.armorHudX = x;
                 c.armorHudY = y;
             }
-
             case "totem" -> {
                 c.totemHudX = x;
                 c.totemHudY = y;
             }
-
             case "keys" -> {
                 c.keystrokesX = x;
                 c.keystrokesY = y;
             }
-
             case "modules" -> {
                 c.moduleListX = x;
                 c.moduleListY = y;
             }
-
             case "inventory" -> {
                 c.inventoryHudX = x;
                 c.inventoryHudY = y;
             }
-
             case "potions" -> {
                 c.potionHudX = x;
                 c.potionHudY = y;
             }
-
             case "durability" -> {
                 c.durabilityHudX = x;
                 c.durabilityHudY = y;
@@ -796,12 +579,9 @@ public class HudRenderer {
         }
     }
 
-    private static void drawEditorHint(
-            GuiGraphics g,
-            int sw
-    ) {
+    private static void drawEditorHint(GuiGraphics g, int sw) {
         String hint = dragging == null
-                ? "CRIMSON HUD EDITOR  |  Drag HUD elements with LMB"
+                ? "CRIMSON HUD EDITOR | Drag HUD elements with LMB"
                 : "MOVING: " + dragging.toUpperCase();
 
         int w = mc.font.width(hint) + 18;
@@ -809,24 +589,10 @@ public class HudRenderer {
         int y = 38;
 
         panel(g, x, y, w, 20);
-
-        drawText(
-                g,
-                hint,
-                x + 9,
-                y + 6,
-                0xFFFF7585,
-                true
-        );
+        drawText(g, hint, x + 9, y + 6, 0xFFFF7585, true);
     }
 
-    private record HudBox(
-            String id,
-            int x,
-            int y,
-            int w,
-            int h
-    ) {}
+    private record HudBox(String id, int x, int y, int w, int h) {}
 
     private static void panel(
             GuiGraphics g,
@@ -855,34 +621,16 @@ public class HudRenderer {
 
         for (int row = 0; row < r; row++) {
             int inset = (int) Math.ceil(
-                    r - Math.sqrt(
-                            r * r - (r - row) * (r - row)
-                    )
+                    r - Math.sqrt(r * r - (r - row) * (r - row))
             );
 
-            g.fill(
-                    x + inset,
-                    y + row,
-                    x + w - inset,
-                    y + row + 1,
-                    color
-            );
+            g.fill(x + inset, y + row,
+                    x + w - inset, y + row + 1, color);
 
-            g.fill(
-                    x + inset,
-                    y + h - row - 1,
-                    x + w - inset,
-                    y + h - row,
-                    color
-            );
+            g.fill(x + inset, y + h - row - 1,
+                    x + w - inset, y + h - row, color);
         }
 
-        g.fill(
-                x,
-                y + r,
-                x + w,
-                y + h - r,
-                color
-        );
+        g.fill(x, y + r, x + w, y + h - r, color);
     }
 }
