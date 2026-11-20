@@ -76,7 +76,7 @@ public final class TargetEsp {
         MultiBufferSource consumers = context.consumers();
         if (matrices == null || consumers == null) return;
 
-        Vec3 cam = context.gameRenderer().getMainCamera().getPosition();
+        Vec3 cam = context.gameRenderer().getMainCamera().position();
 
         double x = target.getX();
         double y = target.getY();
