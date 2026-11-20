@@ -21,9 +21,12 @@ public class HudRenderer {
     private static final Minecraft mc = Minecraft.getInstance();
 
     private static final Identifier LOGO =
-            Identifier.fromNamespaceAndPath("crimsonclient", "textures/gui/crimson_logo.png");
+            Identifier.fromNamespaceAndPath(
+                    "crimsonclient",
+                    "textures/gui/crimson_logo.png"
+            );
 
-    private static long lastHitmarker = 0;
+    private static long lastHitmarker;
 
     public static void init() {
         HudRenderCallback.EVENT.register((context, tickCounter) -> {
@@ -52,6 +55,8 @@ public class HudRenderer {
         lastHitmarker = System.currentTimeMillis();
     }
 
+    // WATERMARK
+
     private static void renderWatermark(GuiGraphics g) {
         int fps = mc.getFps();
         int ping = 0;
@@ -61,80 +66,177 @@ public class HudRenderer {
             if (info != null) ping = info.getLatency();
         }
 
-        String stats = fps + " FPS  •  " + ping + " MS";
         String brand = "CRIMSON";
+        String stats = fps + " FPS   " + ping + " MS";
 
-        int logoSize = 24;
-        int h = 30;
+        int logoSize = 25;
+        int gap = 8;
+        int padding = 12;
 
-        int w = 12 + logoSize + 7 + mc.font.width(brand)
-                + 12 + mc.font.width(stats) + 22;
+        int brandWidth = mc.font.width(brand);
+        int statsWidth = mc.font.width(stats);
 
-        int x = (mc.getWindow().getGuiScaledWidth() - w) / 2;
-        int y = 6;
+        int width = padding + logoSize + gap + brandWidth
+                + 13 + statsWidth + padding;
 
-        roundedRect(g, x, y, w, h, 8, 0xC9141012);
-        roundedRect(g, x + 1, y + 1, w - 2, 1, 1, 0xCCFF4444);
+        int height = 34;
+        int x = (mc.getWindow().getGuiScaledWidth() - width) / 2;
+        int y = 7;
 
-        g.blit(LOGO, x + 7, y + 3, 0, 0, logoSize, logoSize, 256, 256);
+        rounded(g, x + 2, y + 3, width, height, 9, 0x44000000);
+        rounded(g, x, y, width, height, 9, 0xD90D101A);
 
-        int textX = x + 7 + logoSize + 6;
+        rounded(g, x + 1, y + 1, width - 2, 1, 1, 0x99FF4355);
+        rounded(g, x + 1, y + height - 2, width - 2, 1, 1, 0x445E6577);
 
-        g.drawString(mc.font, brand, textX, y + 6, 0xFFFFEEEE, true);
+        g.blit(
+                LOGO,
+                x + padding,
+                y + 4,
+                0, 0,
+                logoSize, logoSize,
+                256, 256
+        );
 
-        int dividerX = textX + mc.font.width(brand) + 7;
+        int textX = x + padding + logoSize + gap;
 
-        g.fill(dividerX, y + 7, dividerX + 1, y + 23, 0x88FF5555);
+        g.drawString(
+                mc.font,
+                brand,
+                textX,
+                y + 7,
+                0xFFFFF2F3,
+                true
+        );
 
-        g.drawString(mc.font, stats, dividerX + 7, y + 11, 0xFFD9CACA, false);
+        g.drawString(
+                mc.font,
+                "CLIENT",
+                textX,
+                y + 19,
+                0xFFAAA7B4,
+                false
+        );
+
+        int dividerX = textX + brandWidth + 10;
+
+        g.fill(
+                dividerX,
+                y + 8,
+                dividerX + 1,
+                y + 26,
+                0x88FF4355
+        );
+
+        g.drawString(
+                mc.font,
+                stats,
+                dividerX + 9,
+                y + 13,
+                0xFFE4E1E8,
+                false
+        );
     }
+
+    // TARGET HUD
 
     private static void renderTargetHud(GuiGraphics g) {
         Entity target = mc.crosshairPickEntity;
 
-        if (!(target instanceof LivingEntity living) || !living.isAlive()) return;
+        if (!(target instanceof LivingEntity living)) return;
+        if (!living.isAlive()) return;
 
         int screenW = mc.getWindow().getGuiScaledWidth();
-        int x = screenW / 2 - 60;
-        int y = 40;
-        int w = 120;
-        int h = 36;
 
-        roundedRect(g, x, y, w, h, 6, 0xCC1A0808);
-        roundedRect(g, x, y, w, 1, 1, 0xFFFF3333);
+        int width = 178;
+        int height = 57;
+
+        int x = screenW / 2 + 20;
+        int y = mc.getWindow().getGuiScaledHeight() / 2 + 25;
+
+        if (x + width > screenW - 5) {
+            x = screenW - width - 5;
+        }
+
+        rounded(g, x + 2, y + 3, width, height, 10, 0x55000000);
+        rounded(g, x, y, width, height, 10, 0xD90D101A);
+
+        rounded(g, x + 1, y + 1, width - 2, 1, 1, 0xAAFF4355);
+        rounded(g, x + 1, y + height - 2, width - 2, 1, 1, 0x445E6577);
+
+        rounded(g, x + 8, y + 9, 35, 35, 8, 0xAA3A1925);
+
+        g.drawString(
+                mc.font,
+                "C",
+                x + 21,
+                y + 22,
+                0xFFFF4355,
+                true
+        );
 
         String name = living.getName().getString();
-        float hp = living.getHealth();
-        float maxHp = living.getMaxHealth();
-        float dist = mc.player.distanceTo(living);
 
-        g.drawString(mc.font, name, x + 7, y + 5, 0xFFFFEEEE, false);
+        if (name.length() > 17) {
+            name = name.substring(0, 14) + "...";
+        }
 
-        String hpStr = String.format("%.1f / %.1f", hp, maxHp);
-        g.drawString(mc.font, hpStr, x + 7, y + 15, 0xFFFF7777, false);
+        float health = Math.max(0, living.getHealth());
+        float maxHealth = Math.max(1, living.getMaxHealth());
+        float healthPercent = Math.min(1f, health / maxHealth);
 
-        String distance = String.format("%.1fm", dist);
-        g.drawString(mc.font, distance,
-                x + w - mc.font.width(distance) - 7, y + 5, 0xFFAAAAAA, false);
+        float distance = mc.player.distanceTo(living);
 
-        int barW = w - 14;
-        int barX = x + 7;
-        int barY = y + 27;
+        g.drawString(
+                mc.font,
+                name,
+                x + 51,
+                y + 10,
+                0xFFFFF2F3,
+                true
+        );
 
-        roundedRect(g, barX, barY, barW, 4, 2, 0xFF330000);
+        String hpText = String.format("%.1f HP", health);
+        String distanceText = String.format("%.1fm", distance);
 
-        int filled = (int) (barW * (hp / Math.max(maxHp, 0.1f)));
+        g.drawString(
+                mc.font,
+                hpText,
+                x + 51,
+                y + 23,
+                0xFFFF737F,
+                false
+        );
+
+        g.drawString(
+                mc.font,
+                distanceText,
+                x + width - mc.font.width(distanceText) - 10,
+                y + 23,
+                0xFFAAA7B4,
+                false
+        );
+
+        int barX = x + 51;
+        int barY = y + 39;
+        int barW = width - 62;
+
+        rounded(g, barX, barY, barW, 6, 3, 0xFF33202A);
+
+        int filled = (int) (barW * healthPercent);
 
         if (filled > 0) {
-            roundedRect(g, barX, barY, filled, 4, 2, 0xFFFF3333);
+            rounded(g, barX, barY, filled, 6, 3, 0xFFFF4355);
         }
     }
+
+    // ARMOR HUD
 
     private static void renderArmorHud(GuiGraphics g) {
         LocalPlayer player = mc.player;
         if (player == null) return;
 
-        int x = mc.getWindow().getGuiScaledWidth() - 24;
+        int x = mc.getWindow().getGuiScaledWidth() - 25;
         int y = mc.getWindow().getGuiScaledHeight() / 2 - 40;
 
         ItemStack[] armor = {
@@ -148,7 +250,7 @@ public class HudRenderer {
             ItemStack stack = armor[i];
             int iy = y + i * 20;
 
-            roundedRect(g, x - 3, iy - 3, 22, 22, 5, 0xAA1A1012);
+            rounded(g, x - 3, iy - 3, 22, 22, 5, 0xAA11141E);
 
             if (!stack.isEmpty()) {
                 g.renderItem(stack, x, iy);
@@ -156,6 +258,8 @@ public class HudRenderer {
             }
         }
     }
+
+    // TOTEM COUNTER
 
     private static void renderTotemCounter(GuiGraphics g) {
         LocalPlayer player = mc.player;
@@ -176,15 +280,25 @@ public class HudRenderer {
         int x = mc.getWindow().getGuiScaledWidth() / 2 + 90;
         int y = mc.getWindow().getGuiScaledHeight() - 50;
 
-        roundedRect(g, x, y, 42, 20, 5, 0xAA1A1012);
+        rounded(g, x, y, 43, 21, 6, 0xCC11141E);
 
         g.renderItem(new ItemStack(Items.TOTEM_OF_UNDYING), x + 2, y + 2);
-        g.drawString(mc.font, "x" + count, x + 22, y + 6, 0xFFFFFF55, true);
+
+        g.drawString(
+                mc.font,
+                "x" + count,
+                x + 22,
+                y + 7,
+                0xFFFFD66B,
+                true
+        );
     }
 
+    // KEYSTROKES
+
     private static void renderKeystrokes(GuiGraphics g) {
-        int x = 4;
-        int y = 42;
+        int x = 5;
+        int y = 43;
         int size = 18;
         int gap = 2;
 
@@ -198,68 +312,79 @@ public class HudRenderer {
                 size + (size + gap) / 2, "LMB", mc.options.keyAttack.isDown());
 
         drawKey(g, x + size + gap + (size + gap) / 2,
-                y + 2 * (size + gap), size + (size + gap) / 2,
-                "RMB", mc.options.keyUse.isDown());
+                y + 2 * (size + gap),
+                size + (size + gap) / 2, "RMB", mc.options.keyUse.isDown());
     }
 
     private static void drawKey(GuiGraphics g, int x, int y, int w,
                                 String label, boolean pressed) {
-        roundedRect(g, x, y, w, 16, 4,
-                pressed ? 0xCCAA2222 : 0xAA1A1012);
+        rounded(g, x, y, w, 16, 4,
+                pressed ? 0xCCAA2638 : 0xAA11141E);
 
-        roundedRect(g, x, y, w, 1, 1,
-                pressed ? 0xFFFF5555 : 0xFF662222);
+        rounded(g, x, y, w, 1, 1,
+                pressed ? 0xFFFF5365 : 0xFF4A2933);
 
-        int tw = mc.font.width(label);
+        int textW = mc.font.width(label);
 
-        g.drawString(mc.font, label, x + (w - tw) / 2, y + 4,
-                pressed ? 0xFFFFFFFF : 0xFFCCCCCC, false);
+        g.drawString(
+                mc.font,
+                label,
+                x + (w - textW) / 2,
+                y + 4,
+                pressed ? 0xFFFFFFFF : 0xFFCCCCD4,
+                false
+        );
     }
+
+    // MODULE LIST
 
     private static void renderModuleList(GuiGraphics g) {
         CrimsonConfig cfg = CrimsonClientClient.config;
         List<String> modules = new ArrayList<>();
 
         if (cfg.watermark) modules.add("Watermark");
-        if (cfg.targetHud) modules.add("TargetHUD");
-        if (cfg.armorHud) modules.add("ArmorHUD");
-        if (cfg.totemCounter) modules.add("TotemCounter");
+        if (cfg.targetHud) modules.add("Target HUD");
+        if (cfg.armorHud) modules.add("Armor HUD");
+        if (cfg.totemCounter) modules.add("Totem Counter");
         if (cfg.keystrokes) modules.add("Keystrokes");
-        if (cfg.moduleList) modules.add("ModuleList");
-        if (cfg.inventoryHud) modules.add("InventoryHUD");
-        if (cfg.potionHud) modules.add("PotionHUD");
-        if (cfg.durabilityHud) modules.add("DurabilityHUD");
-        if (cfg.hitParticles) modules.add("HitParticles");
-        if (cfg.damageNumbers) modules.add("DamageNumbers");
+        if (cfg.inventoryHud) modules.add("Inventory HUD");
+        if (cfg.potionHud) modules.add("Potion HUD");
+        if (cfg.durabilityHud) modules.add("Durability HUD");
+        if (cfg.hitParticles) modules.add("Hit Particles");
+        if (cfg.damageNumbers) modules.add("Damage Numbers");
         if (cfg.hitmarker) modules.add("Hitmarker");
-        if (cfg.criticalEffects) modules.add("CritEffects");
-        if (cfg.smoothSword) modules.add("SmoothSword");
-        if (cfg.itemSwitchAnim) modules.add("ItemSwitch");
-        if (cfg.totemAnimation) modules.add("TotemAnim");
         if (cfg.customCrosshair) modules.add("Crosshair");
         if (cfg.fullbright) modules.add("Fullbright");
-        if (cfg.customSky) modules.add("CustomSky");
-        if (cfg.inventoryBlur) modules.add("InvBlur");
 
         int x = 4;
         int y = 100;
 
         for (String module : modules) {
-            int tw = mc.font.width(module);
+            int textW = mc.font.width(module);
 
-            roundedRect(g, x, y, tw + 10, 13, 4, 0xAA1A1012);
-            g.drawString(mc.font, module, x + 5, y + 3, 0xFFFF7777, false);
+            rounded(g, x, y, textW + 12, 15, 4, 0xAA11141E);
 
-            y += 15;
+            g.drawString(
+                    mc.font,
+                    module,
+                    x + 6,
+                    y + 4,
+                    0xFFFF7885,
+                    false
+            );
+
+            y += 17;
         }
     }
+
+    // POTION HUD
 
     private static void renderPotionHud(GuiGraphics g) {
         LocalPlayer player = mc.player;
 
         if (player == null || player.getActiveEffects().isEmpty()) return;
 
-        int x = mc.getWindow().getGuiScaledWidth() - 125;
+        int x = mc.getWindow().getGuiScaledWidth() - 130;
         int y = 42;
 
         for (var effect : player.getActiveEffects()) {
@@ -269,14 +394,25 @@ public class HudRenderer {
             int seconds = effect.getDuration() / 20;
 
             String text = name + " " + amplifier + " "
-                    + (seconds / 60) + ":" + String.format("%02d", seconds % 60);
+                    + (seconds / 60) + ":"
+                    + String.format("%02d", seconds % 60);
 
-            roundedRect(g, x, y, 120, 14, 4, 0xAA1A1012);
-            g.drawString(mc.font, text, x + 5, y + 3, 0xFFAAFFAA, false);
+            rounded(g, x, y, 125, 16, 5, 0xAA11141E);
 
-            y += 16;
+            g.drawString(
+                    mc.font,
+                    text,
+                    x + 6,
+                    y + 4,
+                    0xFFB7F5C4,
+                    false
+            );
+
+            y += 18;
         }
     }
+
+    // DURABILITY HUD
 
     private static void renderDurabilityHud(GuiGraphics g) {
         LocalPlayer player = mc.player;
@@ -292,18 +428,32 @@ public class HudRenderer {
             int max = main.getMaxDamage();
             int left = max - main.getDamageValue();
 
-            g.drawString(mc.font, left + "/" + max, x, y,
-                    left < max / 5 ? 0xFFFF3333 : 0xFFAAAAAA, true);
+            g.drawString(
+                    mc.font,
+                    left + "/" + max,
+                    x,
+                    y,
+                    left < max / 5 ? 0xFFFF4355 : 0xFFAAAAAA,
+                    true
+            );
         }
 
         if (!off.isEmpty() && off.isDamageableItem()) {
             int max = off.getMaxDamage();
             int left = max - off.getDamageValue();
 
-            g.drawString(mc.font, left + "/" + max, x, y + 12,
-                    left < max / 5 ? 0xFFFF3333 : 0xFFAAAAAA, true);
+            g.drawString(
+                    mc.font,
+                    left + "/" + max,
+                    x,
+                    y + 12,
+                    left < max / 5 ? 0xFFFF4355 : 0xFFAAAAAA,
+                    true
+            );
         }
     }
+
+    // INVENTORY HUD
 
     private static void renderInventoryHud(GuiGraphics g) {
         LocalPlayer player = mc.player;
@@ -313,13 +463,13 @@ public class HudRenderer {
         int totalW = slot * 9;
 
         int x = (mc.getWindow().getGuiScaledWidth() - totalW) / 2;
-        int y = mc.getWindow().getGuiScaledHeight() - 66;
+        int y = mc.getWindow().getGuiScaledHeight() - 91;
 
         for (int i = 0; i < 9; i++) {
             int sx = x + i * slot;
 
-            roundedRect(g, sx + 1, y, 18, 18, 4, 0xB51A1012);
-            roundedRect(g, sx + 1, y, 18, 1, 1, 0x99FF5555);
+            rounded(g, sx + 1, y, 18, 18, 4, 0xB511141E);
+            rounded(g, sx + 1, y, 18, 1, 1, 0x99FF5365);
 
             ItemStack stack = player.getInventory().getItem(i + 9);
 
@@ -330,21 +480,25 @@ public class HudRenderer {
         }
     }
 
+    // CUSTOM CROSSHAIR
+
     private static void renderCustomCrosshair(GuiGraphics g) {
         int cx = mc.getWindow().getGuiScaledWidth() / 2;
         int cy = mc.getWindow().getGuiScaledHeight() / 2;
 
-        g.fill(cx - 6, cy - 1, cx + 7, cy + 1, 0xFFFF3333);
-        g.fill(cx - 1, cy - 6, cx + 1, cy + 7, 0xFFFF3333);
+        g.fill(cx - 6, cy - 1, cx + 7, cy + 1, 0xFFFF4355);
+        g.fill(cx - 1, cy - 6, cx + 1, cy + 7, 0xFFFF4355);
         g.fill(cx - 1, cy - 1, cx + 1, cy + 1, 0xFFFFFFFF);
     }
+
+    // HITMARKER
 
     private static void renderHitmarker(GuiGraphics g) {
         int cx = mc.getWindow().getGuiScaledWidth() / 2;
         int cy = mc.getWindow().getGuiScaledHeight() / 2;
 
         int size = 8;
-        int color = 0xAAFF3333;
+        int color = 0xAAFF4355;
 
         g.fill(cx - size, cy - size, cx - size + 2, cy - size + 2, color);
         g.fill(cx + size - 2, cy - size, cx + size, cy - size + 2, color);
@@ -352,20 +506,23 @@ public class HudRenderer {
         g.fill(cx + size - 2, cy + size - 2, cx + size, cy + size, color);
     }
 
-    private static void roundedRect(GuiGraphics g, int x, int y, int w,
-                                    int h, int r, int color) {
+    // ROUNDED RECTANGLE
+
+    private static void rounded(GuiGraphics g, int x, int y, int w,
+                                int h, int radius, int color) {
         if (w <= 0 || h <= 0) return;
 
-        int radius = Math.max(1, Math.min(r, Math.min(w / 2, h / 2)));
+        int r = Math.max(1, Math.min(radius, Math.min(w / 2, h / 2)));
 
-        for (int row = 0; row < radius; row++) {
-            int inset = (int) Math.ceil(radius - Math.sqrt(
-                    radius * radius - (radius - row) * (radius - row)));
+        for (int row = 0; row < r; row++) {
+            int inset = (int) Math.ceil(r - Math.sqrt(
+                    r * r - (r - row) * (r - row)));
 
             g.fill(x + inset, y + row, x + w - inset, y + row + 1, color);
-            g.fill(x + inset, y + h - row - 1, x + w - inset, y + h - row, color);
+            g.fill(x + inset, y + h - row - 1,
+                    x + w - inset, y + h - row, color);
         }
 
-        g.fill(x, y + radius, x + w, y + h - radius, color);
+        g.fill(x, y + r, x + w, y + h - r, color);
     }
 }
