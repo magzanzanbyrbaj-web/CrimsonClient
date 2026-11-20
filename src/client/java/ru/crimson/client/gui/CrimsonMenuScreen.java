@@ -1,3 +1,4 @@
+
 package ru.crimson.client.gui;
 
 import net.minecraft.client.Minecraft;
@@ -44,7 +45,6 @@ public class CrimsonMenuScreen extends Screen {
     private int px, py, pw, ph;
     private int sidebar, cx, cw;
 
-    // Side settings panel (opens on RMB)
     private Feature settingsFeature;
     private int settingsScroll;
 
@@ -55,7 +55,6 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void buildFeatures() {
-        // Combat
         add("Target HUD", "Target health and distance",
                 () -> cfg.targetHud, v -> cfg.targetHud = v, 0);
         add("Hit Particles", "Visual hit particles",
@@ -71,7 +70,6 @@ public class CrimsonMenuScreen extends Screen {
         add("Hit Sound", "Custom sound on hit",
                 () -> cfg.hitSound, v -> cfg.hitSound = v, 0);
 
-        // Player
         add("Armor HUD", "Equipment display",
                 () -> cfg.armorHud, v -> cfg.armorHud = v, 2);
         add("Totem Counter", "Inventory totem count",
@@ -83,7 +81,6 @@ public class CrimsonMenuScreen extends Screen {
         add("Durability HUD", "Item durability",
                 () -> cfg.durabilityHud, v -> cfg.durabilityHud = v, 2);
 
-        // Visuals
         add("Smooth Sword", "Sword animation",
                 () -> cfg.smoothSword, v -> cfg.smoothSword = v, 3);
         add("Item Switch", "Item switch animation",
@@ -105,7 +102,6 @@ public class CrimsonMenuScreen extends Screen {
         add("No Render", "Hide fire, portal, weather...",
                 () -> cfg.noRender, v -> cfg.noRender = v, 3);
 
-        // Client
         add("Watermark", "Logo, FPS and ping",
                 () -> cfg.watermark, v -> cfg.watermark = v, 4);
         add("Keystrokes", "Keyboard display",
@@ -143,11 +139,7 @@ public class CrimsonMenuScreen extends Screen {
         layout();
 
         searchBox = new EditBox(
-                font,
-                cx,
-                py + 48,
-                cw,
-                20,
+                font, cx, py + 48, cw, 20,
                 Component.literal("Search")
         );
 
@@ -366,29 +358,25 @@ public class CrimsonMenuScreen extends Screen {
         }
     }
 
+    // Compact settings panel: 150 x 260
     private void drawSettingsPanel(GuiGraphics g, int mx, int my, int y) {
-        int panelW = 190;
-        int panelX = px + pw + 8;
-        int panelY = y + 40;
-        int panelH = ph - 50;
+        int panelW = 150;
+        int panelX = px + pw - panelW - 10;
+        int panelY = y + 48;
+        int panelH = Math.min(260, ph - 60);
 
-        if (panelX + panelW > width - 8) {
-            panelX = px - panelW - 8;
-        }
+        rounded(g, panelX + 2, panelY + 3, panelW, panelH, 9, 0x66000000);
+        rounded(g, panelX, panelY, panelW, panelH, 9, alpha(0xF0111521));
+        rounded(g, panelX + 1, panelY + 1, panelW - 2, panelH - 2, 8, alpha(0xE01B2030));
+        rounded(g, panelX + 9, panelY + 1, panelW - 18, 2, 1, alpha(RED));
 
-        rounded(g, panelX + 2, panelY + 3, panelW, panelH, 12, 0x66000000);
-        rounded(g, panelX, panelY, panelW, panelH, 12, alpha(0xF0111521));
-        rounded(g, panelX + 1, panelY + 1, panelW - 2, panelH - 2, 11, alpha(0xE01B2030));
-        rounded(g, panelX + 10, panelY + 1, panelW - 20, 2, 1, alpha(RED));
+        text(g, settingsFeature.name, panelX + 9, panelY + 10, alpha(WHITE), true);
+        text(g, "Settings", panelX + 9, panelY + 23, alpha(MUTED), false);
 
-        text(g, settingsFeature.name, panelX + 12, panelY + 12, alpha(WHITE), true);
-        text(g, "Settings", panelX + 12, panelY + 26, alpha(MUTED), false);
+        int ly = panelY + 42;
+        int left = panelX + 9;
+        int right = panelX + panelW - 9;
 
-        int ly = panelY + 48;
-        int left = panelX + 12;
-        int right = panelX + panelW - 12;
-
-        // Generic toggles depending on feature
         if (settingsFeature.name.equals("No Render")) {
             ly = toggleRow(g, "Hide Fire", () -> cfg.hideFire, v -> cfg.hideFire = v, left, right, ly, mx, my);
             ly = toggleRow(g, "Hide Hurt Cam", () -> cfg.hideHurtCamera, v -> cfg.hideHurtCamera = v, left, right, ly, mx, my);
@@ -431,8 +419,8 @@ public class CrimsonMenuScreen extends Screen {
             text(g, "No extra settings", left, ly, alpha(MUTED), false);
         }
 
-        // Close hint
-        text(g, "RMB outside to close", panelX + 12, panelY + panelH - 18, alpha(MUTED), false);
+        text(g, "RMB to close", panelX + 9,
+                panelY + panelH - 15, alpha(MUTED), false);
     }
 
     private int toggleRow(GuiGraphics g, String label, BooleanSupplier get, Consumer<Boolean> set,
@@ -491,7 +479,6 @@ public class CrimsonMenuScreen extends Screen {
         int my = (int) event.y();
         int button = event.button();
 
-        // Category sidebar
         if (button == 0) {
             for (int i = 0; i < CATEGORIES.length; i++) {
                 if (hit(mx, my, px + 8, py + 57 + i * 34,
@@ -504,21 +491,17 @@ public class CrimsonMenuScreen extends Screen {
             }
         }
 
-        // Settings panel clicks
         if (settingsFeature != null) {
-            int panelW = 190;
-            int panelX = px + pw + 8;
-            int panelY = py + 40;
-            int panelH = ph - 50;
-            if (panelX + panelW > width - 8) panelX = px - panelW - 8;
+            int panelW = 150;
+            int panelX = px + pw - panelW - 10;
+            int panelY = py + 48;
+            int panelH = Math.min(260, ph - 60);
 
             if (hit(mx, my, panelX, panelY, panelW, panelH)) {
-                // Handle specific toggles inside panel
                 handleSettingsClick(mx, my, panelX, panelY, button);
                 cfg.save();
                 return true;
             } else if (button == 1) {
-                // RMB outside closes settings
                 settingsFeature = null;
                 return true;
             }
@@ -540,12 +523,10 @@ public class CrimsonMenuScreen extends Screen {
                 Feature f = visible.get(i);
 
                 if (button == 0) {
-                    // LMB = toggle
                     f.set.accept(!f.get.getAsBoolean());
                     cfg.save();
                     return true;
                 } else if (button == 1) {
-                    // RMB = open settings side panel
                     settingsFeature = (settingsFeature == f) ? null : f;
                     return true;
                 }
@@ -556,9 +537,9 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void handleSettingsClick(int mx, int my, int panelX, int panelY, int button) {
-        int ly = panelY + 48;
-        int left = panelX + 12;
-        int right = panelX + 190 - 12;
+        int ly = panelY + 42;
+        int left = panelX + 9;
+        int right = panelX + 150 - 9;
 
         if (settingsFeature.name.equals("No Render")) {
             ly = tryToggle(mx, my, ly, "Hide Fire", () -> cfg.hideFire, v -> cfg.hideFire = v, left, right);
@@ -600,4 +581,4 @@ public class CrimsonMenuScreen extends Screen {
     private record Feature(String name, String desc,
                            BooleanSupplier get, Consumer<Boolean> set,
                            int category) {}
-    }
+}
