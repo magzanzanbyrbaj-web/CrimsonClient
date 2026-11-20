@@ -291,6 +291,15 @@ public class HudRenderer {
         if (c.potionHud) list.add("Potion HUD");
         if (c.keystrokes) list.add("Keystrokes");
         if (c.totemCounter) list.add("Totem Counter");
+        if (c.targetEsp) list.add("Target ESP");
+        if (c.hitSound) list.add("Hit Sound");
+        if (c.customCrosshair) list.add("Crosshair");
+        if (c.jumpCircle) list.add("Jump Circle");
+        if (c.customHitbox) list.add("Hitbox");
+        if (c.blockOverlay) list.add("Block Overlay");
+        if (c.customSky) list.add("Custom Sky");
+        if (c.noRender) list.add("No Render");
+        if (c.fullbright) list.add("Fullbright");
 
         int px = c.moduleListX;
         int py = c.moduleListY;
@@ -389,12 +398,49 @@ public class HudRenderer {
     }
 
     private static void renderCrosshair(GuiGraphics g, int sw, int sh) {
+        CrimsonConfig c = CrimsonClientClient.config;
         int cx = sw / 2;
         int cy = sh / 2;
 
-        g.fill(cx - 6, cy - 1, cx + 7, cy + 1, 0xFFFF4355);
-        g.fill(cx - 1, cy - 6, cx + 1, cy + 7, 0xFFFF4355);
-        g.fill(cx - 1, cy - 1, cx + 1, cy + 1, 0xFFFFFFFF);
+        int color = c.crosshairColor;
+        float size = Math.max(2f, c.crosshairSize);
+        float gap = Math.max(0f, c.crosshairGap);
+        int s = Math.round(size);
+        int gapI = Math.round(gap);
+
+        // Style 0 = classic cross, 1 = circle dots, 2 = T, 3 = filled diamond
+        switch (c.crosshairStyle) {
+            case 1 -> {
+                // Four dots
+                g.fill(cx - s - gapI, cy - 1, cx - gapI, cy + 1, color);
+                g.fill(cx + gapI, cy - 1, cx + s + gapI, cy + 1, color);
+                g.fill(cx - 1, cy - s - gapI, cx + 1, cy - gapI, color);
+                g.fill(cx - 1, cy + gapI, cx + 1, cy + s + gapI, color);
+            }
+            case 2 -> {
+                // T shape
+                g.fill(cx - s - gapI, cy - 1, cx + s + gapI + 1, cy + 1, color);
+                g.fill(cx - 1, cy + 1, cx + 1, cy + s + gapI + 1, color);
+            }
+            case 3 -> {
+                // Small diamond
+                for (int i = 0; i <= s; i++) {
+                    g.fill(cx - i, cy - (s - i), cx - i + 1, cy - (s - i) + 1, color);
+                    g.fill(cx + i, cy - (s - i), cx + i + 1, cy - (s - i) + 1, color);
+                    g.fill(cx - i, cy + (s - i), cx - i + 1, cy + (s - i) + 1, color);
+                    g.fill(cx + i, cy + (s - i), cx + i + 1, cy + (s - i) + 1, color);
+                }
+            }
+            default -> {
+                // Classic cross with gap
+                g.fill(cx - s - gapI, cy - 1, cx - gapI, cy + 1, color);
+                g.fill(cx + gapI, cy - 1, cx + s + gapI + 1, cy + 1, color);
+                g.fill(cx - 1, cy - s - gapI, cx + 1, cy - gapI, color);
+                g.fill(cx - 1, cy + gapI, cx + 1, cy + s + gapI + 1, color);
+                // Center dot
+                g.fill(cx - 1, cy - 1, cx + 1, cy + 1, 0xFFFFFFFF);
+            }
+        }
     }
 
     private static void renderHitmarker(GuiGraphics g, int sw, int sh) {
@@ -633,4 +679,4 @@ public class HudRenderer {
 
         g.fill(x, y + r, x + w, y + h - r, color);
     }
-}
+                       }
