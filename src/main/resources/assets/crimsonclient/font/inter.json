@@ -1,8 +1,9 @@
+
 {
   "providers": [
     {
       "type": "ttf",
-      "file": "crimsonclient:font/inter/inter-regular.ttf",
+      "file": "crimsonclient:inter/inter-regular.ttf",
       "shift": [0, 0],
       "size": 11,
       "oversample": 2.0
