@@ -6,6 +6,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.ChatScreen;
 import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
@@ -28,6 +29,8 @@ public class HudRenderer {
 
     private static final Identifier FONT =
             Identifier.fromNamespaceAndPath("crimsonclient", "inter");
+    private static final Identifier LOGO =
+            Identifier.fromNamespaceAndPath("crimsonclient", "crimson_logo.png");
 
     private static long lastHitmarker;
 
@@ -126,11 +129,8 @@ public class HudRenderer {
 
         panel(g, px, py, w, h);
 
-        // Built-in Crimson logo. No external PNG required.
-        rounded(g, px + 6, py + 3, 20, 20, 6, 0xFF55202F);
-        rounded(g, px + 8, py + 5, 16, 16, 5, 0xFF8F3044);
-
-        drawText(g, "C", px + 12, py + 9, 0xFFFF6374, true);
+        g.blit(RenderPipelines.GUI_TEXTURED, LOGO,
+                px + 5, py + 3, 0f, 0f, 22, 22, 128, 128);
 
         drawText(g, brand, px + 31, py + 5, 0xFFFFF3F5, true);
         drawText(g, stats, px + 31, py + 16, 0xFFB8B5C2, false);
@@ -157,7 +157,8 @@ public class HudRenderer {
         panel(g, px, py, w, h);
         panel(g, px + 7, py + 8, 34, 34);
 
-        drawText(g, "C", px + 19, py + 20, 0xFFFF5266, true);
+        g.blit(RenderPipelines.GUI_TEXTURED, LOGO,
+                px + 10, py + 11, 0f, 0f, 28, 28, 128, 128);
 
         String name = target.getName().getString();
 
@@ -408,22 +409,18 @@ public class HudRenderer {
         int s = Math.round(size);
         int gapI = Math.round(gap);
 
-        // Style 0 = classic cross, 1 = circle dots, 2 = T, 3 = filled diamond
         switch (c.crosshairStyle) {
             case 1 -> {
-                // Four dots
                 g.fill(cx - s - gapI, cy - 1, cx - gapI, cy + 1, color);
                 g.fill(cx + gapI, cy - 1, cx + s + gapI, cy + 1, color);
                 g.fill(cx - 1, cy - s - gapI, cx + 1, cy - gapI, color);
                 g.fill(cx - 1, cy + gapI, cx + 1, cy + s + gapI, color);
             }
             case 2 -> {
-                // T shape
                 g.fill(cx - s - gapI, cy - 1, cx + s + gapI + 1, cy + 1, color);
                 g.fill(cx - 1, cy + 1, cx + 1, cy + s + gapI + 1, color);
             }
             case 3 -> {
-                // Small diamond
                 for (int i = 0; i <= s; i++) {
                     g.fill(cx - i, cy - (s - i), cx - i + 1, cy - (s - i) + 1, color);
                     g.fill(cx + i, cy - (s - i), cx + i + 1, cy - (s - i) + 1, color);
@@ -432,12 +429,10 @@ public class HudRenderer {
                 }
             }
             default -> {
-                // Classic cross with gap
                 g.fill(cx - s - gapI, cy - 1, cx - gapI, cy + 1, color);
                 g.fill(cx + gapI, cy - 1, cx + s + gapI + 1, cy + 1, color);
                 g.fill(cx - 1, cy - s - gapI, cx + 1, cy - gapI, color);
                 g.fill(cx - 1, cy + gapI, cx + 1, cy + s + gapI + 1, color);
-                // Center dot
                 g.fill(cx - 1, cy - 1, cx + 1, cy + 1, 0xFFFFFFFF);
             }
         }
@@ -679,4 +674,4 @@ public class HudRenderer {
 
         g.fill(x, y + r, x + w, y + h - r, color);
     }
-                       }
+}
