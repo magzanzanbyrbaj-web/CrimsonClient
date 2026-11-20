@@ -46,7 +46,7 @@ public final class BlockOverlay {
         if (matrices == null || consumers == null) return;
 
         Vec3 cam = context.gameRenderer().getMainCamera().position();
-        float lineWidth = Math.max(1.0f, config.blockOverlayWidth);
+        float width = Math.max(1.0f, config.blockOverlayWidth);
 
         matrices.pushPose();
         try {
@@ -71,12 +71,12 @@ public final class BlockOverlay {
                 buffer.addVertex(matrix, (float) x1, (float) y1, (float) z1)
                         .setColor(first[0], first[1], first[2], 0.95f)
                         .setNormal(0, 1, 0);
-                buffer.setLineWidth(lineWidth);
+                buffer.setLineWidth(width);
 
                 buffer.addVertex(matrix, (float) x2, (float) y2, (float) z2)
                         .setColor(second[0], second[1], second[2], 0.95f)
                         .setNormal(0, 1, 0);
-                buffer.setLineWidth(lineWidth);
+                buffer.setLineWidth(width);
             });
         } finally {
             matrices.popPose();
