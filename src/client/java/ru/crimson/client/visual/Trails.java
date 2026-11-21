@@ -108,10 +108,12 @@ public final class Trails {
                 float z2 = (float) (point.z - camera.z);
 
                 buffer.addVertex(matrix, x1, y1, z1)
+                        .setLineWidth(1.0f)
                         .setColor(red, green, blue, currentAlpha)
                         .setNormal(0, 1, 0);
 
                 buffer.addVertex(matrix, x2, y2, z2)
+                        .setLineWidth(1.0f)
                         .setColor(red, green, blue, currentAlpha)
                         .setNormal(0, 1, 0);
             }
