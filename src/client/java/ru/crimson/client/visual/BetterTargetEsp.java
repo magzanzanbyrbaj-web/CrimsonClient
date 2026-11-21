@@ -1,3 +1,4 @@
+
 package ru.crimson.client.visual;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -58,7 +59,7 @@ public final class BetterTargetEsp {
             );
         });
 
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(
+        WorldRenderEvents.BEFORE_TRANSLUCENT.register(
                 BetterTargetEsp::render
         );
     }
@@ -87,90 +88,89 @@ public final class BetterTargetEsp {
         Vec3 camera = ctx.gameRenderer()
                 .getMainCamera().position();
 
-        float partial = ctx.tickCounter()
-                .getGameTimeDeltaPartialTick(true);
-
-        double x = Mth.lerp(partial, target.xo, target.getX());
-        double y = Mth.lerp(partial, target.yo, target.getY());
-        double z = Mth.lerp(partial, target.zo, target.getZ());
+        double x = target.getX();
+        double y = target.getY();
+        double z = target.getZ();
 
         matrices.pushPose();
 
-        matrices.translate(
-                x - camera.x,
-                y - camera.y,
-                z - camera.z
-        );
+        try {
+            matrices.translate(
+                    x - camera.x,
+                    y - camera.y,
+                    z - camera.z
+            );
 
-        float rotation = (System.currentTimeMillis() % 4000L)
-                / 4000f * 360f;
+            float rotation = (System.currentTimeMillis() % 4000L)
+                    / 4000f * 360f;
 
-        matrices.mulPose(
-                com.mojang.math.Axis.YP.rotationDegrees(rotation)
-        );
+            matrices.mulPose(
+                    com.mojang.math.Axis.YP.rotationDegrees(rotation)
+            );
 
-        Matrix4f matrix = matrices.last().pose();
+            Matrix4f matrix = matrices.last().pose();
 
-        VertexConsumer buffer =
-                consumers.getBuffer(RenderTypes.lines());
+            VertexConsumer buffer =
+                    consumers.getBuffer(RenderTypes.lines());
 
-        float height = target.getBbHeight();
-        float width = target.getBbWidth()
-                * 0.7f * cfg.targetEspScale;
+            float height = target.getBbHeight();
+            float width = target.getBbWidth()
+                    * 0.7f * cfg.targetEspScale;
 
-        int color = cfg.targetEspColor;
+            int color = cfg.targetEspColor;
 
-        float red = ((color >> 16) & 255) / 255f;
-        float green = ((color >> 8) & 255) / 255f;
-        float blue = (color & 255) / 255f;
-        float alpha = ((color >>> 24) & 255)
-                / 255f * animation;
+            float red = ((color >> 16) & 255) / 255f;
+            float green = ((color >> 8) & 255) / 255f;
+            float blue = (color & 255) / 255f;
+            float alpha = ((color >>> 24) & 255)
+                    / 255f * animation;
 
-        int segments = 32;
+            int segments = 32;
 
-        for (int i = 0; i < segments; i++) {
-            float a1 = (float) (i * Math.PI * 2 / segments);
-            float a2 = (float) ((i + 1) * Math.PI * 2 / segments);
+            for (int i = 0; i < segments; i++) {
+                float a1 = (float) (i * Math.PI * 2 / segments);
+                float a2 = (float) ((i + 1) * Math.PI * 2 / segments);
 
-            float x1 = Mth.cos(a1) * width;
-            float z1 = Mth.sin(a1) * width;
+                float x1 = Mth.cos(a1) * width;
+                float z1 = Mth.sin(a1) * width;
 
-            float x2 = Mth.cos(a2) * width;
-            float z2 = Mth.sin(a2) * width;
+                float x2 = Mth.cos(a2) * width;
+                float z2 = Mth.sin(a2) * width;
 
-            vertex(buffer, matrix,
-                    x1, height * 0.35f, z1,
-                    red, green, blue, alpha);
+                vertex(buffer, matrix,
+                        x1, height * 0.35f, z1,
+                        red, green, blue, alpha);
 
-            vertex(buffer, matrix,
-                    x2, height * 0.35f, z2,
-                    red, green, blue, alpha);
+                vertex(buffer, matrix,
+                        x2, height * 0.35f, z2,
+                        red, green, blue, alpha);
 
-            vertex(buffer, matrix,
-                    x1, -height * 0.35f, z1,
-                    red, green, blue, alpha * 0.6f);
+                vertex(buffer, matrix,
+                        x1, -height * 0.35f, z1,
+                        red, green, blue, alpha * 0.6f);
 
-            vertex(buffer, matrix,
-                    x2, -height * 0.35f, z2,
-                    red, green, blue, alpha * 0.6f);
+                vertex(buffer, matrix,
+                        x2, -height * 0.35f, z2,
+                        red, green, blue, alpha * 0.6f);
+            }
+
+            for (int i = 0; i < 4; i++) {
+                float angle = (float) (i * Math.PI / 2);
+
+                float lx = Mth.cos(angle) * width;
+                float lz = Mth.sin(angle) * width;
+
+                vertex(buffer, matrix,
+                        lx, -height * 0.35f, lz,
+                        red, green, blue, alpha);
+
+                vertex(buffer, matrix,
+                        lx, height * 0.35f, lz,
+                        red, green, blue, alpha);
+            }
+        } finally {
+            matrices.popPose();
         }
-
-        for (int i = 0; i < 4; i++) {
-            float angle = (float) (i * Math.PI / 2);
-
-            float lx = Mth.cos(angle) * width;
-            float lz = Mth.sin(angle) * width;
-
-            vertex(buffer, matrix,
-                    lx, -height * 0.35f, lz,
-                    red, green, blue, alpha);
-
-            vertex(buffer, matrix,
-                    lx, height * 0.35f, lz,
-                    red, green, blue, alpha);
-        }
-
-        matrices.popPose();
     }
 
     private static void vertex(
