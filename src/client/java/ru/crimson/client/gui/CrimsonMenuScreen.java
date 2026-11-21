@@ -11,6 +11,7 @@ import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
 
@@ -24,9 +25,6 @@ public class CrimsonMenuScreen extends Screen {
 
     private static final Identifier FONT =
             Identifier.fromNamespaceAndPath("crimsonclient", "inter");
-
-    private static final Identifier LOGO =
-            Identifier.fromNamespaceAndPath("crimsonclient", "crimson_logo.png");
 
     private static final int WHITE = 0xFFF0F0F2;
     private static final int MUTED = 0xFF777982;
@@ -46,6 +44,7 @@ public class CrimsonMenuScreen extends Screen {
 
     private int px, py, pw, ph;
     private int sidebar, cx, cw;
+
     private int cardHeight = 51;
     private int cardGap = 7;
 
@@ -58,6 +57,7 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void buildFeatures() {
+
         // RENDER
         add("HitParticles", "Creates particles after a hit",
                 () -> cfg.hitParticles, v -> cfg.hitParticles = v, 0);
@@ -82,6 +82,15 @@ public class CrimsonMenuScreen extends Screen {
 
         add("CustomSky", "Custom world sky",
                 () -> cfg.customSky, v -> cfg.customSky = v, 0);
+
+        add("ChinaHat", "Animated hat above your player",
+                () -> cfg.chinaHat, v -> cfg.chinaHat = v, 0);
+
+        add("Trails", "Player movement trail",
+                () -> cfg.trails, v -> cfg.trails = v, 0);
+
+        add("ChatAnimations", "Smooth chat message animations",
+                () -> cfg.chatAnimations, v -> cfg.chatAnimations = v, 0);
 
         add("JumpCircle", "Circle under the player",
                 () -> cfg.jumpCircle, v -> cfg.jumpCircle = v, 0);
@@ -166,8 +175,11 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void layout() {
-        pw = Math.min(width - 24, Math.max(500, (int) (width * 0.532f)));
-        ph = Math.min(height - 24, Math.max(340, (int) (height * 0.59f)));
+        pw = Math.min(width - 24,
+                Math.max(500, (int) (width * 0.532f)));
+
+        ph = Math.min(height - 24,
+                Math.max(340, (int) (height * 0.59f)));
 
         px = (width - pw) / 2;
         py = (height - ph) / 2;
@@ -182,7 +194,8 @@ public class CrimsonMenuScreen extends Screen {
     protected void init() {
         layout();
 
-        int searchWidth = Math.min(210, Math.max(110, cw / 3));
+        int searchWidth = Math.min(210,
+                Math.max(110, cw / 3));
 
         searchBox = new EditBox(
                 font,
@@ -233,7 +246,8 @@ public class CrimsonMenuScreen extends Screen {
                     x + w - inset, y + h - row, color);
         }
 
-        g.fill(x, y + radius, x + w, y + h - radius, color);
+        g.fill(x, y + radius,
+                x + w, y + h - radius, color);
     }
 
     private boolean hit(int mx, int my,
@@ -269,17 +283,14 @@ public class CrimsonMenuScreen extends Screen {
 
         g.fill(0, 0, width, height, 0x55000000);
 
-        // Main window
         rounded(g, px + 3, py + 5, pw, ph, 17, 0x55000000);
         rounded(g, px, py, pw, ph, 17, 0xF0090A0C);
         rounded(g, px + 1, py + 1, pw - 2, ph - 2,
                 16, 0xF20D0E10);
 
-        // Sidebar
         rounded(g, px + 1, py + 1, sidebar, ph - 2,
                 15, 0xFF0B0C0E);
 
-        // Sidebar separator
         g.fill(px + sidebar, py + 13,
                 px + sidebar + 1, py + ph - 13, 0x332F3035);
 
@@ -295,62 +306,33 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void drawSidebar(GuiGraphics g, int mx, int my) {
-        // Logo
-        rounded(g, px + 13, py + 17, 25, 25,
-                7, 0xFF191A1E);
-
-        g.blit(
-                net.minecraft.client.renderer.RenderPipelines.GUI_TEXTURED,
-                LOGO,
-                px + 13, py + 17,
-                0f, 0f, 25, 25, 128, 128
-        );
-
-        text(g, "CRIMSON", px + 45, py + 19, WHITE);
-        text(g, "1.21.11", px + 45, py + 31, MUTED);
-
-        // Small navigation indicator
-        rounded(g, px + 13, py + 69,
-                sidebar - 26, 29, 9, 0xFF111216);
-
-        text(g, "‹", px + 24, py + 78, MUTED);
-        rounded(g, px + 54, py + 81, 17, 4, 3, WHITE);
-        text(g, "›", px + sidebar - 29, py + 78, MUTED);
+        text(g, "CRIMSON", px + 18, py + 23, RED);
+        text(g, "CLIENT", px + 18, py + 37, MUTED);
 
         for (int i = 0; i < CATEGORIES.length; i++) {
             int bx = px + 13;
             int by = py + 126 + i * 39;
-            int bw = sidebar - 26;
-            int bh = 29;
 
             boolean active = selected == i;
-            boolean hover = hit(mx, my, bx, by, bw, bh);
+            boolean hover = hit(mx, my, bx, by, sidebar - 26, 29);
 
             if (active) {
-                rounded(g, bx, by, bw, bh,
-                        8, 0xFFF5F5F6);
+                rounded(g, bx, by, sidebar - 26, 29,
+                        7, 0xFF252027);
+                rounded(g, bx, by + 4, 2, 21,
+                        1, RED);
             } else if (hover) {
-                rounded(g, bx, by, bw, bh,
-                        8, 0xFF17181C);
+                rounded(g, bx, by, sidebar - 26, 29,
+                        7, 0xFF15161A);
             }
 
-            int color = active ? 0xFF17181C : 0xFF999BA4;
-
-            String icon = switch (i) {
-                case 0 -> "▣";
-                case 1 -> "♟";
-                case 2 -> "▦";
-                default -> "▤";
-            };
-
-            text(g, icon, bx + 10, by + 9, color);
-            text(g, CATEGORIES[i], bx + 31, by + 9, color);
+            text(g, CATEGORIES[i], bx + 11, by + 10,
+                    active ? WHITE : MUTED);
         }
 
-        // Profile block
-        int profileY = py + ph - 43;
+        int profileY = py + ph - 47;
 
-        rounded(g, px + 13, profileY,
+        rounded(g, px + 12, profileY,
                 sidebar - 26, 31, 8, 0xFF141519);
 
         rounded(g, px + 18, profileY + 5,
@@ -366,29 +348,24 @@ public class CrimsonMenuScreen extends Screen {
             player = player.substring(0, 12);
         }
 
-        text(g, player, px + 44,
-                profileY + 7, WHITE);
-
-        text(g, "Crimson user", px + 44,
-                profileY + 19, MUTED);
-
-        text(g, "⚙", px + sidebar - 29,
-                profileY + 10, MUTED);
+        text(g, player, px + 44, profileY + 7, WHITE);
+        text(g, "Crimson user", px + 44, profileY + 19, MUTED);
+        text(g, "⚙", px + sidebar - 29, profileY + 10, MUTED);
     }
 
     private void drawHeader(GuiGraphics g, int mx, int my) {
         int headerX = cx;
         int headerY = py + 15;
 
-        int searchWidth = Math.min(210, Math.max(110, cw / 3));
+        int searchWidth = Math.min(210,
+                Math.max(110, cw / 3));
+
         int titleWidth = cw - searchWidth - 10;
 
         rounded(g, headerX, headerY,
                 titleWidth, 27, 8, 0xFF111216);
 
-        text(g, "▣", headerX + 11,
-                headerY + 9, 0xFFB9BAC0);
-
+        text(g, "▣", headerX + 11, headerY + 9, 0xFFB9BAC0);
         text(g, CATEGORIES[selected],
                 headerX + 31, headerY + 9, WHITE);
 
@@ -416,7 +393,8 @@ public class CrimsonMenuScreen extends Screen {
         int bottom = py + ph - 12;
 
         int rowsVisible = Math.max(1,
-                (bottom - startY + cardGap) / (cardHeight + cardGap));
+                (bottom - startY + cardGap)
+                        / (cardHeight + cardGap));
 
         int maxOffset = Math.max(0,
                 (int) Math.ceil((double) visible.size() / columns)
@@ -448,22 +426,17 @@ public class CrimsonMenuScreen extends Screen {
             boolean hover = hit(mx, my, x, y, cardW, cardHeight);
             boolean selectedSettings = settingsFeature == f;
 
-            int background = hover
-                    ? 0xFF17181C
-                    : 0xFF111216;
+            rounded(g, x, y, cardW, cardHeight, 9,
+                    hover ? 0xFF17181C : 0xFF111216);
 
-            rounded(g, x, y, cardW, cardHeight,
-                    9, background);
-
-            // Thin card border
             rounded(g, x, y, cardW, 1, 1,
                     selectedSettings ? RED : 0xFF202126);
 
             rounded(g, x, y + cardHeight - 1,
                     cardW, 1, 1, 0xFF202126);
 
-            text(g, f.name, x + 12,
-                    y + 12, enabled ? WHITE : 0xFF9B9CA3);
+            text(g, f.name, x + 12, y + 12,
+                    enabled ? WHITE : 0xFF9B9CA3);
 
             String desc = f.desc;
             int maxTextWidth = cardW - 45;
@@ -473,28 +446,22 @@ public class CrimsonMenuScreen extends Screen {
                 desc = desc.substring(0, desc.length() - 1);
             }
 
-            text(g, desc, x + 12,
-                    y + 31, 0xFF65666D);
+            text(g, desc, x + 12, y + 31, 0xFF65666D);
 
-            // Settings gear
             int gearX = x + cardW - 27;
             int gearY = y + 9;
 
-            rounded(g, gearX, gearY,
-                    17, 17, 5,
+            rounded(g, gearX, gearY, 17, 17, 5,
                     selectedSettings ? 0xFF393A40 : 0xFF1A1B20);
 
-            text(g, "⚙", gearX + 4,
-                    gearY + 4, 0xFF96979E);
+            text(g, "⚙", gearX + 4, gearY + 4, 0xFF96979E);
 
-            // Small enabled indicator
             if (enabled) {
                 rounded(g, x + cardW - 9,
                         y + 3, 3, 3, 2, RED);
             }
         }
 
-        // Scrollbar
         int totalRows = (int) Math.ceil(
                 (double) visible.size() / columns);
 
@@ -531,30 +498,39 @@ public class CrimsonMenuScreen extends Screen {
         rounded(g, x, y,
                 panelW, panelH, 9, 0xFF15161A);
 
-        text(g, settingsFeature.name,
-                x + 11, y + 12, WHITE);
-
-        text(g, "НАСТРОЙКИ МОДУЛЯ",
-                x + 11, y + 29, MUTED);
+        text(g, settingsFeature.name, x + 11, y + 12, WHITE);
+        text(g, "НАСТРОЙКИ МОДУЛЯ", x + 11, y + 29, MUTED);
 
         String info = switch (settingsFeature.name) {
             case "HitSound" ->
                     "Sound: " + settingsFeatureValue();
+
             case "CriticalEffects" ->
                     "Style: " + criticalName();
+
             case "JumpCircle" ->
                     "Thickness: " + cfg.jumpCircleThickness;
+
             case "TargetESP" ->
-                    "Ring / Particles";
+                    "Ring: " + (cfg.targetEspRing ? "ON" : "OFF");
+
+            case "ChinaHat" ->
+                    "Rainbow: " + (cfg.chinaHatRainbow ? "ON" : "OFF");
+
+            case "Trails" ->
+                    "Length: " + cfg.trailsLength;
+
+            case "ChatAnimations" ->
+                    "Animation: " + (cfg.chatAnimations ? "ON" : "OFF");
+
             case "NoRender" ->
                     "Visual effects options";
+
             default ->
                     "Дополнительные настройки";
         };
 
-        text(g, info, x + 11,
-                y + 51, 0xFFD0D0D4);
-
+        text(g, info, x + 11, y + 51, 0xFFD0D0D4);
         text(g, "Нажми ЛКМ для изменения",
                 x + 11, y + 69, MUTED);
     }
@@ -592,7 +568,6 @@ public class CrimsonMenuScreen extends Screen {
             return super.mouseClicked(event, doubleClick);
         }
 
-        // Category selection
         if (button == 0) {
             for (int i = 0; i < CATEGORIES.length; i++) {
                 int bx = px + 13;
@@ -612,10 +587,10 @@ public class CrimsonMenuScreen extends Screen {
             }
         }
 
-        // Settings popup
         if (settingsFeature != null) {
             int panelW = 190;
             int panelH = 90;
+
             int x = px + pw - panelW - 14;
             int y = py + ph - panelH - 14;
 
@@ -637,13 +612,21 @@ public class CrimsonMenuScreen extends Screen {
                                                 0.5f, 10.0f
                                         );
 
-                        case "TargetESP" -> {
-                            cfg.targetEspRing = !cfg.targetEspRing;
+                        case "TargetESP" ->
+                                cfg.targetEspRing = !cfg.targetEspRing;
+
+                        case "ChinaHat" ->
+                                cfg.chinaHatRainbow = !cfg.chinaHatRainbow;
+
+                        case "Trails" -> {
+                            cfg.trailsLength += 10;
+                            if (cfg.trailsLength > 100) {
+                                cfg.trailsLength = 20;
+                            }
                         }
 
-                        case "NoRender" -> {
-                            cfg.hideFire = !cfg.hideFire;
-                        }
+                        case "NoRender" ->
+                                cfg.hideFire = !cfg.hideFire;
                     }
 
                     cfg.save();
