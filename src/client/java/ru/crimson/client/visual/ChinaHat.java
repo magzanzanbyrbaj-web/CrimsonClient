@@ -1,3 +1,4 @@
+
 package ru.crimson.client.visual;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -22,7 +23,7 @@ public final class ChinaHat {
     private ChinaHat() {}
 
     public static void init() {
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(ChinaHat::render);
+        WorldRenderEvents.BEFORE_TRANSLUCENT.register(ChinaHat::render);
     }
 
     private static void render(WorldRenderContext ctx) {
@@ -48,74 +49,74 @@ public final class ChinaHat {
         Vec3 camera = ctx.gameRenderer()
                 .getMainCamera().position();
 
-        float partial = ctx.tickCounter()
-                .getGameTimeDeltaPartialTick(true);
-
-        double x = Mth.lerp(partial, mc.player.xo, mc.player.getX());
-        double y = Mth.lerp(partial, mc.player.yo, mc.player.getY());
-        double z = Mth.lerp(partial, mc.player.zo, mc.player.getZ());
+        double x = mc.player.getX();
+        double y = mc.player.getY();
+        double z = mc.player.getZ();
 
         matrices.pushPose();
-        matrices.translate(
-                x - camera.x,
-                y - camera.y + mc.player.getBbHeight() + 0.15,
-                z - camera.z
-        );
 
-        VertexConsumer buffer =
-                consumers.getBuffer(RenderTypes.lines());
+        try {
+            matrices.translate(
+                    x - camera.x,
+                    y - camera.y + mc.player.getBbHeight() + 0.15,
+                    z - camera.z
+            );
 
-        Matrix4f matrix = matrices.last().pose();
+            VertexConsumer buffer =
+                    consumers.getBuffer(RenderTypes.lines());
 
-        int color = cfg.chinaHatColor;
+            Matrix4f matrix = matrices.last().pose();
 
-        if (cfg.chinaHatRainbow) {
-            float hue = (System.currentTimeMillis() % 4000L)
-                    / 4000f;
+            int color = cfg.chinaHatColor;
 
-            color = java.awt.Color.HSBtoRGB(
-                    hue, 0.85f, 1.0f
-            ) | 0xAA000000;
+            if (cfg.chinaHatRainbow) {
+                float hue = (System.currentTimeMillis() % 4000L)
+                        / 4000f;
+
+                color = java.awt.Color.HSBtoRGB(
+                        hue, 0.85f, 1.0f
+                ) | 0xAA000000;
+            }
+
+            float red = ((color >> 16) & 255) / 255f;
+            float green = ((color >> 8) & 255) / 255f;
+            float blue = (color & 255) / 255f;
+            float alpha = ((color >>> 24) & 255) / 255f;
+
+            float height = cfg.chinaHatHeight;
+            float radius = cfg.chinaHatRadius;
+
+            int segments = 32;
+
+            for (int i = 0; i < segments; i++) {
+                float a1 = (float) (i * Math.PI * 2 / segments);
+                float a2 = (float) ((i + 1) * Math.PI * 2 / segments);
+
+                float x1 = Mth.cos(a1) * radius;
+                float z1 = Mth.sin(a1) * radius;
+
+                float x2 = Mth.cos(a2) * radius;
+                float z2 = Mth.sin(a2) * radius;
+
+                vertex(buffer, matrix,
+                        0, height, 0,
+                        red, green, blue, alpha);
+
+                vertex(buffer, matrix,
+                        x1, 0, z1,
+                        red, green, blue, alpha);
+
+                vertex(buffer, matrix,
+                        x1, 0, z1,
+                        red, green, blue, alpha * 0.65f);
+
+                vertex(buffer, matrix,
+                        x2, 0, z2,
+                        red, green, blue, alpha * 0.65f);
+            }
+        } finally {
+            matrices.popPose();
         }
-
-        float red = ((color >> 16) & 255) / 255f;
-        float green = ((color >> 8) & 255) / 255f;
-        float blue = (color & 255) / 255f;
-        float alpha = ((color >>> 24) & 255) / 255f;
-
-        float height = cfg.chinaHatHeight;
-        float radius = cfg.chinaHatRadius;
-
-        int segments = 32;
-
-        for (int i = 0; i < segments; i++) {
-            float a1 = (float) (i * Math.PI * 2 / segments);
-            float a2 = (float) ((i + 1) * Math.PI * 2 / segments);
-
-            float x1 = Mth.cos(a1) * radius;
-            float z1 = Mth.sin(a1) * radius;
-
-            float x2 = Mth.cos(a2) * radius;
-            float z2 = Mth.sin(a2) * radius;
-
-            vertex(buffer, matrix,
-                    0, height, 0,
-                    red, green, blue, alpha);
-
-            vertex(buffer, matrix,
-                    x1, 0, z1,
-                    red, green, blue, alpha);
-
-            vertex(buffer, matrix,
-                    x1, 0, z1,
-                    red, green, blue, alpha * 0.65f);
-
-            vertex(buffer, matrix,
-                    x2, 0, z2,
-                    red, green, blue, alpha * 0.65f);
-        }
-
-        matrices.popPose();
     }
 
     private static void vertex(
@@ -128,4 +129,4 @@ public final class ChinaHat {
                 .setColor(r, g, b, a)
                 .setNormal(0, 1, 0);
     }
-            }
+}
