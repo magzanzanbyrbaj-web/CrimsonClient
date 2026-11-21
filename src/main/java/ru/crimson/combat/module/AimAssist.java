@@ -1,46 +1,50 @@
 package ru.crimson.combat.module;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.LivingEntity;
-import ru.crimson.combat.CrimsonCombat;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.LivingEntity;
+import ru.crimson.client.CrimsonClientClient;
+import ru.crimson.client.config.CrimsonConfig;
 import ru.crimson.combat.util.TargetUtils;
 
 public class AimAssist {
-    public void onTick(MinecraftClient mc) {
-        if (!CrimsonCombat.config.aimAssist || mc.player == null) return;
+
+    public void onTick() {
+        Minecraft mc = Minecraft.getInstance();
+        CrimsonConfig cfg = CrimsonClientClient.config;
+
+        if (cfg == null || !cfg.aimAssist || mc.player == null || mc.level == null) return;
 
         LivingEntity target = TargetUtils.findTarget(
-                CrimsonCombat.config.aaRange,
-                CrimsonCombat.config.aaFov,
-                CrimsonCombat.config.aaPlayers,
-                CrimsonCombat.config.aaMobs,
-                CrimsonCombat.config.aaThroughWalls,
+                cfg.aaRange,
+                cfg.aaFov,
+                cfg.aaPlayers,
+                cfg.aaMobs,
+                cfg.aaThroughWalls,
                 0
         );
 
         if (target == null) return;
 
         float[] targetRots = TargetUtils.getRotations(target);
-        float currentYaw = mc.player.getYaw();
-        float currentPitch = mc.player.getPitch();
+
+        float currentYaw = mc.player.getYRot();
+        float currentPitch = mc.player.getXRot();
 
         float yawDiff = wrapDegrees(targetRots[0] - currentYaw);
         float pitchDiff = targetRots[1] - currentPitch;
 
-        float speed = CrimsonCombat.config.aaSpeed;
+        float speed = cfg.aaSpeed;
 
-        if (CrimsonCombat.config.aaSilent) {
-            // Можно доработать silent через пакеты, пока оставляем visible
+        if (!cfg.aaSilent) {
+            mc.player.setYRot(currentYaw + yawDiff * speed);
+            mc.player.setXRot(currentPitch + pitchDiff * speed);
         }
-
-        mc.player.setYaw(currentYaw + yawDiff * speed);
-        mc.player.setPitch(currentPitch + pitchDiff * speed);
     }
 
     private float wrapDegrees(float degrees) {
-        degrees %= 360;
-        if (degrees >= 180) degrees -= 360;
-        if (degrees < -180) degrees += 360;
+        degrees %= 360f;
+        if (degrees >= 180f) degrees -= 360f;
+        if (degrees < -180f) degrees += 360f;
         return degrees;
     }
 }
