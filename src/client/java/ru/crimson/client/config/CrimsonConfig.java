@@ -141,6 +141,13 @@ public class CrimsonConfig {
 
     // NO RENDER
     public boolean hideFire = false;
+    public boolean hideHurtCamera = false;
+    public boolean hidePortal = false;
+    public boolean hidePumpkin = false;
+    public boolean hideVignette = false;
+    public boolean hideNausea = false;
+    public boolean hideWeather = false;
+    public boolean hideParticles = false;
 
     public static CrimsonConfig load() {
         try {
