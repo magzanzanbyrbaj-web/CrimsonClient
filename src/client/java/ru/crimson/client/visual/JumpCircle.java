@@ -7,7 +7,6 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
 import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.world.phys.Vec3;
@@ -27,39 +26,42 @@ public final class JumpCircle {
 
     public static void init() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-            if (client.player == null || client.level == null) {
+            if (client.player == null || client.level == null
+                    || CrimsonClientClient.config == null) {
                 CIRCLES.clear();
                 wasOnGround = true;
                 return;
             }
 
             CrimsonConfig config = CrimsonClientClient.config;
-            LocalPlayer player = client.player;
 
             if (!config.jumpCircle) {
                 CIRCLES.clear();
-                wasOnGround = player.onGround();
+                wasOnGround = client.player.onGround();
                 return;
             }
 
-            boolean onGround = player.onGround();
+            boolean grounded = client.player.onGround();
 
-            if (wasOnGround && !onGround && player.getDeltaMovement().y > 0) {
+            if (wasOnGround && !grounded
+                    && client.player.getDeltaMovement().y > 0) {
                 CIRCLES.add(new Circle(
-                        player.getX(), player.getY(), player.getZ(),
+                        client.player.getX(),
+                        client.player.getY() + 0.03,
+                        client.player.getZ(),
                         config.jumpCircleSize,
                         config.jumpCircleColor,
                         config.jumpCircleFade
                 ));
             }
 
-            wasOnGround = onGround;
+            wasOnGround = grounded;
 
             Iterator<Circle> iterator = CIRCLES.iterator();
             while (iterator.hasNext()) {
                 Circle circle = iterator.next();
                 circle.age++;
-                if (circle.age > 18) iterator.remove();
+                if (circle.age >= 24) iterator.remove();
             }
         });
 
@@ -70,51 +72,55 @@ public final class JumpCircle {
         if (CIRCLES.isEmpty()) return;
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.player == null) return;
+        if (mc.player == null || mc.level == null) return;
 
         PoseStack matrices = context.matrices();
         MultiBufferSource consumers = context.consumers();
+
         if (matrices == null || consumers == null) return;
 
-        Vec3 cam = context.gameRenderer().getMainCamera().position();
+        Vec3 camera = context.gameRenderer()
+                .getMainCamera().position();
+
+        VertexConsumer buffer =
+                consumers.getBuffer(RenderTypes.lines());
 
         matrices.pushPose();
+
         try {
-            matrices.translate(-cam.x, -cam.y, -cam.z);
+            matrices.translate(-camera.x, -camera.y, -camera.z);
 
             Matrix4f matrix = matrices.last().pose();
-            VertexConsumer buffer = consumers.getBuffer(RenderTypes.lines());
 
             for (Circle circle : CIRCLES) {
-                float progress = circle.age / 18f;
-                float alpha = circle.fade ? 1f - progress : 0.85f;
+                float progress = circle.age / 24.0f;
+                float radius = circle.baseSize * (0.65f + progress * 1.8f);
+                float alpha = circle.fade ? 1.0f - progress : 0.95f;
+
                 if (alpha <= 0.02f) continue;
 
-                float radius = circle.baseSize * (0.6f + progress * 1.4f);
+                float red = ((circle.color >> 16) & 255) / 255f;
+                float green = ((circle.color >> 8) & 255) / 255f;
+                float blue = (circle.color & 255) / 255f;
 
-                int color = circle.color;
-                float r = ((color >> 16) & 255) / 255f;
-                float g = ((color >> 8) & 255) / 255f;
-                float b = (color & 255) / 255f;
+                for (int i = 0; i < 64; i++) {
+                    double a1 = Math.PI * 2.0 * i / 64;
+                    double a2 = Math.PI * 2.0 * (i + 1) / 64;
 
-                for (int i = 0; i < 48; i++) {
-                    double angle1 = Math.PI * 2.0 * i / 48;
-                    double angle2 = Math.PI * 2.0 * (i + 1) / 48;
+                    float x1 = (float) (circle.x + Math.cos(a1) * radius);
+                    float z1 = (float) (circle.z + Math.sin(a1) * radius);
+                    float x2 = (float) (circle.x + Math.cos(a2) * radius);
+                    float z2 = (float) (circle.z + Math.sin(a2) * radius);
 
-                    float x1 = (float) (circle.x + Math.cos(angle1) * radius);
-                    float z1 = (float) (circle.z + Math.sin(angle1) * radius);
-                    float x2 = (float) (circle.x + Math.cos(angle2) * radius);
-                    float z2 = (float) (circle.z + Math.sin(angle2) * radius);
-
-                    buffer.addVertex(matrix, x1, (float) (circle.y + 0.02), z1)
-                            .setColor(r, g, b, alpha)
+                    buffer.addVertex(matrix, x1, (float) circle.y, z1)
+                            .setLineWidth(3.0f)
+                            .setColor(red, green, blue, alpha)
                             .setNormal(0, 1, 0);
-                    buffer.setLineWidth(1.5f);
 
-                    buffer.addVertex(matrix, x2, (float) (circle.y + 0.02), z2)
-                            .setColor(r, g, b, alpha)
+                    buffer.addVertex(matrix, x2, (float) circle.y, z2)
+                            .setLineWidth(3.0f)
+                            .setColor(red, green, blue, alpha)
                             .setNormal(0, 1, 0);
-                    buffer.setLineWidth(1.5f);
                 }
             }
         } finally {
