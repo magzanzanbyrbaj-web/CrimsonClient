@@ -1,30 +1,22 @@
-
 package ru.crimson.client.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
 
-import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CrimsonConfig {
 
-    private static final Gson GSON =
-            new GsonBuilder().setPrettyPrinting().create();
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("crimsonclient.json");
 
-    private static final Path FILE =
-            FabricLoader.getInstance()
-                    .getConfigDir()
-                    .resolve("crimsonclient")
-                    .resolve("config.json");
-
-    // RENDER
-    public boolean hitParticles = true;
+    // ==================== RENDER ====================
+    public boolean hitParticles = false;
     public boolean criticalEffects = false;
     public boolean hitSound = false;
-    public boolean hitmarker = true;
+    public boolean hitmarker = false;
     public boolean damageNumbers = false;
     public boolean targetEsp = false;
     public boolean customCrosshair = false;
@@ -43,7 +35,7 @@ public class CrimsonConfig {
     public boolean reachDisplay = false;
     public boolean pearlTracker = false;
 
-    // PLAYER HUD
+    // ==================== PLAYER / HUD ====================
     public boolean targetHud = true;
     public boolean armorHud = true;
     public boolean totemCounter = true;
@@ -51,141 +43,127 @@ public class CrimsonConfig {
     public boolean potionHud = true;
     public boolean durabilityHud = true;
 
-    // DISPLAY HUD
+    // ==================== DISPLAY ====================
     public boolean watermark = true;
     public boolean keystrokes = false;
     public boolean moduleList = true;
 
-    // PERFORMANCE
+    // ==================== CONFIGS / UTILS ====================
     public boolean fullbright = false;
     public boolean reduceParticles = false;
     public boolean fpsBoost = false;
     public boolean optimized = false;
     public boolean glassAnimation = true;
 
-    // CHINA HAT
-    public int chinaHatColor = 0xAAFF4055;
+    // ==================== EXTRA SETTINGS ====================
+    public int chinaHatColor = -1426112427;
     public boolean chinaHatRainbow = false;
-    public float chinaHatHeight = 0.35f;
-    public float chinaHatRadius = 0.65f;
+    public float chinaHatHeight = 0.5f;
+    public float chinaHatRadius = 0.6f;
 
-    // TRAILS
     public int trailsLength = 40;
-    public int trailsColor = 0xCCFF4055;
+    public int trailsColor = -1;
     public boolean trailsFade = true;
 
-    // JUMP CIRCLE
-    public float jumpCircleSize = 0.8f;
-    public float jumpCircleThickness = 2.5f;
-    public int jumpCircleColor = 0xFFFF4055;
+    public float jumpCircleSize = 1.0f;
+    public float jumpCircleThickness = 1.5f;
+    public int jumpCircleColor = -1;
     public boolean jumpCircleFade = true;
 
-    // TARGET ESP
     public float targetEspScale = 1.0f;
-    public int targetEspColor = 0xFFFF4055;
+    public int targetEspColor = -1;
     public boolean targetEspRing = true;
 
-    // BLOCK OVERLAY
     public float blockOverlayWidth = 2.0f;
-    public boolean blockOverlayGradient = true;
-    public int blockOverlayColor = 0xFFFF4055;
+    public boolean blockOverlayGradient = false;
+    public int blockOverlayColor = -1;
 
-    // HITBOX
-    public int hitboxColor = 0xAAFF4055;
-    public float hitboxWidth = 2.0f;
+    public int hitboxColor = -1;
+    public float hitboxWidth = 1.5f;
 
-    // SKY
     public int skyStyle = 0;
-    public int skyColor = 0xFF17101F;
+    public int skyColor = -1;
 
-    // HIT SOUND
     public int hitSoundType = 0;
-    public float hitSoundVolume = 0.8f;
+    public float hitSoundVolume = 1.0f;
 
-    // CRITICAL EFFECTS
     public int criticalStyle = 0;
 
-    // HUD POSITIONS
-    public int watermarkX = -1;
-    public int watermarkY = -1;
-
-    public int targetHudX = -1;
-    public int targetHudY = -1;
-
-    public int armorHudX = -1;
-    public int armorHudY = -1;
-
-    public int totemHudX = -1;
-    public int totemHudY = -1;
-
-    public int keystrokesX = 10;
-    public int keystrokesY = 60;
-
-    public int moduleListX = 10;
-    public int moduleListY = 40;
-
-    public int inventoryHudX = -1;
-    public int inventoryHudY = -1;
-
-    public int potionHudX = -1;
-    public int potionHudY = 40;
-
-    public int durabilityHudX = -1;
-    public int durabilityHudY = -1;
-
-    // CROSSHAIR
-    public int crosshairColor = 0xFFFF4055;
-    public float crosshairSize = 5.0f;
-    public float crosshairGap = 3.0f;
-    public int crosshairStyle = 0;
-
-    // NO RENDER
     public boolean hideFire = false;
-    public boolean hideHurtCamera = false;
-    public boolean hidePortal = false;
-    public boolean hidePumpkin = false;
-    public boolean hideVignette = false;
-    public boolean hideNausea = false;
-    public boolean hideWeather = false;
-    public boolean hideParticles = false;
+
+    // HUD positions
+    public int watermarkX = 10;
+    public int watermarkY = 10;
+    public int targetHudX = 10;
+    public int targetHudY = 80;
+    public int armorHudX = 10;
+    public int armorHudY = 160;
+    public int totemHudX = 10;
+    public int totemHudY = 220;
+    public int keystrokesX = 10;
+    public int keystrokesY = 280;
+    public int moduleListX = 10;
+    public int moduleListY = 340;
+    public int inventoryHudX = 10;
+    public int inventoryHudY = 400;
+    public int potionHudX = 10;
+    public int potionHudY = 460;
+    public int durabilityHudX = 10;
+    public int durabilityHudY = 520;
+
+    // ==================== COMBAT ====================
+    public boolean killAura = false;
+    public double kaRange = 4.2;
+    public int kaCps = 12;
+    public boolean kaSilent = true;
+    public boolean kaThroughWalls = false;
+    public int kaPriority = 0; // 0 = Closest, 1 = Health, 2 = Armor
+    public boolean kaPlayers = true;
+    public boolean kaMobs = true;
+    public float kaFov = 180f;
+
+    public boolean triggerBot = false;
+    public double tbRange = 3.5;
+    public int tbCps = 14;
+    public boolean tbThroughWalls = false;
+    public boolean tbPlayers = true;
+    public boolean tbMobs = true;
+
+    public boolean aimAssist = false;
+    public double aaRange = 4.5;
+    public float aaSpeed = 0.35f;
+    public float aaFov = 90f;
+    public boolean aaSilent = false;
+    public boolean aaThroughWalls = false;
+    public boolean aaPlayers = true;
+    public boolean aaMobs = true;
+
+    public boolean esp = false;
+    public boolean espPlayers = true;
+    public boolean espMobs = false;
+    public boolean espThroughWalls = true;
+
+    // ==================== LOAD / SAVE ====================
 
     public static CrimsonConfig load() {
         try {
-            Files.createDirectories(FILE.getParent());
-
-            if (!Files.exists(FILE)) {
-                CrimsonConfig config = new CrimsonConfig();
-                config.save();
-                return config;
+            if (Files.exists(FILE)) {
+                String json = Files.readString(FILE);
+                CrimsonConfig loaded = GSON.fromJson(json, CrimsonConfig.class);
+                if (loaded != null) return loaded;
             }
-
-            CrimsonConfig config = GSON.fromJson(
-                    Files.readString(FILE),
-                    CrimsonConfig.class
-            );
-
-            if (config == null) {
-                config = new CrimsonConfig();
-            }
-
-            return config;
-
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            return new CrimsonConfig();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
+        return new CrimsonConfig();
     }
 
     public void save() {
         try {
             Files.createDirectories(FILE.getParent());
             Files.writeString(FILE, GSON.toJson(this));
-        } catch (IOException exception) {
-            exception.printStackTrace();
+        } catch (Exception e) {
+            e.printStackTrace();
         }
-    }
-
-    public static Path getFile() {
-        return FILE;
     }
 }
