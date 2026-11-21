@@ -4,14 +4,13 @@
   "id": "crimsonclient",
   "version": "${version}",
   "name": "Crimson Client",
-  "description": "Beautiful red glass-style PvP client with visuals, utilities and optimization. No cheats.",
+  "description": "Crimson Client - Visuals and HUD",
   "authors": [
     "Crimson"
   ],
-  "contact": {},
   "license": "CC0-1.0",
-  "icon": "assets/crimsonclient/icon.png",
-  "environment": "*",
+  "icon": "assets/crimsonclient/crimson_logo.png",
+  "environment": "client",
   "entrypoints": {
     "main": [
       "ru.crimson.client.CrimsonClient"
