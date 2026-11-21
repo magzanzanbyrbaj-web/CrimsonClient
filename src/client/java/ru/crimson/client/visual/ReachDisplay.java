@@ -3,12 +3,13 @@ package ru.crimson.client.visual;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.Minecraft;
-import net.minecraft.network.chat.Component;
+import net.minecraft.world.entity.Entity;
 import ru.crimson.client.CrimsonClientClient;
 
-import java.util.Locale;
-
 public final class ReachDisplay {
+
+    private static final double REACH_DISTANCE = 3.0;
+
     private ReachDisplay() {}
 
     public static void init() {
@@ -16,26 +17,70 @@ public final class ReachDisplay {
             Minecraft mc = Minecraft.getInstance();
 
             if (mc.player == null || mc.options.hideGui
+                    || CrimsonClientClient.config == null
                     || !CrimsonClientClient.config.reachDisplay) {
                 return;
             }
 
-            if (mc.crosshairPickEntity == null
-                    || mc.crosshairPickEntity == mc.player) {
+            Entity target = mc.crosshairPickEntity;
+
+            if (target == null || target == mc.player) {
                 return;
             }
 
-            double distance = mc.player.distanceTo(mc.crosshairPickEntity);
-            String text = String.format(Locale.ROOT, "Reach: %.2f blocks", distance);
+            double distance = mc.player.distanceTo(target);
+            boolean inReach = distance <= REACH_DISTANCE;
 
-            int width = mc.getWindow().getGuiScaledWidth();
-            int x = width / 2 + 12;
-            int y = mc.getWindow().getGuiScaledHeight() / 2 + 12;
+            int color = inReach
+                    ? 0xFF45E68A
+                    : 0xFFFF465C;
 
-            graphics.fill(x - 4, y - 3, x + mc.font.width(text) + 4,
-                    y + 12, 0x990B101A);
-            graphics.drawString(mc.font, Component.literal(text),
-                    x, y, 0xFFFF5365, true);
+            int centerX = mc.getWindow().getGuiScaledWidth() / 2;
+            int centerY = mc.getWindow().getGuiScaledHeight() / 2 + 18;
+
+            drawCircle(graphics, centerX, centerY, 7, color);
+
+            String text = String.format(
+                    java.util.Locale.ROOT,
+                    "%.1f",
+                    distance
+            );
+
+            int textWidth = mc.font.width(text);
+
+            graphics.drawString(
+                    mc.font,
+                    text,
+                    centerX - textWidth / 2,
+                    centerY + 11,
+                    0xFFFFFFFF,
+                    true
+            );
         });
+    }
+
+    private static void drawCircle(
+            net.minecraft.client.gui.GuiGraphics graphics,
+            int centerX,
+            int centerY,
+            int radius,
+            int color
+    ) {
+        for (int y = -radius; y <= radius; y++) {
+            for (int x = -radius; x <= radius; x++) {
+                int distance = x * x + y * y;
+
+                if (distance <= radius * radius
+                        && distance >= (radius - 2) * (radius - 2)) {
+                    graphics.fill(
+                            centerX + x,
+                            centerY + y,
+                            centerX + x + 1,
+                            centerY + y + 1,
+                            color
+                    );
+                }
+            }
+        }
     }
 }
