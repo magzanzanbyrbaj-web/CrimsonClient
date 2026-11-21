@@ -126,6 +126,7 @@ public final class ChinaHat {
             float r, float g, float b, float a
     ) {
         buffer.addVertex(matrix, x, y, z)
+                .setLineWidth(1.0f)
                 .setColor(r, g, b, a)
                 .setNormal(0, 1, 0);
     }
