@@ -23,8 +23,7 @@ import java.util.ArrayDeque;
 import java.util.Deque;
 
 public final class Trails {
-
-    private static final Deque<Vec3> points = new ArrayDeque<>();
+    private static final Deque<Vec3> POINTS = new ArrayDeque<>();
 
     private Trails() {}
 
@@ -34,43 +33,37 @@ public final class Trails {
 
             if (client.player == null || client.level == null
                     || cfg == null || !cfg.trails) {
-                points.clear();
+                POINTS.clear();
                 return;
             }
 
-            points.addLast(client.player.position().add(0, 0.1, 0));
+            POINTS.addLast(client.player.position().add(0, 0.1, 0));
 
             int maxLength = Mth.clamp(cfg.trailsLength, 2, 200);
 
-            while (points.size() > maxLength) {
-                points.removeFirst();
+            while (POINTS.size() > maxLength) {
+                POINTS.removeFirst();
             }
         });
 
         WorldRenderEvents.BEFORE_TRANSLUCENT.register(Trails::render);
     }
 
-    private static void render(WorldRenderContext ctx) {
+    private static void render(WorldRenderContext context) {
         CrimsonConfig cfg = CrimsonClientClient.config;
 
-        if (cfg == null || !cfg.trails || points.size() < 2) {
-            return;
-        }
+        if (cfg == null || !cfg.trails || POINTS.size() < 2) return;
 
         Minecraft mc = Minecraft.getInstance();
 
-        if (mc.player == null || mc.level == null) {
-            return;
-        }
+        if (mc.player == null || mc.level == null) return;
 
-        PoseStack matrices = ctx.matrices();
-        MultiBufferSource consumers = ctx.consumers();
+        PoseStack matrices = context.matrices();
+        MultiBufferSource consumers = context.consumers();
 
-        if (matrices == null || consumers == null) {
-            return;
-        }
+        if (matrices == null || consumers == null) return;
 
-        Vec3 camera = ctx.gameRenderer()
+        Vec3 camera = context.gameRenderer()
                 .getMainCamera().position();
 
         VertexConsumer buffer =
@@ -85,35 +78,36 @@ public final class Trails {
         float blue = (color & 255) / 255f;
         float alpha = ((color >>> 24) & 255) / 255f;
 
-        int total = points.size();
+        int total = POINTS.size();
         int index = 0;
 
         Vec3 previous = null;
 
-        for (Vec3 point : points) {
+        for (Vec3 point : POINTS) {
             if (previous != null) {
-                float currentAlpha = alpha;
+                float fade = cfg.trailsFade
+                        ? (float) index / Math.max(1, total - 1)
+                        : 1.0f;
 
-                if (cfg.trailsFade) {
-                    currentAlpha *= (float) index
-                            / Math.max(1, total - 1);
-                }
+                float currentAlpha = alpha * fade;
 
-                float x1 = (float) (previous.x - camera.x);
-                float y1 = (float) (previous.y - camera.y);
-                float z1 = (float) (previous.z - camera.z);
-
-                float x2 = (float) (point.x - camera.x);
-                float y2 = (float) (point.y - camera.y);
-                float z2 = (float) (point.z - camera.z);
-
-                buffer.addVertex(matrix, x1, y1, z1)
-                        .setLineWidth(1.0f)
+                buffer.addVertex(
+                        matrix,
+                        (float) (previous.x - camera.x),
+                        (float) (previous.y - camera.y),
+                        (float) (previous.z - camera.z)
+                )
+                        .setLineWidth(3.0f)
                         .setColor(red, green, blue, currentAlpha)
                         .setNormal(0, 1, 0);
 
-                buffer.addVertex(matrix, x2, y2, z2)
-                        .setLineWidth(1.0f)
+                buffer.addVertex(
+                        matrix,
+                        (float) (point.x - camera.x),
+                        (float) (point.y - camera.y),
+                        (float) (point.z - camera.z)
+                )
+                        .setLineWidth(3.0f)
                         .setColor(red, green, blue, currentAlpha)
                         .setNormal(0, 1, 0);
             }
