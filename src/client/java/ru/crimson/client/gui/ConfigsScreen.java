@@ -7,6 +7,9 @@ import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FontDescription;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
 
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.ConfigManager;
@@ -14,6 +17,9 @@ import ru.crimson.client.config.ConfigManager;
 import java.util.List;
 
 public class ConfigsScreen extends Screen {
+
+    private static final Identifier FONT =
+            Identifier.fromNamespaceAndPath("crimsonclient", "inter");
 
     private final Screen parent;
 
@@ -34,19 +40,34 @@ public class ConfigsScreen extends Screen {
         this.parent = parent;
     }
 
+    private void drawText(
+            GuiGraphics g,
+            String value,
+            int x,
+            int y,
+            int color
+    ) {
+        Component component = Component.literal(value)
+                .setStyle(Style.EMPTY.withFont(
+                        new FontDescription.Resource(FONT)
+                ));
+
+        g.drawString(font, component, x, y, color, false);
+    }
+
     @Override
     protected void init() {
-        panelW = Math.min(420, width - 30);
-        panelH = Math.min(340, height - 30);
+        panelW = Math.min(360, width - 24);
+        panelH = Math.min(290, height - 24);
 
         panelX = (width - panelW) / 2;
         panelY = (height - panelH) / 2;
 
         nameBox = new EditBox(
                 font,
-                panelX + 18,
-                panelY + 55,
-                panelW - 36,
+                panelX + 16,
+                panelY + 52,
+                panelW - 32,
                 22,
                 Component.literal("Config name")
         );
@@ -79,7 +100,7 @@ public class ConfigsScreen extends Screen {
             int color
     ) {
         g.fill(x, y, x + w, y + h, color);
-        g.drawString(font, label, x + 9, y + 8, WHITE, false);
+        drawText(g, label, x + 8, y + 8, WHITE);
     }
 
     private boolean inside(
@@ -119,105 +140,91 @@ public class ConfigsScreen extends Screen {
                 RED
         );
 
-        g.drawString(
-                font,
+        drawText(
+                g,
                 "CRIMSON CONFIGS",
-                panelX + 18,
-                panelY + 19,
-                RED,
-                false
+                panelX + 16,
+                panelY + 16,
+                RED
         );
 
-        g.drawString(
-                font,
-                "Создание и управление конфигурациями",
-                panelX + 18,
-                panelY + 35,
-                MUTED,
-                false
+        drawText(
+                g,
+                "Управление конфигурациями",
+                panelX + 16,
+                panelY + 33,
+                MUTED
         );
 
-        int listY = panelY + 90;
-        int listBottom = panelY + panelH - 100;
+        int listY = panelY + 84;
+        int listBottom = panelY + panelH - 86;
 
         if (configs.isEmpty()) {
-            g.drawString(
-                    font,
+            drawText(
+                    g,
                     "Нет сохранённых конфигов",
-                    panelX + 18,
+                    panelX + 16,
                     listY + 5,
-                    MUTED,
-                    false
+                    MUTED
             );
         }
 
         for (int i = 0; i < configs.size(); i++) {
-            int y = listY + i * 23;
+            int y = listY + i * 22;
 
-            if (y + 20 > listBottom) {
+            if (y + 19 > listBottom) {
                 break;
             }
 
             boolean active = selected == i;
 
             g.fill(
-                    panelX + 15,
+                    panelX + 13,
                     y,
-                    panelX + panelW - 15,
-                    y + 20,
+                    panelX + panelW - 13,
+                    y + 19,
                     active ? 0xFF352027 : 0xFF191A1F
             );
 
-            g.drawString(
-                    font,
+            drawText(
+                    g,
                     configs.get(i),
-                    panelX + 24,
-                    y + 6,
-                    active ? RED : WHITE,
-                    false
+                    panelX + 21,
+                    y + 5,
+                    active ? RED : WHITE
             );
         }
 
-        int buttonY = panelY + panelH - 65;
-        int buttonW = (panelW - 48) / 3;
+        int buttonY = panelY + panelH - 56;
+        int buttonW = (panelW - 42) / 3;
 
         drawButton(
                 g, "Сохранить",
-                panelX + 15, buttonY,
-                buttonW, 25, 0xFF252027
+                panelX + 13, buttonY,
+                buttonW, 23, 0xFF252027
         );
 
         drawButton(
                 g, "Загрузить",
-                panelX + 24 + buttonW, buttonY,
-                buttonW, 25, 0xFF252027
+                panelX + 21 + buttonW, buttonY,
+                buttonW, 23, 0xFF252027
         );
 
         drawButton(
                 g, "Удалить",
-                panelX + 33 + buttonW * 2, buttonY,
-                buttonW, 25, 0xFF252027
+                panelX + 29 + buttonW * 2, buttonY,
+                buttonW, 23, 0xFF252027
         );
 
         if (!status.isEmpty()) {
-            g.drawString(
-                    font,
+            drawText(
+                    g,
                     status,
-                    panelX + 18,
-                    panelY + panelH - 31,
-                    RED,
-                    false
+                    panelX + 16,
+                    panelY + panelH - 25,
+                    RED
             );
         }
-
-        g.drawString(
-                font,
-                "ESC — назад",
-                panelX + 18,
-                panelY + panelH - 17,
-                MUTED,
-                false
-        );
 
         super.render(g, mouseX, mouseY, partialTick);
     }
@@ -235,20 +242,20 @@ public class ConfigsScreen extends Screen {
             return super.mouseClicked(event, doubleClick);
         }
 
-        int listY = panelY + 90;
-        int listBottom = panelY + panelH - 100;
+        int listY = panelY + 84;
+        int listBottom = panelY + panelH - 86;
 
         for (int i = 0; i < configs.size(); i++) {
-            int y = listY + i * 23;
+            int y = listY + i * 22;
 
-            if (y + 20 > listBottom) {
+            if (y + 19 > listBottom) {
                 break;
             }
 
             if (inside(
                     mx, my,
-                    panelX + 15, y,
-                    panelW - 30, 20
+                    panelX + 13, y,
+                    panelW - 26, 19
             )) {
                 selected = i;
                 status = "";
@@ -256,15 +263,15 @@ public class ConfigsScreen extends Screen {
             }
         }
 
-        int buttonY = panelY + panelH - 65;
-        int buttonW = (panelW - 48) / 3;
+        int buttonY = panelY + panelH - 56;
+        int buttonW = (panelW - 42) / 3;
 
-        if (my >= buttonY && my <= buttonY + 25) {
+        if (my >= buttonY && my <= buttonY + 23) {
 
             if (inside(
                     mx, my,
-                    panelX + 15, buttonY,
-                    buttonW, 25
+                    panelX + 13, buttonY,
+                    buttonW, 23
             )) {
                 String name = nameBox.getValue().trim();
 
@@ -293,9 +300,9 @@ public class ConfigsScreen extends Screen {
 
             if (inside(
                     mx, my,
-                    panelX + 24 + buttonW,
+                    panelX + 21 + buttonW,
                     buttonY,
-                    buttonW, 25
+                    buttonW, 23
             )) {
                 if (selected < 0 || selected >= configs.size()) {
                     status = "Выбери конфиг";
@@ -316,9 +323,9 @@ public class ConfigsScreen extends Screen {
 
             if (inside(
                     mx, my,
-                    panelX + 33 + buttonW * 2,
+                    panelX + 29 + buttonW * 2,
                     buttonY,
-                    buttonW, 25
+                    buttonW, 23
             )) {
                 if (selected < 0 || selected >= configs.size()) {
                     status = "Выбери конфиг";
