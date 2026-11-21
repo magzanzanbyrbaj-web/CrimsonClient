@@ -14,7 +14,6 @@ import ru.crimson.client.hud.HudRenderer;
 import ru.crimson.client.visual.BetterTargetEsp;
 import ru.crimson.client.visual.ChinaHat;
 import ru.crimson.client.visual.Trails;
-
 import ru.crimson.client.visual.CustomHitbox;
 import ru.crimson.client.visual.BlockOverlay;
 import ru.crimson.client.visual.JumpCircle;
@@ -32,8 +31,10 @@ public class CrimsonClientClient implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
 
+        // Загружаем конфигурацию
         config = CrimsonConfig.load();
 
+        // Клавиша открытия меню — Right Shift
         openMenuKey = KeyBindingHelper.registerKeyBinding(
                 new KeyMapping(
                         "key.crimsonclient.open_menu",
@@ -42,25 +43,27 @@ public class CrimsonClientClient implements ClientModInitializer {
                 )
         );
 
+        // HUD
         HudRenderer.init();
 
-        // NEW VISUALS
+        // Визуальные модули
         BetterTargetEsp.init();
         ChinaHat.init();
         Trails.init();
-
-        // EXISTING VISUALS
         CustomHitbox.init();
         BlockOverlay.init();
         JumpCircle.init();
         CustomSky.init();
 
+        // Эффекты
         HitSound.init();
         CriticalEffects.init();
 
+        // Дополнительные модули
         ReachDisplay.init();
         PearlTracker.init();
 
+        // Обработка клавиш и обновление клиента
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
 
             while (openMenuKey.consumeClick()) {
@@ -69,9 +72,11 @@ public class CrimsonClientClient implements ClientModInitializer {
                 }
             }
 
-            if (config != null && config.fullbright
-                    && client.options != null) {
-                client.options.gamma().set(16.0);
+            // FullBright
+            if (client.options != null && config != null) {
+                if (config.fullbright) {
+                    client.options.gamma().set(16.0);
+                }
             }
         });
 
