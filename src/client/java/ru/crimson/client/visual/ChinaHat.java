@@ -2,22 +2,21 @@ package ru.crimson.client.visual;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderContext;
-import net.fabricmc.fabric.api.client.rendering.v1.WorldRenderEvents;
+
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
+import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
+
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.util.Mth;
-import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.Vec3;
+
 import org.joml.Matrix4f;
+
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
 
-/**
- * ChinaHat - красивая конусная шляпа над головой игрока.
- * Работает в world render.
- */
 public final class ChinaHat {
 
     private ChinaHat() {}
@@ -28,73 +27,105 @@ public final class ChinaHat {
 
     private static void render(WorldRenderContext ctx) {
         CrimsonConfig cfg = CrimsonClientClient.config;
-        if (cfg == null || !cfg.chinaHat) return;
+
+        if (cfg == null || !cfg.chinaHat) {
+            return;
+        }
 
         Minecraft mc = Minecraft.getInstance();
-        if (mc.level == null || mc.player == null) return;
 
-        PoseStack matrices = ctx.matrixStack();
-        MultiBufferSource.BufferSource buffers = mc.renderBuffers().bufferSource();
-        VertexConsumer consumer = buffers.getBuffer(RenderType.lines()); // или debug lines / custom
+        if (mc.player == null || mc.level == null) {
+            return;
+        }
 
-        float partial = ctx.tickCounter().getGameTimeDeltaPartialTick(true);
+        PoseStack matrices = ctx.matrices();
+        MultiBufferSource consumers = ctx.consumers();
 
-        // Рисуем только на себе (можно расширить на других)
-        renderHat(matrices, consumer, mc.player, partial, cfg);
+        if (matrices == null || consumers == null) {
+            return;
+        }
 
-        buffers.endBatch();
-    }
+        Vec3 camera = ctx.gameRenderer()
+                .getMainCamera().position();
 
-    private static void renderHat(PoseStack matrices, VertexConsumer consumer, Player player,
-                                  float partial, CrimsonConfig cfg) {
-        double x = Mth.lerp(partial, player.xo, player.getX()) - Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().x;
-        double y = Mth.lerp(partial, player.yo, player.getY()) - Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().y + player.getBbHeight() + 0.15;
-        double z = Mth.lerp(partial, player.zo, player.getZ()) - Minecraft.getInstance().gameRenderer.getMainCamera().getPosition().z;
+        float partial = ctx.tickCounter()
+                .getGameTimeDeltaPartialTick(true);
+
+        double x = Mth.lerp(partial, mc.player.xo, mc.player.getX());
+        double y = Mth.lerp(partial, mc.player.yo, mc.player.getY());
+        double z = Mth.lerp(partial, mc.player.zo, mc.player.getZ());
 
         matrices.pushPose();
-        matrices.translate(x, y, z);
+        matrices.translate(
+                x - camera.x,
+                y - camera.y + mc.player.getBbHeight() + 0.15,
+                z - camera.z
+        );
+
+        VertexConsumer buffer =
+                consumers.getBuffer(RenderTypes.lines());
 
         Matrix4f matrix = matrices.last().pose();
 
         int color = cfg.chinaHatColor;
+
         if (cfg.chinaHatRainbow) {
-            float hue = (System.currentTimeMillis() % 3000) / 3000f;
-            color = java.awt.Color.HSBtoRGB(hue, 0.85f, 1.0f) | 0xAA000000;
+            float hue = (System.currentTimeMillis() % 4000L)
+                    / 4000f;
+
+            color = java.awt.Color.HSBtoRGB(
+                    hue, 0.85f, 1.0f
+            ) | 0xAA000000;
         }
 
-        float r = ((color >> 16) & 0xFF) / 255f;
-        float g = ((color >> 8) & 0xFF) / 255f;
-        float b = (color & 0xFF) / 255f;
-        float a = ((color >> 24) & 0xFF) / 255f;
+        float red = ((color >> 16) & 255) / 255f;
+        float green = ((color >> 8) & 255) / 255f;
+        float blue = (color & 255) / 255f;
+        float alpha = ((color >>> 24) & 255) / 255f;
 
         float height = cfg.chinaHatHeight;
         float radius = cfg.chinaHatRadius;
-        int segments = 24;
 
-        // Конус
+        int segments = 32;
+
         for (int i = 0; i < segments; i++) {
-            float angle1 = (float) (i * Math.PI * 2 / segments);
-            float angle2 = (float) ((i + 1) * Math.PI * 2 / segments);
+            float a1 = (float) (i * Math.PI * 2 / segments);
+            float a2 = (float) ((i + 1) * Math.PI * 2 / segments);
 
-            float x1 = (float) Math.cos(angle1) * radius;
-            float z1 = (float) Math.sin(angle1) * radius;
-            float x2 = (float) Math.cos(angle2) * radius;
-            float z2 = (float) Math.sin(angle2) * radius;
+            float x1 = Mth.cos(a1) * radius;
+            float z1 = Mth.sin(a1) * radius;
 
-            // боковые линии
-            vertex(consumer, matrix, 0, height, 0, r, g, b, a);
-            vertex(consumer, matrix, x1, 0, z1, r, g, b, a);
+            float x2 = Mth.cos(a2) * radius;
+            float z2 = Mth.sin(a2) * radius;
 
-            // основание
-            vertex(consumer, matrix, x1, 0, z1, r, g, b, a * 0.6f);
-            vertex(consumer, matrix, x2, 0, z2, r, g, b, a * 0.6f);
+            vertex(buffer, matrix,
+                    0, height, 0,
+                    red, green, blue, alpha);
+
+            vertex(buffer, matrix,
+                    x1, 0, z1,
+                    red, green, blue, alpha);
+
+            vertex(buffer, matrix,
+                    x1, 0, z1,
+                    red, green, blue, alpha * 0.65f);
+
+            vertex(buffer, matrix,
+                    x2, 0, z2,
+                    red, green, blue, alpha * 0.65f);
         }
 
         matrices.popPose();
     }
 
-    private static void vertex(VertexConsumer c, Matrix4f m, float x, float y, float z,
-                               float r, float g, float b, float a) {
-        c.addVertex(m, x, y, z).setColor(r, g, b, a).setNormal(0, 1, 0);
+    private static void vertex(
+            VertexConsumer buffer,
+            Matrix4f matrix,
+            float x, float y, float z,
+            float r, float g, float b, float a
+    ) {
+        buffer.addVertex(matrix, x, y, z)
+                .setColor(r, g, b, a)
+                .setNormal(0, 1, 0);
     }
-}
+            }
