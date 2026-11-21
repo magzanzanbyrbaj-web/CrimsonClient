@@ -10,7 +10,11 @@ import org.lwjgl.glfw.GLFW;
 import ru.crimson.client.config.CrimsonConfig;
 import ru.crimson.client.gui.CrimsonMenuScreen;
 import ru.crimson.client.hud.HudRenderer;
-import ru.crimson.client.visual.TargetEsp;
+
+import ru.crimson.client.visual.BetterTargetEsp;
+import ru.crimson.client.visual.ChinaHat;
+import ru.crimson.client.visual.Trails;
+
 import ru.crimson.client.visual.CustomHitbox;
 import ru.crimson.client.visual.BlockOverlay;
 import ru.crimson.client.visual.JumpCircle;
@@ -21,11 +25,13 @@ import ru.crimson.client.visual.ReachDisplay;
 import ru.crimson.client.visual.PearlTracker;
 
 public class CrimsonClientClient implements ClientModInitializer {
+
     public static KeyMapping openMenuKey;
     public static CrimsonConfig config;
 
     @Override
     public void onInitializeClient() {
+
         config = CrimsonConfig.load();
 
         openMenuKey = KeyBindingHelper.registerKeyBinding(
@@ -38,7 +44,12 @@ public class CrimsonClientClient implements ClientModInitializer {
 
         HudRenderer.init();
 
-        TargetEsp.init();
+        // NEW VISUALS
+        BetterTargetEsp.init();
+        ChinaHat.init();
+        Trails.init();
+
+        // EXISTING VISUALS
         CustomHitbox.init();
         BlockOverlay.init();
         JumpCircle.init();
@@ -51,13 +62,15 @@ public class CrimsonClientClient implements ClientModInitializer {
         PearlTracker.init();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+
             while (openMenuKey.consumeClick()) {
                 if (client.screen == null) {
                     client.setScreen(new CrimsonMenuScreen());
                 }
             }
 
-            if (config.fullbright && client.options != null) {
+            if (config != null && config.fullbright
+                    && client.options != null) {
                 client.options.gamma().set(16.0);
             }
         });
