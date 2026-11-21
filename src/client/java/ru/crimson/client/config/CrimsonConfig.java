@@ -4,186 +4,110 @@ package ru.crimson.client.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
-import ru.crimson.client.CrimsonClient;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Stream;
 
-public class CrimsonConfig {
-    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
-    private static final Path CONFIG_PATH = FabricLoader.getInstance()
-            .getConfigDir().resolve("crimsonclient.json");
+public final class ConfigManager {
 
-    // HUD
-    public boolean watermark = true;
-    public boolean targetHud = true;
-    public boolean armorHud = true;
-    public boolean totemCounter = true;
-    public boolean keystrokes = true;
-    public boolean moduleList = true;
-    public boolean inventoryHud = true;
-    public boolean potionHud = true;
-    public boolean durabilityHud = true;
+    private static final Gson GSON =
+            new GsonBuilder().setPrettyPrinting().create();
 
-    // Combat
-    public boolean hitParticles = true;
-    public boolean damageNumbers = true;
-    public boolean hitmarker = true;
-    public boolean criticalEffects = true;
-    public boolean targetEsp = false;
-    public boolean hitSound = false;
+    private static final Path DIRECTORY =
+            FabricLoader.getInstance()
+                    .getConfigDir()
+                    .resolve("crimsonclient")
+                    .resolve("configs");
 
-    // Utility
-    public boolean reachDisplay = true;
-    public boolean pearlTracker = true;
-    public boolean fpsBoost = false;
+    private ConfigManager() {}
 
-    // Theme
-    public int themePrimary = 0xFF111521;
-    public int themeSecondary = 0xFF1B2030;
-    public int themeAccent = 0xFFFF4055;
-    public int themeText = 0xFFF5F3F7;
-    public float panelOpacity = 0.92f;
+    public static List<String> list() {
+        try {
+            Files.createDirectories(DIRECTORY);
 
-    // Menu
-    public int menuAnimation = 0;
-    public float menuScale = 1.0f;
-    public boolean glassAnimation = true;
-
-    // Visuals
-    public boolean smoothSword = false;
-    public boolean itemSwitchAnim = true;
-    public boolean totemAnimation = true;
-    public boolean customCrosshair = false;
-    public boolean customSky = false;
-    public boolean inventoryBlur = true;
-    public boolean jumpCircle = false;
-    public boolean customHitbox = false;
-    public boolean blockOverlay = true;
-
-    // No Render
-    public boolean noRender = false;
-    public boolean hideFire = true;
-    public boolean hideHurtCamera = false;
-    public boolean hidePortal = false;
-    public boolean hidePumpkin = false;
-    public boolean hideVignette = false;
-    public boolean hideNausea = false;
-    public boolean hideWeather = false;
-    public boolean hideParticles = false;
-
-    // Target ESP
-    public boolean targetEspParticles = true;
-    public boolean targetEspRing = true;
-    public int targetEspStyle = 0;
-    public int targetEspColor = 0xFFFF4055;
-    public float targetEspScale = 1.0f;
-
-    // Hit Sound
-    public int hitSoundType = 0;
-    public float hitSoundVolume = 0.8f;
-    public float hitSoundPitch = 1.0f;
-
-    // Critical Effects
-    public int criticalStyle = 0;
-
-    // Crosshair
-    public int crosshairStyle = 0;
-    public int crosshairColor = 0xFFFF4055;
-    public float crosshairSize = 5.0f;
-    public float crosshairGap = 3.0f;
-
-    // Jump Circle
-    public int jumpCircleColor = 0xFFFF4055;
-    public float jumpCircleSize = 1.0f;
-    public float jumpCircleThickness = 4.5f;
-    public boolean jumpCircleFade = true;
-
-    // Hitbox
-    public int hitboxColor = 0xFFFF4055;
-    public float hitboxWidth = 1.5f;
-
-    // Sky
-    public int skyColor = 0xFF48202F;
-    public int skyStyle = 0;
-
-    // Block Overlay
-    public int blockOverlayStyle = 0;
-    public int blockOverlayColor = 0xFFFF4055;
-    public boolean blockOverlayGradient = true;
-    public float blockOverlayWidth = 2.0f;
-
-    // General
-    public boolean fullbright = false;
-    public boolean reduceParticles = true;
-    public boolean optimized = true;
-    public int particleLimit = 50;
-    public String watermarkText = "Crimson";
-
-    // HUD positions
-    public int watermarkX = -1;
-    public int watermarkY = 7;
-    public int targetHudX = -1;
-    public int targetHudY = -1;
-    public int armorHudX = -1;
-    public int armorHudY = -1;
-    public int totemHudX = -1;
-    public int totemHudY = -1;
-    public int keystrokesX = 5;
-    public int keystrokesY = 43;
-    public int moduleListX = 5;
-    public int moduleListY = 100;
-    public int inventoryHudX = -1;
-    public int inventoryHudY = -1;
-    public int potionHudX = -1;
-    public int potionHudY = 42;
-    public int durabilityHudX = -1;
-    public int durabilityHudY = -1;
-
-    // Chat Animations
-    public boolean chatAnimations = true;
-
-    // China Hat
-    public boolean chinaHat = false;
-    public int chinaHatColor = 0xAAFF4055;
-    public boolean chinaHatRainbow = false;
-    public float chinaHatHeight = 0.35f;
-    public float chinaHatRadius = 0.65f;
-
-    // Trails
-    public boolean trails = false;
-    public int trailsLength = 40;
-    public int trailsColor = 0xCCFF4055;
-    public boolean trailsFade = true;
-
-    public static CrimsonConfig load() {
-        if (Files.exists(CONFIG_PATH)) {
-            try {
-                CrimsonConfig config = GSON.fromJson(
-                        Files.readString(CONFIG_PATH),
-                        CrimsonConfig.class
-                );
-
-                if (config != null) {
-                    return config;
-                }
-            } catch (Exception e) {
-                CrimsonClient.LOGGER.error("Failed to load Crimson config", e);
+            try (Stream<Path> files = Files.list(DIRECTORY)) {
+                return files
+                        .filter(Files::isRegularFile)
+                        .filter(path -> path.toString().endsWith(".json"))
+                        .map(path -> path.getFileName()
+                                .toString()
+                                .replaceFirst("\\.json$", ""))
+                        .sorted()
+                        .toList();
             }
+        } catch (IOException exception) {
+            return List.of();
         }
-
-        CrimsonConfig config = new CrimsonConfig();
-        config.save();
-        return config;
     }
 
-    public void save() {
-        try {
-            Files.createDirectories(CONFIG_PATH.getParent());
-            Files.writeString(CONFIG_PATH, GSON.toJson(this));
-        } catch (IOException e) {
-            CrimsonClient.LOGGER.error("Failed to save Crimson config", e);
+    public static boolean save(String name, CrimsonConfig config) {
+        Path path = resolve(name);
+
+        if (path == null || config == null) {
+            return false;
         }
+
+        try {
+            Files.createDirectories(DIRECTORY);
+            Files.writeString(path, GSON.toJson(config));
+            return true;
+        } catch (IOException exception) {
+            return false;
+        }
+    }
+
+    public static boolean load(String name) {
+        Path path = resolve(name);
+
+        if (path == null || !Files.isRegularFile(path)) {
+            return false;
+        }
+
+        try {
+            CrimsonConfig loaded = GSON.fromJson(
+                    Files.readString(path),
+                    CrimsonConfig.class
+            );
+
+            if (loaded == null) {
+                return false;
+            }
+
+            ru.crimson.client.CrimsonClientClient.config = loaded;
+            loaded.save();
+
+            return true;
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    public static Path getDirectory() {
+        try {
+            Files.createDirectories(DIRECTORY);
+        } catch (IOException ignored) {
+        }
+
+        return DIRECTORY;
+    }
+
+    private static Path resolve(String name) {
+        if (name == null) {
+            return null;
+        }
+
+        String safeName = name.trim()
+                .toLowerCase(Locale.ROOT)
+                .replaceAll("[^a-z0-9_-]", "_");
+
+        if (safeName.isBlank() || safeName.length() > 32) {
+            return null;
+        }
+
+        return DIRECTORY.resolve(safeName + ".json").normalize();
     }
 }
