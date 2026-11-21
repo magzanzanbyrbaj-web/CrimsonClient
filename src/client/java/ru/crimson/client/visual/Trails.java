@@ -1,3 +1,4 @@
+
 package ru.crimson.client.visual;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -46,7 +47,7 @@ public final class Trails {
             }
         });
 
-        WorldRenderEvents.AFTER_TRANSLUCENT.register(Trails::render);
+        WorldRenderEvents.BEFORE_TRANSLUCENT.register(Trails::render);
     }
 
     private static void render(WorldRenderContext ctx) {
