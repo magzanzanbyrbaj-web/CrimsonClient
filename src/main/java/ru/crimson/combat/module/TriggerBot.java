@@ -1,39 +1,45 @@
 package ru.crimson.combat.module;
 
-import net.minecraft.client.MinecraftClient;
-import net.minecraft.entity.Entity;
-import net.minecraft.entity.LivingEntity;
-import net.minecraft.util.Hand;
-import net.minecraft.util.hit.EntityHitResult;
-import net.minecraft.util.hit.HitResult;
-import ru.crimson.combat.CrimsonCombat;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
+import ru.crimson.client.CrimsonClientClient;
+import ru.crimson.client.config.CrimsonConfig;
 import ru.crimson.combat.util.TargetUtils;
 
 public class TriggerBot {
+
     private long lastAttack = 0;
 
-    public void onTick(MinecraftClient mc) {
-        if (!CrimsonCombat.config.triggerBot || mc.player == null) return;
+    public void onTick() {
+        Minecraft mc = Minecraft.getInstance();
+        CrimsonConfig cfg = CrimsonClientClient.config;
 
-        long delay = 1000L / Math.max(1, CrimsonCombat.config.tbCps);
+        if (cfg == null || !cfg.triggerBot || mc.player == null || mc.level == null) return;
+
+        long delay = 1000L / Math.max(1, cfg.tbCps);
         if (System.currentTimeMillis() - lastAttack < delay) return;
 
-        if (mc.crosshairTarget == null || mc.crosshairTarget.getType() != HitResult.Type.ENTITY) return;
+        if (mc.hitResult == null || mc.hitResult.getType() != HitResult.Type.ENTITY) return;
 
-        Entity entity = ((EntityHitResult) mc.crosshairTarget).getEntity();
+        Entity entity = ((EntityHitResult) mc.hitResult).getEntity();
         if (!(entity instanceof LivingEntity living) || !living.isAlive()) return;
 
-        if (mc.player.distanceTo(living) > CrimsonCombat.config.tbRange) return;
+        if (mc.player.distanceTo(living) > cfg.tbRange) return;
 
-        boolean isPlayer = living instanceof net.minecraft.entity.player.PlayerEntity;
-        if (isPlayer && !CrimsonCombat.config.tbPlayers) return;
-        if (!isPlayer && !CrimsonCombat.config.tbMobs) return;
+        boolean isPlayer = living instanceof Player;
+        if (isPlayer && !cfg.tbPlayers) return;
+        if (!isPlayer && !cfg.tbMobs) return;
 
-        if (!CrimsonCombat.config.tbThroughWalls && !TargetUtils.canSee(living)) return;
+        if (!cfg.tbThroughWalls && !TargetUtils.canSee(living)) return;
 
-        if (mc.player.getAttackCooldownProgress(0.5f) >= 0.9f) {
-            mc.interactionManager.attackEntity(mc.player, living);
-            mc.player.swingHand(Hand.MAIN_HAND);
+        if (mc.player.getAttackStrengthScale(0.5f) >= 0.9f) {
+            mc.gameMode.attack(mc.player, living);
+            mc.player.swing(InteractionHand.MAIN_HAND);
             lastAttack = System.currentTimeMillis();
         }
     }
