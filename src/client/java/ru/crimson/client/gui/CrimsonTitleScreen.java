@@ -137,9 +137,18 @@ public final class CrimsonTitleScreen extends Screen {
         }
 
         String footer = "CRIMSON CLIENT  •  1.21.11";
-        drawText(g, footer, 12, height - 18, 0x887F7D89, false);
+
+        drawText(
+                g,
+                footer,
+                12,
+                height - 18,
+                0x887F7D89,
+                false
+        );
 
         String version = "MINECRAFT 1.21.11";
+
         drawText(
                 g,
                 version,
@@ -156,6 +165,7 @@ public final class CrimsonTitleScreen extends Screen {
 
         g.fill(0, 0, width, height, 0xFF080A12);
 
+        // Animated background waves
         for (int i = 0; i < 8; i++) {
             float phase = t * 0.18f + i * 0.82f;
 
@@ -189,6 +199,7 @@ public final class CrimsonTitleScreen extends Screen {
             );
         }
 
+        // Floating particles
         for (int i = 0; i < 72; i++) {
             double seed = i * 127.1;
 
@@ -225,10 +236,10 @@ public final class CrimsonTitleScreen extends Screen {
     private void drawBrand(GuiGraphics g) {
         int centerX = width / 2;
 
-        // Client logo
-        int logoSize = 76;
+        // Compact Crimson logo
+        int logoSize = 48;
         int logoX = centerX - logoSize / 2;
-        int logoY = height / 4 - 78;
+        int logoY = height / 4 - 55;
 
         g.blit(
                 RenderPipelines.GUI_TEXTURED,
