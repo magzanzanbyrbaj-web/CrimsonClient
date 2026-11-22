@@ -2,13 +2,13 @@ package ru.crimson.combat.module;
 
 import net.fabricmc.api.EnvType;
 import net.fabricmc.api.Environment;
-import net.minecraft.class_1268;
-import net.minecraft.class_1297;
-import net.minecraft.class_1309;
-import net.minecraft.class_1657;
-import net.minecraft.class_239;
-import net.minecraft.class_310;
-import net.minecraft.class_3966;
+import net.minecraft.client.Minecraft;
+import net.minecraft.world.InteractionHand;
+import net.minecraft.world.entity.Entity;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.phys.EntityHitResult;
+import net.minecraft.world.phys.HitResult;
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
 import ru.crimson.client.hud.HudRenderer;
@@ -19,28 +19,28 @@ public class TriggerBot {
     private long lastAttack = 0L;
 
     public void onTick() {
-        class_310 mc = class_310.method_1551();
+        Minecraft mc = Minecraft.getInstance();
         CrimsonConfig cfg = CrimsonClientClient.config;
 
-        if (cfg == null || !cfg.triggerBot || mc.field_1724 == null || mc.field_1687 == null || mc.field_1761 == null) {
+        if (cfg == null || !cfg.triggerBot || mc.player == null || mc.level == null || mc.gameMode == null) {
             return;
         }
 
         // Only when looking at an entity
-        if (mc.field_1765 == null || mc.field_1765.method_17783() != class_239.class_240.field_1331) {
+        if (mc.hitResult == null || mc.hitResult.getType() != HitResult.Type.ENTITY) {
             return;
         }
 
-        class_1297 entity = ((class_3966) mc.field_1765).method_17782();
-        if (!(entity instanceof class_1309 target) || !target.method_5805()) {
+        Entity entity = ((EntityHitResult) mc.hitResult).getEntity();
+        if (!(entity instanceof LivingEntity target) || !target.isAlive()) {
             return;
         }
 
-        boolean isPlayer = target instanceof class_1657;
+        boolean isPlayer = target instanceof Player;
         if (isPlayer && !cfg.tbPlayers) return;
         if (!isPlayer && !cfg.tbMobs) return;
 
-        if ((double) mc.field_1724.method_5739(target) > cfg.tbRange) {
+        if ((double) mc.player.distanceTo(target) > cfg.tbRange) {
             return;
         }
 
@@ -58,12 +58,12 @@ public class TriggerBot {
             return;
         }
 
-        if (mc.field_1724.method_7261(0.5f) < 0.9f) {
+        if (mc.player.getAttackStrengthScale(0.5f) < 0.9f) {
             return;
         }
 
-        mc.field_1761.method_2918((class_1657) mc.field_1724, target);
-        mc.field_1724.method_6104(class_1268.field_5808);
+        mc.gameMode.attack(mc.player, target);
+        mc.player.swing(InteractionHand.MAIN_HAND);
 
         try {
             HudRenderer.setTarget(target);
