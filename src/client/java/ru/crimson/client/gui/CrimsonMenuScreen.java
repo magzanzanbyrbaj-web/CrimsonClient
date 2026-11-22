@@ -1,4 +1,3 @@
-
 package ru.crimson.client.gui;
 
 import net.minecraft.client.Minecraft;
@@ -85,7 +84,7 @@ public class CrimsonMenuScreen extends Screen {
         add("ESP", "Entity ESP", 0,
                 () -> cfg.esp, v -> cfg.esp = v);
 
-        add("ChestESP", "Chest ESP", 0,
+        add("ChestESP", "Chest ESP (singleplayer)", 0,
                 () -> cfg.chestEsp, v -> cfg.chestEsp = v);
 
         add("HitParticles", "Hit particles", 0,
@@ -663,6 +662,7 @@ public class CrimsonMenuScreen extends Screen {
             case "TriggerBot" -> cfg.bindTriggerBot;
             case "AimAssist" -> cfg.bindAimAssist;
             case "ESP" -> cfg.bindESP;
+            case "ChestESP" -> cfg.bindChestESP;
             case "TargetHUD" -> cfg.bindTargetHUD;
             case "ArmorHUD" -> cfg.bindArmorHUD;
             case "TotemCounter" -> cfg.bindTotemCounter;
@@ -682,6 +682,7 @@ public class CrimsonMenuScreen extends Screen {
             case "TriggerBot" -> cfg.bindTriggerBot = key;
             case "AimAssist" -> cfg.bindAimAssist = key;
             case "ESP" -> cfg.bindESP = key;
+            case "ChestESP" -> cfg.bindChestESP = key;
             case "TargetHUD" -> cfg.bindTargetHUD = key;
             case "ArmorHUD" -> cfg.bindArmorHUD = key;
             case "TotemCounter" -> cfg.bindTotemCounter = key;
@@ -746,4 +747,4 @@ public class CrimsonMenuScreen extends Screen {
             BooleanSupplier enabled,
             Consumer<Boolean> setter
     ) {}
-}
+             }
