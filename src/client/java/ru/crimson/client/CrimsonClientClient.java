@@ -1,4 +1,3 @@
-
 package ru.crimson.client;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -26,6 +25,7 @@ import ru.crimson.client.visual.HitSound;
 import ru.crimson.client.visual.CriticalEffects;
 import ru.crimson.client.visual.ReachDisplay;
 import ru.crimson.client.visual.PearlTracker;
+import ru.crimson.client.visual.ChestESP;
 
 import ru.crimson.combat.module.KillAura;
 import ru.crimson.combat.module.TriggerBot;
@@ -52,14 +52,12 @@ public class CrimsonClientClient implements ClientModInitializer {
         config = CrimsonConfig.load();
 
         registerKeys();
-
         initializeVisuals();
         initializeCombatModules();
         registerTickHandler();
 
         CrimsonClient.LOGGER.info(
-                "Crimson Client initialized. "
-                        + "Right Shift: Menu | F8: HUD Editor"
+                "Crimson Client initialized. Right Shift: Menu | F8: HUD Editor"
         );
     }
 
@@ -97,6 +95,9 @@ public class CrimsonClientClient implements ClientModInitializer {
 
         ReachDisplay.init();
         PearlTracker.init();
+
+        // Chest ESP: только одиночный мир.
+        ChestESP.init();
     }
 
     private void initializeCombatModules() {
@@ -180,6 +181,11 @@ public class CrimsonClientClient implements ClientModInitializer {
 
         checkBind(window, config.bindESP, () -> {
             config.esp = !config.esp;
+            config.save();
+        });
+
+        checkBind(window, config.bindChestESP, () -> {
+            config.chestEsp = !config.chestEsp;
             config.save();
         });
 
