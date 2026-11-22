@@ -121,11 +121,9 @@ public final class ChestESP {
     private static void line(VertexConsumer out, Matrix4f matrix, float x1, float y1, float z1, float x2, float y2, float z2, float r, float g, float b) {
         out.addVertex((Matrix4fc) matrix, x1, y1, z1)
                 .setColor(r, g, b, 1.0f)
-                .lineWidth(1.5f)
                 .setNormal(0.0f, 1.0f, 0.0f);
         out.addVertex((Matrix4fc) matrix, x2, y2, z2)
                 .setColor(r, g, b, 1.0f)
-                .lineWidth(1.5f)
                 .setNormal(0.0f, 1.0f, 0.0f);
     }
 }
