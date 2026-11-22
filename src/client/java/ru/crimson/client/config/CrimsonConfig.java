@@ -1,3 +1,4 @@
+
 package ru.crimson.client.config;
 
 import com.google.gson.Gson;
