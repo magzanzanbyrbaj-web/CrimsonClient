@@ -1,3 +1,4 @@
+
 package ru.crimson.client.gui;
 
 import net.minecraft.client.Minecraft;
@@ -28,7 +29,6 @@ public class CrimsonMenuScreen extends Screen {
 
     private static final Identifier FONT =
             Identifier.fromNamespaceAndPath("crimsonclient", "inter");
-
     private static final Identifier LOGO =
             Identifier.fromNamespaceAndPath("crimsonclient", "crimson_logo.png");
 
@@ -53,7 +53,6 @@ public class CrimsonMenuScreen extends Screen {
 
     private final CrimsonConfig cfg;
     private final List<Feature> features = new ArrayList<>();
-
     private EditBox searchBox;
 
     private int selected = 0;
@@ -64,7 +63,6 @@ public class CrimsonMenuScreen extends Screen {
     private int sidebar, cx, cw;
 
     private Feature settingsFeature;
-
     private boolean waitingForBind = false;
     private String bindingFeature = null;
 
@@ -74,104 +72,57 @@ public class CrimsonMenuScreen extends Screen {
     public CrimsonMenuScreen() {
         super(Component.literal("Crimson Client"));
         cfg = CrimsonClientClient.config;
-
-        if (cfg != null) {
-            buildFeatures();
-        }
+        if (cfg != null) buildFeatures();
     }
 
     private void buildFeatures() {
-        add("HitParticles", "Particles on hit",
-                () -> cfg.hitParticles, v -> cfg.hitParticles = v, 0);
-        add("CriticalEffects", "Critical hit effects",
-                () -> cfg.criticalEffects, v -> cfg.criticalEffects = v, 0);
-        add("HitSound", "Custom hit sound",
-                () -> cfg.hitSound, v -> cfg.hitSound = v, 0);
-        add("Hitmarker", "Hit confirmation",
-                () -> cfg.hitmarker, v -> cfg.hitmarker = v, 0);
-        add("DamageNumbers", "Show damage numbers",
-                () -> cfg.damageNumbers, v -> cfg.damageNumbers = v, 0);
-        add("TargetESP", "Highlight current target",
-                () -> cfg.targetEsp, v -> cfg.targetEsp = v, 0);
-        add("CustomCrosshair", "Custom crosshair",
-                () -> cfg.customCrosshair, v -> cfg.customCrosshair = v, 0);
-        add("CustomSky", "Custom sky",
-                () -> cfg.customSky, v -> cfg.customSky = v, 0);
-        add("ChinaHat", "China hat effect",
-                () -> cfg.chinaHat, v -> cfg.chinaHat = v, 0);
-        add("Trails", "Movement trails",
-                () -> cfg.trails, v -> cfg.trails = v, 0);
-        add("ChatAnimations", "Smooth chat",
-                () -> cfg.chatAnimations, v -> cfg.chatAnimations = v, 0);
-        add("JumpCircle", "Jump circle",
-                () -> cfg.jumpCircle, v -> cfg.jumpCircle = v, 0);
-        add("CustomHitBox", "Custom hitboxes",
-                () -> cfg.customHitbox, v -> cfg.customHitbox = v, 0);
-        add("BlockOverlay", "Block outline",
-                () -> cfg.blockOverlay, v -> cfg.blockOverlay = v, 0);
-        add("NoRender", "Disable some effects",
-                () -> cfg.noRender, v -> cfg.noRender = v, 0);
-        add("InventoryBlur", "Inventory blur",
-                () -> cfg.inventoryBlur, v -> cfg.inventoryBlur = v, 0);
-        add("SmoothSword", "Smooth sword swing",
-                () -> cfg.smoothSword, v -> cfg.smoothSword = v, 0);
-        add("ItemSwitch", "Item switch animation",
-                () -> cfg.itemSwitchAnim, v -> cfg.itemSwitchAnim = v, 0);
-        add("TotemAnimation", "Totem animation",
-                () -> cfg.totemAnimation, v -> cfg.totemAnimation = v, 0);
-        add("ReachDisplay", "Show reach distance",
-                () -> cfg.reachDisplay, v -> cfg.reachDisplay = v, 0);
-        add("PearlTracker", "Pearl tracker",
-                () -> cfg.pearlTracker, v -> cfg.pearlTracker = v, 0);
+        add("HitParticles", "Particles on hit", () -> cfg.hitParticles, v -> cfg.hitParticles = v, 0);
+        add("CriticalEffects", "Critical hit effects", () -> cfg.criticalEffects, v -> cfg.criticalEffects = v, 0);
+        add("HitSound", "Custom hit sound", () -> cfg.hitSound, v -> cfg.hitSound = v, 0);
+        add("Hitmarker", "Hit confirmation", () -> cfg.hitmarker, v -> cfg.hitmarker = v, 0);
+        add("DamageNumbers", "Show damage numbers", () -> cfg.damageNumbers, v -> cfg.damageNumbers = v, 0);
+        add("TargetESP", "Highlight current target", () -> cfg.targetEsp, v -> cfg.targetEsp = v, 0);
+        add("CustomCrosshair", "Custom crosshair", () -> cfg.customCrosshair, v -> cfg.customCrosshair = v, 0);
+        add("CustomSky", "Custom sky", () -> cfg.customSky, v -> cfg.customSky = v, 0);
+        add("ChinaHat", "China hat effect", () -> cfg.chinaHat, v -> cfg.chinaHat = v, 0);
+        add("Trails", "Movement trails", () -> cfg.trails, v -> cfg.trails = v, 0);
+        add("ChatAnimations", "Smooth chat", () -> cfg.chatAnimations, v -> cfg.chatAnimations = v, 0);
+        add("JumpCircle", "Jump circle", () -> cfg.jumpCircle, v -> cfg.jumpCircle = v, 0);
+        add("CustomHitBox", "Custom hitboxes", () -> cfg.customHitbox, v -> cfg.customHitbox = v, 0);
+        add("BlockOverlay", "Block outline", () -> cfg.blockOverlay, v -> cfg.blockOverlay = v, 0);
+        add("NoRender", "Disable some effects", () -> cfg.noRender, v -> cfg.noRender = v, 0);
+        add("InventoryBlur", "Inventory blur", () -> cfg.inventoryBlur, v -> cfg.inventoryBlur = v, 0);
+        add("SmoothSword", "Smooth sword swing", () -> cfg.smoothSword, v -> cfg.smoothSword = v, 0);
+        add("ItemSwitch", "Item switch animation", () -> cfg.itemSwitchAnim, v -> cfg.itemSwitchAnim = v, 0);
+        add("TotemAnimation", "Totem animation", () -> cfg.totemAnimation, v -> cfg.totemAnimation = v, 0);
+        add("ReachDisplay", "Show reach distance", () -> cfg.reachDisplay, v -> cfg.reachDisplay = v, 0);
+        add("PearlTracker", "Pearl tracker", () -> cfg.pearlTracker, v -> cfg.pearlTracker = v, 0);
 
-        add("TargetHUD", "Target information",
-                () -> cfg.targetHud, v -> cfg.targetHud = v, 1);
-        add("ArmorHUD", "Armor display",
-                () -> cfg.armorHud, v -> cfg.armorHud = v, 1);
-        add("TotemCounter", "Totem counter",
-                () -> cfg.totemCounter, v -> cfg.totemCounter = v, 1);
-        add("InventoryHUD", "Inventory HUD",
-                () -> cfg.inventoryHud, v -> cfg.inventoryHud = v, 1);
-        add("PotionHUD", "Potion effects",
-                () -> cfg.potionHud, v -> cfg.potionHud = v, 1);
-        add("DurabilityHUD", "Item durability",
-                () -> cfg.durabilityHud, v -> cfg.durabilityHud = v, 1);
+        add("TargetHUD", "Target information", () -> cfg.targetHud, v -> cfg.targetHud = v, 1);
+        add("ArmorHUD", "Armor display", () -> cfg.armorHud, v -> cfg.armorHud = v, 1);
+        add("TotemCounter", "Totem counter", () -> cfg.totemCounter, v -> cfg.totemCounter = v, 1);
+        add("InventoryHUD", "Inventory HUD", () -> cfg.inventoryHud, v -> cfg.inventoryHud = v, 1);
+        add("PotionHUD", "Potion effects", () -> cfg.potionHud, v -> cfg.potionHud = v, 1);
+        add("DurabilityHUD", "Item durability", () -> cfg.durabilityHud, v -> cfg.durabilityHud = v, 1);
 
-        add("Watermark", "Client watermark",
-                () -> cfg.watermark, v -> cfg.watermark = v, 2);
-        add("Keystrokes", "Keystrokes display",
-                () -> cfg.keystrokes, v -> cfg.keystrokes = v, 2);
-        add("ModuleList", "Enabled modules list",
-                () -> cfg.moduleList, v -> cfg.moduleList = v, 2);
+        add("Watermark", "Client watermark", () -> cfg.watermark, v -> cfg.watermark = v, 2);
+        add("Keystrokes", "Keystrokes display", () -> cfg.keystrokes, v -> cfg.keystrokes = v, 2);
+        add("ModuleList", "Enabled modules list", () -> cfg.moduleList, v -> cfg.moduleList = v, 2);
 
-        add("KillAura", "Auto attack targets",
-                () -> cfg.killAura, v -> cfg.killAura = v, 3);
-        add("TriggerBot", "Attack on crosshair",
-                () -> cfg.triggerBot, v -> cfg.triggerBot = v, 3);
-        add("AimAssist", "Smooth aim assistance",
-                () -> cfg.aimAssist, v -> cfg.aimAssist = v, 3);
-        add("ESP", "Entity ESP",
-                () -> cfg.esp, v -> cfg.esp = v, 3);
+        add("KillAura", "Auto attack targets", () -> cfg.killAura, v -> cfg.killAura = v, 3);
+        add("TriggerBot", "Attack on crosshair", () -> cfg.triggerBot, v -> cfg.triggerBot = v, 3);
+        add("AimAssist", "Smooth aim assistance", () -> cfg.aimAssist, v -> cfg.aimAssist = v, 3);
+        add("ESP", "Entity ESP", () -> cfg.esp, v -> cfg.esp = v, 3);
 
-        add("Fullbright", "Fullbright",
-                () -> cfg.fullbright, v -> cfg.fullbright = v, 4);
-        add("ReduceParticles", "Reduce particles",
-                () -> cfg.reduceParticles, v -> cfg.reduceParticles = v, 4);
-        add("FPSBoost", "Performance boost",
-                () -> cfg.fpsBoost, v -> cfg.fpsBoost = v, 4);
-        add("Optimization", "Optimizations",
-                () -> cfg.optimized, v -> cfg.optimized = v, 4);
-        add("MenuAnimation", "Menu animation",
-                () -> cfg.glassAnimation, v -> cfg.glassAnimation = v, 4);
+        add("Fullbright", "Fullbright", () -> cfg.fullbright, v -> cfg.fullbright = v, 4);
+        add("ReduceParticles", "Reduce particles", () -> cfg.reduceParticles, v -> cfg.reduceParticles = v, 4);
+        add("FPSBoost", "Performance boost", () -> cfg.fpsBoost, v -> cfg.fpsBoost = v, 4);
+        add("Optimization", "Optimizations", () -> cfg.optimized, v -> cfg.optimized = v, 4);
+        add("MenuAnimation", "Menu animation", () -> cfg.glassAnimation, v -> cfg.glassAnimation = v, 4);
     }
 
-    private void add(
-            String name,
-            String desc,
-            BooleanSupplier get,
-            Consumer<Boolean> set,
-            int category
-    ) {
+    private void add(String name, String desc, BooleanSupplier get,
+                     Consumer<Boolean> set, int category) {
         features.add(new Feature(name, desc, get, set, category));
     }
 
@@ -209,8 +160,7 @@ public class CrimsonMenuScreen extends Screen {
     protected void init() {
         layout();
         int searchW = 170;
-        searchBox = new EditBox(font,
-                px + pw - searchW - 18, py + 15,
+        searchBox = new EditBox(font, px + pw - searchW - 18, py + 15,
                 searchW, 22, Component.literal("Search"));
         searchBox.setHint(Component.literal("Search..."));
         searchBox.setMaxLength(64);
@@ -293,10 +243,11 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void drawSidebar(GuiGraphics g, int mx, int my) {
-        g.blit(RenderPipelines.GUI_TEXTURED, LOGO,
-                px + 18, py + 18, 0, 0, 26, 26, 256, 256);
+        g.blit(RenderPipelines.GUI_TEXTURED, LOGO, px + 18, py + 18,
+                0, 0, 26, 26, 256, 256);
         text(g, "CRIMSON", px + 50, py + 20, ACCENT);
         text(g, "CLIENT", px + 50, py + 32, TEXT_MUTED);
+
         for (int i = 0; i < CATEGORIES.length; i++) {
             int bx = px + 14;
             int by = py + 72 + i * 38;
@@ -311,6 +262,7 @@ public class CrimsonMenuScreen extends Screen {
             text(g, CATEGORIES[i], bx + 16, by + 11,
                     active ? TEXT_WHITE : TEXT_MUTED);
         }
+
         int profileY = py + ph - 56;
         rounded(g, px + 14, profileY, sidebar - 28, 38, 9, 0xFF131317);
         rounded(g, px + 20, profileY + 8, 22, 22, 6, 0xFF28282F);
@@ -346,10 +298,12 @@ public class CrimsonMenuScreen extends Screen {
         scrollOffset = Mth.clamp(scrollOffset, 0, maxOffset);
         int startIndex = scrollOffset * columns;
         int endIndex = Math.min(visible.size(), startIndex + rowsVisible * columns);
+
         if (visible.isEmpty()) {
             text(g, "Nothing found", cx + 8, startY + 22, TEXT_MUTED);
             return;
         }
+
         for (int i = startIndex; i < endIndex; i++) {
             Feature feature = visible.get(i);
             int local = i - startIndex;
@@ -360,6 +314,7 @@ public class CrimsonMenuScreen extends Screen {
             boolean enabled = feature.get.getAsBoolean();
             boolean hover = hit(mx, my, x, y, cardW, CARD_HEIGHT);
             boolean chosen = settingsFeature == feature;
+
             rounded(g, x, y, cardW, CARD_HEIGHT, 11,
                     hover || chosen ? BG_CARD_HOVER : BG_CARD);
             if (enabled || chosen) {
@@ -369,6 +324,7 @@ public class CrimsonMenuScreen extends Screen {
             text(g, feature.name, x + 14, y + 13,
                     enabled ? TEXT_WHITE : TEXT_MUTED);
             text(g, feature.desc, x + 14, y + 29, TEXT_DIM);
+
             int indX = x + cardW - 30;
             int indY = y + 17;
             rounded(g, indX, indY, 18, 18, 6,
@@ -400,14 +356,12 @@ public class CrimsonMenuScreen extends Screen {
     private List<SettingRow> getSettingsRows() {
         if (settingsFeature == null) return Collections.emptyList();
         List<SettingRow> rows = new ArrayList<>();
+
         switch (settingsFeature.name) {
             case "KillAura" -> {
-                rows.add(toggleRow("Silent rotation", () -> cfg.kaSilent,
-                        () -> cfg.kaSilent = !cfg.kaSilent));
-                rows.add(toggleRow("Through walls", () -> cfg.kaThroughWalls,
-                        () -> cfg.kaThroughWalls = !cfg.kaThroughWalls));
-                rows.add(toggleRow("Only Criticals", () -> cfg.kaOnlyCriticals,
-                        () -> cfg.kaOnlyCriticals = !cfg.kaOnlyCriticals));
+                rows.add(toggleRow("Silent rotation", () -> cfg.kaSilent, () -> cfg.kaSilent = !cfg.kaSilent));
+                rows.add(toggleRow("Through walls", () -> cfg.kaThroughWalls, () -> cfg.kaThroughWalls = !cfg.kaThroughWalls));
+                rows.add(toggleRow("Only Criticals", () -> cfg.kaOnlyCriticals, () -> cfg.kaOnlyCriticals = !cfg.kaOnlyCriticals));
                 rows.add(toggleRow("Range: " + String.format(Locale.ROOT, "%.1f", cfg.kaRange),
                         () -> true, () -> {
                             cfg.kaRange += 0.5;
@@ -417,10 +371,8 @@ public class CrimsonMenuScreen extends Screen {
                         () -> true, () -> cfg.kaPriority = (cfg.kaPriority + 1) % 3));
             }
             case "TriggerBot" -> {
-                rows.add(toggleRow("Through walls", () -> cfg.tbThroughWalls,
-                        () -> cfg.tbThroughWalls = !cfg.tbThroughWalls));
-                rows.add(toggleRow("Only Criticals", () -> cfg.tbOnlyCriticals,
-                        () -> cfg.tbOnlyCriticals = !cfg.tbOnlyCriticals));
+                rows.add(toggleRow("Through walls", () -> cfg.tbThroughWalls, () -> cfg.tbThroughWalls = !cfg.tbThroughWalls));
+                rows.add(toggleRow("Only Criticals", () -> cfg.tbOnlyCriticals, () -> cfg.tbOnlyCriticals = !cfg.tbOnlyCriticals));
                 rows.add(toggleRow("Range: " + String.format(Locale.ROOT, "%.1f", cfg.tbRange),
                         () -> true, () -> {
                             cfg.tbRange += 0.5;
@@ -428,10 +380,8 @@ public class CrimsonMenuScreen extends Screen {
                         }));
             }
             case "AimAssist" -> {
-                rows.add(toggleRow("Silent rotation", () -> cfg.aaSilent,
-                        () -> cfg.aaSilent = !cfg.aaSilent));
-                rows.add(toggleRow("Through walls", () -> cfg.aaThroughWalls,
-                        () -> cfg.aaThroughWalls = !cfg.aaThroughWalls));
+                rows.add(toggleRow("Silent rotation", () -> cfg.aaSilent, () -> cfg.aaSilent = !cfg.aaSilent));
+                rows.add(toggleRow("Through walls", () -> cfg.aaThroughWalls, () -> cfg.aaThroughWalls = !cfg.aaThroughWalls));
                 rows.add(toggleRow("Range: " + String.format(Locale.ROOT, "%.1f", cfg.aaRange),
                         () -> true, () -> {
                             cfg.aaRange += 0.5;
@@ -439,10 +389,8 @@ public class CrimsonMenuScreen extends Screen {
                         }));
             }
             case "ESP" -> {
-                rows.add(toggleRow("Players", () -> cfg.espPlayers,
-                        () -> cfg.espPlayers = !cfg.espPlayers));
-                rows.add(toggleRow("Mobs", () -> cfg.espMobs,
-                        () -> cfg.espMobs = !cfg.espMobs));
+                rows.add(toggleRow("Players", () -> cfg.espPlayers, () -> cfg.espPlayers = !cfg.espPlayers));
+                rows.add(toggleRow("Mobs", () -> cfg.espMobs, () -> cfg.espMobs = !cfg.espMobs));
             }
             case "HitSound" -> rows.add(toggleRow("Sound: " + hitSoundName(),
                     () -> true, () -> cfg.hitSoundType = (cfg.hitSoundType + 1) % 7));
@@ -460,6 +408,7 @@ public class CrimsonMenuScreen extends Screen {
             case "NoRender" -> rows.add(toggleRow("Hide fire", () -> cfg.hideFire,
                     () -> cfg.hideFire = !cfg.hideFire));
         }
+
         rows.add(bindRow());
         return rows;
     }
@@ -500,6 +449,7 @@ public class CrimsonMenuScreen extends Screen {
             case "InventoryHUD" -> cfg.bindInventoryHUD = key;
             case "PotionHUD" -> cfg.bindPotionHUD = key;
             case "DurabilityHUD" -> cfg.bindDurabilityHUD = key;
+            case "DurabilityHUD" -> cfg.bindDurabilityHUD = key;
         }
     }
 
@@ -537,10 +487,12 @@ public class CrimsonMenuScreen extends Screen {
         int panelH = ph - 74;
         int x = settingsPanelX();
         int y = py + 56;
+
         rounded(g, x, y, panelW, panelH, 11, BG_CARD);
         text(g, "SETTINGS", x + 14, y + 15, ACCENT);
         text(g, settingsFeature.name, x + 14, y + 34, TEXT_WHITE);
         g.fill(x + 14, y + 51, x + panelW - 14, y + 52, BORDER);
+
         List<SettingRow> rows = getSettingsRows();
         int rowY = y + 63;
         int rowHeight = 34;
@@ -548,14 +500,15 @@ public class CrimsonMenuScreen extends Screen {
         int maxScroll = Math.max(0, rows.size() - visibleRows);
         settingsScrollOffset = Mth.clamp(settingsScrollOffset, 0, maxScroll);
         int end = Math.min(rows.size(), settingsScrollOffset + visibleRows);
+
         for (int i = settingsScrollOffset; i < end; i++) {
             SettingRow row = rows.get(i);
             boolean enabled = row.enabled.getAsBoolean();
             rounded(g, x + 10, rowY, panelW - 20, 29, 7,
-                    row.bindRow ? 0xFF24191D :
-                            enabled ? 0xFF21171B : 0xFF19191F);
+                    row.bindRow ? 0xFF24191D : enabled ? 0xFF21171B : 0xFF19191F);
             text(g, row.name, x + 18, rowY + 10,
                     row.bindRow ? ACCENT : enabled ? TEXT_WHITE : TEXT_MUTED);
+
             if (!row.bindRow) {
                 rounded(g, x + panelW - 39, rowY + 8, 19, 13, 6,
                         enabled ? ACCENT : 0xFF303038);
@@ -564,6 +517,7 @@ public class CrimsonMenuScreen extends Screen {
             }
             rowY += rowHeight;
         }
+
         rounded(g, x + 10, y + panelH - 42, panelW - 20, 30, 8, 0xFF18181E);
         text(g, "LMB - Toggle", x + 20, y + panelH - 32, TEXT_MUTED);
     }
@@ -604,7 +558,6 @@ public class CrimsonMenuScreen extends Screen {
         int button = event.button();
 
         if (waitingForBind) return true;
-
         if (searchBox != null && searchBox.isMouseOver(event.x(), event.y())) {
             return super.mouseClicked(event, doubleClick);
         }
@@ -640,6 +593,7 @@ public class CrimsonMenuScreen extends Screen {
                     int rowHeight = 34;
                     int visibleRows = Math.max(1, (panelH - 125) / rowHeight);
                     int end = Math.min(rows.size(), settingsScrollOffset + visibleRows);
+
                     for (int i = settingsScrollOffset; i < end; i++) {
                         if (hit(mx, my, x + 10, rowY, 162, 29)) {
                             SettingRow row = rows.get(i);
@@ -677,8 +631,10 @@ public class CrimsonMenuScreen extends Screen {
             int row = local / columns;
             int x = cx + col * (cardW + gap);
             int y = startY + row * (CARD_HEIGHT + CARD_GAP);
+
             if (!hit(mx, my, x, y, cardW, CARD_HEIGHT)) continue;
             Feature feature = visible.get(i);
+
             if (button == 1) {
                 settingsFeature = settingsFeature == feature ? null : feature;
                 settingsScrollOffset = 0;
@@ -696,6 +652,7 @@ public class CrimsonMenuScreen extends Screen {
     @Override
     public boolean keyPressed(KeyEvent event) {
         int keyCode = event.key();
+
         if (waitingForBind) {
             if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
                 waitingForBind = false;
@@ -729,6 +686,7 @@ public class CrimsonMenuScreen extends Screen {
                     0, maxScroll);
             return true;
         }
+
         if (hit((int) mouseX, (int) mouseY, cx, py + 50,
                 cardAreaWidth(), ph - 60)) {
             scrollOffset = Math.max(0, scrollOffset + (deltaY < 0 ? 1 : -1));
@@ -751,4 +709,4 @@ public class CrimsonMenuScreen extends Screen {
     private record Feature(String name, String desc,
                            BooleanSupplier get, Consumer<Boolean> set,
                            int category) {}
-    }
+}
