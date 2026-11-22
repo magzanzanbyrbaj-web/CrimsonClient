@@ -26,18 +26,18 @@ public class CrimsonMenuScreen extends Screen {
     private static final Identifier FONT = Identifier.fromNamespaceAndPath("crimsonclient", "inter");
     private static final Identifier LOGO = Identifier.fromNamespaceAndPath("crimsonclient", "crimson_logo.png");
 
-    // Современная цветовая палитра
-    private static final int BG_DARK      = 0xF00C0C0F;
-    private static final int BG_PANEL     = 0xF0121216;
-    private static final int BG_CARD      = 0xFF16161A;
-    private static final int BG_CARD_HOVER= 0xFF1C1C22;
-    private static final int BG_SIDEBAR   = 0xFF0E0E11;
-    private static final int ACCENT       = 0xFFE63E51;
-    private static final int ACCENT_SOFT  = 0x33E63E51;
-    private static final int TEXT_WHITE   = 0xFFF2F2F5;
-    private static final int TEXT_MUTED   = 0xFF6B6B76;
-    private static final int TEXT_DIM     = 0xFF4A4A54;
-    private static final int BORDER       = 0xFF222228;
+    // Палитра
+    private static final int BG_DARK       = 0xF00B0B0E;
+    private static final int BG_PANEL      = 0xF0111115;
+    private static final int BG_CARD       = 0xFF151519;
+    private static final int BG_CARD_HOVER = 0xFF1B1B21;
+    private static final int BG_SIDEBAR    = 0xFF0D0D10;
+    private static final int ACCENT        = 0xFFE63E51;
+    private static final int ACCENT_SOFT   = 0x33E63E51;
+    private static final int TEXT_WHITE    = 0xFFF1F1F4;
+    private static final int TEXT_MUTED    = 0xFF6A6A75;
+    private static final int TEXT_DIM      = 0xFF484852;
+    private static final int BORDER        = 0xFF212128;
 
     private static final String[] CATEGORIES = {
             "Render", "Player", "Display", "Combat", "Configs"
@@ -53,10 +53,15 @@ public class CrimsonMenuScreen extends Screen {
     private int px, py, pw, ph;
     private int sidebar, cx, cw;
 
-    private static final int CARD_HEIGHT = 48;
+    private static final int CARD_HEIGHT = 50;
     private static final int CARD_GAP = 8;
 
     private Feature settingsFeature;
+
+    // Анимация
+    private float animProgress = 1f;
+    private int prevSelected = 0;
+    private long animStart = 0;
 
     public CrimsonMenuScreen() {
         super(Component.literal("Crimson Client"));
@@ -120,23 +125,42 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void layout() {
-        pw = Math.min(width - 40, 720);
-        ph = Math.min(height - 40, 420);
+        pw = Math.min(width - 36, 740);
+        ph = Math.min(height - 36, 440);
 
         px = (width - pw) / 2;
         py = (height - ph) / 2;
 
-        sidebar = 140;
-        cx = px + sidebar + 16;
-        cw = pw - sidebar - 32;
+        sidebar = 148;
+        cx = px + sidebar + 18;
+        cw = pw - sidebar - 36;
+    }
+
+    private void startAnim(int newSelected) {
+        if (newSelected == selected) return;
+        prevSelected = selected;
+        selected = newSelected;
+        animStart = System.currentTimeMillis();
+        animProgress = 0f;
+        scrollOffset = 0;
+        settingsFeature = null;
+        if (searchBox != null) searchBox.setValue("");
+    }
+
+    private float getAnim() {
+        if (animProgress >= 1f) return 1f;
+        long elapsed = System.currentTimeMillis() - animStart;
+        animProgress = Mth.clamp(elapsed / 180f, 0f, 1f);
+        // ease out
+        return 1f - (1f - animProgress) * (1f - animProgress);
     }
 
     @Override
     protected void init() {
         layout();
 
-        int searchW = 160;
-        searchBox = new EditBox(font, px + pw - searchW - 18, py + 14, searchW, 22, Component.literal("Search"));
+        int searchW = 170;
+        searchBox = new EditBox(font, px + pw - searchW - 18, py + 15, searchW, 22, Component.literal("Search"));
         searchBox.setHint(Component.literal("Search..."));
         searchBox.setMaxLength(64);
         searchBox.setBordered(false);
@@ -171,7 +195,8 @@ public class CrimsonMenuScreen extends Screen {
         for (Feature f : features) {
             if (query.isEmpty()) {
                 if (f.category == selected) result.add(f);
-            } else if (f.name.toLowerCase(Locale.ROOT).contains(query) || f.desc.toLowerCase(Locale.ROOT).contains(query)) {
+            } else if (f.name.toLowerCase(Locale.ROOT).contains(query)
+                    || f.desc.toLowerCase(Locale.ROOT).contains(query)) {
                 result.add(f);
             }
         }
@@ -179,87 +204,94 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private int cardAreaWidth() {
-        return settingsFeature == null ? cw : Math.max(120, cw - 190);
+        return settingsFeature == null ? cw : Math.max(130, cw - 196);
     }
 
     private int settingsPanelX() {
-        return px + pw - 180 - 14;
+        return px + pw - 186 - 14;
     }
 
     @Override
     public void render(GuiGraphics g, int mouseX, int mouseY, float partialTick) {
         layout();
+        float anim = getAnim();
 
-        // Затемнение фона
-        g.fill(0, 0, width, height, 0x99000000);
+        // Затемнение
+        g.fill(0, 0, width, height, 0xA0000000);
 
-        // Основная панель
-        rounded(g, px, py, pw, ph, 12, BG_DARK);
-        rounded(g, px + 1, py + 1, pw - 2, ph - 2, 11, BG_PANEL);
+        // Основная панель + тень
+        rounded(g, px + 3, py + 4, pw, ph, 14, 0x55000000);
+        rounded(g, px, py, pw, ph, 14, BG_DARK);
+        rounded(g, px + 1, py + 1, pw - 2, ph - 2, 13, BG_PANEL);
 
         // Сайдбар
-        rounded(g, px + 1, py + 1, sidebar, ph - 2, 11, BG_SIDEBAR);
-
-        // Разделитель
-        g.fill(px + sidebar, py + 12, px + sidebar + 1, py + ph - 12, BORDER);
+        rounded(g, px + 1, py + 1, sidebar, ph - 2, 13, BG_SIDEBAR);
+        g.fill(px + sidebar, py + 14, px + sidebar + 1, py + ph - 14, BORDER);
 
         drawSidebar(g, mouseX, mouseY);
         drawHeader(g);
+
+        // Анимация контента
+        int contentOffset = (int) ((1f - anim) * 18);
+        g.pose().pushMatrix();
+        g.pose().translate(contentOffset, 0);
+
+        // Лёгкая прозрачность во время анимации
         drawCards(g, mouseX, mouseY);
         drawSettings(g);
+
+        g.pose().popMatrix();
 
         super.render(g, mouseX, mouseY, partialTick);
     }
 
     private void drawSidebar(GuiGraphics g, int mx, int my) {
-        // Логотип
-        g.blit(RenderPipelines.GUI_TEXTURED, LOGO, px + 16, py + 16, 0, 0, 26, 26, 256, 256);
-        text(g, "CRIMSON", px + 48, py + 18, ACCENT);
-        text(g, "CLIENT", px + 48, py + 30, TEXT_MUTED);
+        // Лого
+        g.blit(RenderPipelines.GUI_TEXTURED, LOGO, px + 18, py + 18, 0, 0, 26, 26, 256, 256);
+        text(g, "CRIMSON", px + 50, py + 20, ACCENT);
+        text(g, "CLIENT", px + 50, py + 32, TEXT_MUTED);
 
         // Категории
         for (int i = 0; i < CATEGORIES.length; i++) {
-            int bx = px + 12;
-            int by = py + 70 + i * 36;
+            int bx = px + 14;
+            int by = py + 72 + i * 38;
 
             boolean active = selected == i;
-            boolean hover = hit(mx, my, bx, by, sidebar - 24, 30);
+            boolean hover = hit(mx, my, bx, by, sidebar - 28, 32);
 
             if (active) {
-                rounded(g, bx, by, sidebar - 24, 30, 8, 0xFF1A1A20);
-                rounded(g, bx, by + 7, 3, 16, 2, ACCENT);
+                rounded(g, bx, by, sidebar - 28, 32, 9, 0xFF1A1A21);
+                rounded(g, bx, by + 8, 3, 16, 2, ACCENT);
             } else if (hover) {
-                rounded(g, bx, by, sidebar - 24, 30, 8, 0xFF16161C);
+                rounded(g, bx, by, sidebar - 28, 32, 9, 0xFF15151B);
             }
 
-            text(g, CATEGORIES[i], bx + 14, by + 10, active ? TEXT_WHITE : TEXT_MUTED);
+            text(g, CATEGORIES[i], bx + 16, by + 11, active ? TEXT_WHITE : TEXT_MUTED);
         }
 
-        // Профиль внизу
-        int py2 = py + ph - 52;
-        rounded(g, px + 12, py2, sidebar - 24, 36, 8, 0xFF141418);
-        rounded(g, px + 18, py2 + 7, 22, 22, 6, 0xFF2A2A32);
+        // Профиль
+        int py2 = py + ph - 56;
+        rounded(g, px + 14, py2, sidebar - 28, 38, 9, 0xFF131317);
+        rounded(g, px + 20, py2 + 8, 22, 22, 6, 0xFF28282F);
 
-        String name = Minecraft.getInstance().player != null ?
-                Minecraft.getInstance().player.getName().getString() : "Player";
+        String name = Minecraft.getInstance().player != null
+                ? Minecraft.getInstance().player.getName().getString() : "Player";
         if (name.length() > 11) name = name.substring(0, 11);
 
-        text(g, name, px + 46, py2 + 9, TEXT_WHITE);
-        text(g, "Online", px + 46, py2 + 21, TEXT_DIM);
+        text(g, name, px + 48, py2 + 10, TEXT_WHITE);
+        text(g, "Online", px + 48, py2 + 22, TEXT_DIM);
     }
 
     private void drawHeader(GuiGraphics g) {
-        int searchW = 160;
-        int titleW = cw - searchW - 12;
+        int searchW = 170;
+        int titleW = cw - searchW - 14;
 
-        // Заголовок категории
-        rounded(g, cx, py + 14, titleW, 26, 8, BG_CARD);
-        text(g, CATEGORIES[selected], cx + 14, py + 21, TEXT_WHITE);
+        rounded(g, cx, py + 15, titleW, 28, 9, BG_CARD);
+        text(g, CATEGORIES[selected], cx + 14, py + 23, TEXT_WHITE);
 
-        // Поиск
         int sx = px + pw - searchW - 16;
-        rounded(g, sx, py + 14, searchW, 26, 8, BG_CARD);
-        text(g, "⌕", sx + searchW - 22, py + 20, TEXT_MUTED);
+        rounded(g, sx, py + 15, searchW, 28, 9, BG_CARD);
+        text(g, "⌕", sx + searchW - 24, py + 22, TEXT_MUTED);
     }
 
     private void drawCards(GuiGraphics g, int mx, int my) {
@@ -270,8 +302,8 @@ public class CrimsonMenuScreen extends Screen {
         int gap = 10;
         int cardW = (areaW - gap * (columns - 1)) / columns;
 
-        int startY = py + 54;
-        int bottom = py + ph - 16;
+        int startY = py + 56;
+        int bottom = py + ph - 18;
 
         int rowsVisible = Math.max(1, (bottom - startY + CARD_GAP) / (CARD_HEIGHT + CARD_GAP));
         int maxOffset = Math.max(0, (int) Math.ceil((double) visible.size() / columns) - rowsVisible);
@@ -281,7 +313,7 @@ public class CrimsonMenuScreen extends Screen {
         int endIndex = Math.min(visible.size(), startIndex + rowsVisible * columns);
 
         if (visible.isEmpty()) {
-            text(g, "Nothing found", cx + 8, startY + 20, TEXT_MUTED);
+            text(g, "Nothing found", cx + 8, startY + 22, TEXT_MUTED);
             return;
         }
 
@@ -298,31 +330,26 @@ public class CrimsonMenuScreen extends Screen {
             boolean hover = hit(mx, my, x, y, cardW, CARD_HEIGHT);
             boolean chosen = settingsFeature == f;
 
-            // Карточка
-            rounded(g, x, y, cardW, CARD_HEIGHT, 10, hover || chosen ? BG_CARD_HOVER : BG_CARD);
+            rounded(g, x, y, cardW, CARD_HEIGHT, 11, hover || chosen ? BG_CARD_HOVER : BG_CARD);
 
-            // Акцентная полоска сверху
+            // Верхняя полоска
             if (enabled || chosen) {
-                g.fill(x, y, x + cardW, y + 2, chosen ? ACCENT : (enabled ? 0xFF3A3A44 : 0x00000000));
+                g.fill(x + 1, y, x + cardW - 1, y + 2, chosen ? ACCENT : 0xFF35353E);
             }
 
-            // Название
-            text(g, f.name, x + 14, y + 12, enabled ? TEXT_WHITE : TEXT_MUTED);
+            text(g, f.name, x + 14, y + 13, enabled ? TEXT_WHITE : TEXT_MUTED);
+            text(g, f.desc, x + 14, y + 29, TEXT_DIM);
 
-            // Описание
-            text(g, f.desc, x + 14, y + 28, TEXT_DIM);
-
-            // Индикатор включения
-            int indX = x + cardW - 28;
-            int indY = y + 16;
-            rounded(g, indX, indY, 16, 16, 5, enabled ? ACCENT_SOFT : 0xFF1E1E24);
+            // Индикатор
+            int indX = x + cardW - 30;
+            int indY = y + 17;
+            rounded(g, indX, indY, 18, 18, 6, enabled ? ACCENT_SOFT : 0xFF1C1C22);
             if (enabled) {
-                rounded(g, indX + 4, indY + 4, 8, 8, 3, ACCENT);
+                rounded(g, indX + 4, indY + 4, 10, 10, 4, ACCENT);
             }
 
-            // Иконка настроек
             if (chosen) {
-                text(g, "⚙", x + cardW - 48, y + 17, ACCENT);
+                text(g, "⚙", x + cardW - 52, y + 18, ACCENT);
             }
         }
     }
@@ -330,22 +357,21 @@ public class CrimsonMenuScreen extends Screen {
     private void drawSettings(GuiGraphics g) {
         if (settingsFeature == null) return;
 
-        int panelW = 176;
-        int panelH = ph - 70;
+        int panelW = 182;
+        int panelH = ph - 74;
         int x = settingsPanelX();
-        int y = py + 54;
+        int y = py + 56;
 
-        rounded(g, x, y, panelW, panelH, 10, BG_CARD);
-        g.fill(x + 12, y + 32, x + panelW - 12, y + 33, BORDER);
+        rounded(g, x, y, panelW, panelH, 11, BG_CARD);
+        g.fill(x + 14, y + 34, x + panelW - 14, y + 35, BORDER);
 
-        text(g, "SETTINGS", x + 14, y + 14, ACCENT);
-        text(g, settingsFeature.name, x + 14, y + 44, TEXT_WHITE);
-        text(g, settingsInfo(), x + 14, y + 64, TEXT_MUTED);
+        text(g, "SETTINGS", x + 14, y + 15, ACCENT);
+        text(g, settingsFeature.name, x + 14, y + 46, TEXT_WHITE);
+        text(g, settingsInfo(), x + 14, y + 66, TEXT_MUTED);
 
-        // Подсказка
-        rounded(g, x + 12, y + panelH - 48, panelW - 24, 32, 8, 0xFF1A1A20);
-        text(g, "LMB - Change", x + 22, y + panelH - 38, TEXT_MUTED);
-        text(g, "RMB - Close", x + 22, y + panelH - 24, TEXT_DIM);
+        rounded(g, x + 14, y + panelH - 52, panelW - 28, 36, 9, 0xFF18181E);
+        text(g, "LMB — Change", x + 24, y + panelH - 40, TEXT_MUTED);
+        text(g, "RMB — Close", x + 24, y + panelH - 26, TEXT_DIM);
     }
 
     private String settingsInfo() {
@@ -453,17 +479,14 @@ public class CrimsonMenuScreen extends Screen {
         // Категории
         if (button == 0) {
             for (int i = 0; i < CATEGORIES.length; i++) {
-                int bx = px + 12;
-                int by = py + 70 + i * 36;
-                if (hit(mx, my, bx, by, sidebar - 24, 30)) {
+                int bx = px + 14;
+                int by = py + 72 + i * 38;
+                if (hit(mx, my, bx, by, sidebar - 28, 32)) {
                     if (i == 4) {
                         Minecraft.getInstance().setScreen(new ConfigsScreen(this));
                         return true;
                     }
-                    selected = i;
-                    scrollOffset = 0;
-                    settingsFeature = null;
-                    if (searchBox != null) searchBox.setValue("");
+                    startAnim(i);
                     return true;
                 }
             }
@@ -472,8 +495,8 @@ public class CrimsonMenuScreen extends Screen {
         // Панель настроек
         if (settingsFeature != null) {
             int x = settingsPanelX();
-            int y = py + 54;
-            if (hit(mx, my, x, y, 176, ph - 70)) {
+            int y = py + 56;
+            if (hit(mx, my, x, y, 182, ph - 74)) {
                 if (button == 0) {
                     changeSetting();
                     return true;
@@ -491,8 +514,8 @@ public class CrimsonMenuScreen extends Screen {
         int columns = settingsFeature == null ? 2 : 1;
         int gap = 10;
         int cardW = (areaW - gap * (columns - 1)) / columns;
-        int startY = py + 54;
-        int bottom = py + ph - 16;
+        int startY = py + 56;
+        int bottom = py + ph - 18;
         int rowsVisible = Math.max(1, (bottom - startY + CARD_GAP) / (CARD_HEIGHT + CARD_GAP));
         int startIndex = scrollOffset * columns;
         int endIndex = Math.min(visible.size(), startIndex + rowsVisible * columns);
@@ -537,4 +560,4 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private record Feature(String name, String desc, BooleanSupplier get, Consumer<Boolean> set, int category) {}
-             }
+        }
