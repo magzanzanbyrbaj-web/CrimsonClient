@@ -1,4 +1,3 @@
-
 package ru.crimson.client;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -7,8 +6,12 @@ import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.minecraft.client.KeyMapping;
 import org.lwjgl.glfw.GLFW;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import ru.crimson.client.config.CrimsonConfig;
 import ru.crimson.client.gui.CrimsonMenuScreen;
+import ru.crimson.client.gui.HudEditorScreen;
 import ru.crimson.client.hud.HudRenderer;
 
 import ru.crimson.client.visual.BetterTargetEsp;
@@ -31,21 +34,23 @@ import ru.crimson.combat.module.ESP;
 public class CrimsonClientClient implements ClientModInitializer {
 
     public static KeyMapping openMenuKey;
+    public static KeyMapping hudEditorKey;
+
     public static CrimsonConfig config;
 
-    // Combat modules
     public static KillAura killAura;
     public static TriggerBot triggerBot;
     public static AimAssist aimAssist;
     public static ESP esp;
 
+    private static final Map<Integer, Boolean> previousKeyStates =
+            new HashMap<>();
+
     @Override
     public void onInitializeClient() {
 
-        // Load configuration
         config = CrimsonConfig.load();
 
-        // Register menu key
         openMenuKey = KeyBindingHelper.registerKeyBinding(
                 new KeyMapping(
                         "key.crimsonclient.open_menu",
@@ -54,10 +59,16 @@ public class CrimsonClientClient implements ClientModInitializer {
                 )
         );
 
-        // Initialize HUD
+        hudEditorKey = KeyBindingHelper.registerKeyBinding(
+                new KeyMapping(
+                        "key.crimsonclient.hud_editor",
+                        GLFW.GLFW_KEY_F8,
+                        KeyMapping.Category.MISC
+                )
+        );
+
         HudRenderer.init();
 
-        // Visual modules
         BetterTargetEsp.init();
         ChinaHat.init();
         Trails.init();
@@ -66,22 +77,22 @@ public class CrimsonClientClient implements ClientModInitializer {
         JumpCircle.init();
         CustomSky.init();
 
-        // Effects
         HitSound.init();
         CriticalEffects.init();
 
-        // Additional modules
         ReachDisplay.init();
         PearlTracker.init();
 
-        // Initialize combat modules
         killAura = new KillAura();
         triggerBot = new TriggerBot();
         aimAssist = new AimAssist();
         esp = new ESP();
 
-        // Client tick
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+
+            if (client.player == null || client.level == null) {
+                return;
+            }
 
             while (openMenuKey.consumeClick()) {
                 if (client.screen == null) {
@@ -89,16 +100,16 @@ public class CrimsonClientClient implements ClientModInitializer {
                 }
             }
 
-            // FullBright
-            if (client.options != null && config != null) {
-                if (config.fullbright) {
-                    client.options.gamma().set(16.0);
+            while (hudEditorKey.consumeClick()) {
+                if (client.screen == null) {
+                    client.setScreen(new HudEditorScreen());
                 }
             }
 
-            // Combat modules
-            if (client.player == null || client.level == null) {
-                return;
+            handleCustomBinds(client.getWindow().handle());
+
+            if (config.fullbright && client.options != null) {
+                client.options.gamma().set(16.0);
             }
 
             killAura.onTick();
@@ -108,7 +119,98 @@ public class CrimsonClientClient implements ClientModInitializer {
         });
 
         CrimsonClient.LOGGER.info(
-                "Crimson Client initialized. Press Right Shift."
+                "Crimson Client initialized. Press Right Shift for menu, F8 for HUD editor."
         );
+    }
+
+    private void handleCustomBinds(long window) {
+
+        if (config == null) return;
+
+        checkBind(window, config.bindKillAura, () -> {
+            config.killAura = !config.killAura;
+            config.save();
+        });
+
+        checkBind(window, config.bindTriggerBot, () -> {
+            config.triggerBot = !config.triggerBot;
+            config.save();
+        });
+
+        checkBind(window, config.bindAimAssist, () -> {
+            config.aimAssist = !config.aimAssist;
+            config.save();
+        });
+
+        checkBind(window, config.bindESP, () -> {
+            config.esp = !config.esp;
+            config.save();
+        });
+
+        checkBind(window, config.bindTargetHUD, () -> {
+            config.targetHud = !config.targetHud;
+            config.save();
+        });
+
+        checkBind(window, config.bindArmorHUD, () -> {
+            config.armorHud = !config.armorHud;
+            config.save();
+        });
+
+        checkBind(window, config.bindTotemCounter, () -> {
+            config.totemCounter = !config.totemCounter;
+            config.save();
+        });
+
+        checkBind(window, config.bindWatermark, () -> {
+            config.watermark = !config.watermark;
+            config.save();
+        });
+
+        checkBind(window, config.bindKeystrokes, () -> {
+            config.keystrokes = !config.keystrokes;
+            config.save();
+        });
+
+        checkBind(window, config.bindModuleList, () -> {
+            config.moduleList = !config.moduleList;
+            config.save();
+        });
+
+        checkBind(window, config.bindInventoryHUD, () -> {
+            config.inventoryHud = !config.inventoryHud;
+            config.save();
+        });
+
+        checkBind(window, config.bindPotionHUD, () -> {
+            config.potionHud = !config.potionHud;
+            config.save();
+        });
+
+        checkBind(window, config.bindDurabilityHUD, () -> {
+            config.durabilityHud = !config.durabilityHud;
+            config.save();
+        });
+    }
+
+    private void checkBind(
+            long window,
+            int key,
+            Runnable action
+    ) {
+        if (key <= 0 || key >= GLFW.GLFW_KEY_LAST) {
+            return;
+        }
+
+        boolean down = GLFW.glfwGetKey(window, key)
+                == GLFW.GLFW_PRESS;
+
+        boolean wasDown = previousKeyStates.getOrDefault(key, false);
+
+        if (down && !wasDown) {
+            action.run();
+        }
+
+        previousKeyStates.put(key, down);
     }
 }
