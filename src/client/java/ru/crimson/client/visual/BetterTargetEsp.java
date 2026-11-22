@@ -55,7 +55,8 @@ public final class BetterTargetEsp {
 
             animation = Mth.clamp(
                     animation + (target != null ? 0.12f : -0.12f),
-                    0f, 1f
+                    0f,
+                    1f
             );
         });
 
@@ -168,6 +169,7 @@ public final class BetterTargetEsp {
                         lx, height * 0.35f, lz,
                         red, green, blue, alpha);
             }
+
         } finally {
             matrices.popPose();
         }
@@ -176,11 +178,17 @@ public final class BetterTargetEsp {
     private static void vertex(
             VertexConsumer buffer,
             Matrix4f matrix,
-            float x, float y, float z,
-            float r, float g, float b, float a
+            float x,
+            float y,
+            float z,
+            float r,
+            float g,
+            float b,
+            float a
     ) {
         buffer.addVertex(matrix, x, y, z)
                 .setColor(r, g, b, a)
+                .setLineWidth(1.0f)
                 .setNormal(0, 1, 0);
     }
 }
