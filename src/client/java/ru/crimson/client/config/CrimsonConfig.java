@@ -7,6 +7,8 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public class CrimsonConfig {
 
@@ -147,8 +149,7 @@ public class CrimsonConfig {
     public int durabilityHudX = 10;
     public int durabilityHudY = 520;
 
-    // KEYBINDS
-    // -1 means no key assigned.
+    // LEGACY KEYBINDS
     public int bindKillAura = -1;
     public int bindTriggerBot = -1;
     public int bindAimAssist = -1;
@@ -164,6 +165,9 @@ public class CrimsonConfig {
     public int bindInventoryHUD = -1;
     public int bindPotionHUD = -1;
     public int bindDurabilityHUD = -1;
+
+    // UNIVERSAL MODULE BINDS
+    public Map<String, Integer> moduleBinds = new HashMap<>();
 
     // KILL AURA
     public boolean killAura = false;
@@ -232,6 +236,7 @@ public class CrimsonConfig {
                         GSON.fromJson(json, CrimsonConfig.class);
 
                 if (loaded != null) {
+                    loaded.migrateLegacyBinds();
                     return loaded;
                 }
             }
@@ -240,6 +245,60 @@ public class CrimsonConfig {
         }
 
         return new CrimsonConfig();
+    }
+
+    private void migrateLegacyBinds() {
+        if (moduleBinds == null) {
+            moduleBinds = new HashMap<>();
+        }
+
+        migrate("KillAura", bindKillAura);
+        migrate("TriggerBot", bindTriggerBot);
+        migrate("AimAssist", bindAimAssist);
+        migrate("ESP", bindESP);
+        migrate("ChestESP", bindChestESP);
+        migrate("TargetHUD", bindTargetHUD);
+        migrate("ArmorHUD", bindArmorHUD);
+        migrate("TotemCounter", bindTotemCounter);
+        migrate("Watermark", bindWatermark);
+        migrate("Keystrokes", bindKeystrokes);
+        migrate("ModuleList", bindModuleList);
+        migrate("InventoryHUD", bindInventoryHUD);
+        migrate("PotionHUD", bindPotionHUD);
+        migrate("DurabilityHUD", bindDurabilityHUD);
+
+        moduleBinds.entrySet().removeIf(
+                entry -> entry.getValue() == null
+                        || entry.getValue() < 0
+        );
+    }
+
+    private void migrate(String name, int key) {
+        if (key >= 0) {
+            moduleBinds.putIfAbsent(name, key);
+        }
+    }
+
+    public void setBind(String module, int key) {
+        if (moduleBinds == null) {
+            moduleBinds = new HashMap<>();
+        }
+
+        if (key < 0) {
+            moduleBinds.remove(module);
+        } else {
+            moduleBinds.put(module, key);
+        }
+
+        save();
+    }
+
+    public int getBind(String module) {
+        if (moduleBinds == null) {
+            return -1;
+        }
+
+        return moduleBinds.getOrDefault(module, -1);
     }
 
     public void save() {
