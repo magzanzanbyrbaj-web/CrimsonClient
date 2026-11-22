@@ -1,3 +1,4 @@
+
 package ru.crimson.client;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -50,6 +51,19 @@ public class CrimsonClientClient implements ClientModInitializer {
     public void onInitializeClient() {
         config = CrimsonConfig.load();
 
+        registerKeys();
+
+        initializeVisuals();
+        initializeCombatModules();
+        registerTickHandler();
+
+        CrimsonClient.LOGGER.info(
+                "Crimson Client initialized. "
+                        + "Right Shift: Menu | F8: HUD Editor"
+        );
+    }
+
+    private void registerKeys() {
         openMenuKey = KeyBindingHelper.registerKeyBinding(
                 new KeyMapping(
                         "key.crimsonclient.open_menu",
@@ -65,7 +79,9 @@ public class CrimsonClientClient implements ClientModInitializer {
                         KeyMapping.Category.MISC
                 )
         );
+    }
 
+    private void initializeVisuals() {
         HudRenderer.init();
 
         BetterTargetEsp.init();
@@ -81,48 +97,71 @@ public class CrimsonClientClient implements ClientModInitializer {
 
         ReachDisplay.init();
         PearlTracker.init();
+    }
 
+    private void initializeCombatModules() {
         killAura = new KillAura();
         triggerBot = new TriggerBot();
         aimAssist = new AimAssist();
         esp = new ESP();
+    }
 
+    private void registerTickHandler() {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (client.player == null || client.level == null) {
+                previousKeyStates.clear();
                 return;
             }
 
-            while (openMenuKey.consumeClick()) {
-                if (client.screen == null) {
-                    client.setScreen(new CrimsonMenuScreen());
-                }
-            }
-
-            while (hudEditorKey.consumeClick()) {
-                if (client.screen == null) {
-                    client.setScreen(new HudEditorScreen());
-                }
-            }
-
+            handleMenuKeys(client);
             handleCustomBinds(client.getWindow().handle());
+
+            if (config == null) {
+                return;
+            }
 
             if (config.fullbright && client.options != null) {
                 client.options.gamma().set(16.0);
             }
 
-            killAura.onTick();
-            triggerBot.onTick();
-            aimAssist.onTick();
-            esp.onTick();
-        });
+            if (killAura != null) {
+                killAura.onTick();
+            }
 
-        CrimsonClient.LOGGER.info(
-                "Crimson Client initialized. Press Right Shift for menu, F8 for HUD editor."
-        );
+            if (triggerBot != null) {
+                triggerBot.onTick();
+            }
+
+            if (aimAssist != null) {
+                aimAssist.onTick();
+            }
+
+            if (esp != null) {
+                esp.onTick();
+            }
+        });
+    }
+
+    private void handleMenuKeys(
+            net.minecraft.client.Minecraft client
+    ) {
+        while (openMenuKey.consumeClick()) {
+            if (client.screen == null) {
+                client.setScreen(new CrimsonMenuScreen());
+            }
+        }
+
+        while (hudEditorKey.consumeClick()) {
+            if (client.screen == null) {
+                client.setScreen(new HudEditorScreen());
+            }
+        }
     }
 
     private void handleCustomBinds(long window) {
-        if (config == null) return;
+        if (config == null) {
+            return;
+        }
 
         checkBind(window, config.bindKillAura, () -> {
             config.killAura = !config.killAura;
@@ -202,7 +241,9 @@ public class CrimsonClientClient implements ClientModInitializer {
         boolean down = GLFW.glfwGetKey(window, key)
                 == GLFW.GLFW_PRESS;
 
-        boolean wasDown = previousKeyStates.getOrDefault(key, false);
+        boolean wasDown = previousKeyStates.getOrDefault(
+                key, false
+        );
 
         if (down && !wasDown) {
             action.run();
