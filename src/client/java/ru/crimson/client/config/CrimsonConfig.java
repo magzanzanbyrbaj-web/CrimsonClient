@@ -1,4 +1,3 @@
-
 package ru.crimson.client.config;
 
 import com.google.gson.Gson;
@@ -18,10 +17,7 @@ public class CrimsonConfig {
                     .getConfigDir()
                     .resolve("crimsonclient.json");
 
-    // =========================
     // RENDER
-    // =========================
-
     public boolean hitParticles = false;
     public boolean criticalEffects = false;
     public boolean hitSound = false;
@@ -50,11 +46,7 @@ public class CrimsonConfig {
     public boolean reachDisplay = false;
     public boolean pearlTracker = false;
 
-
-    // =========================
     // PLAYER / HUD
-    // =========================
-
     public boolean targetHud = true;
     public boolean armorHud = true;
     public boolean totemCounter = true;
@@ -63,20 +55,12 @@ public class CrimsonConfig {
     public boolean potionHud = true;
     public boolean durabilityHud = true;
 
-
-    // =========================
     // DISPLAY
-    // =========================
-
     public boolean watermark = true;
     public boolean keystrokes = false;
     public boolean moduleList = true;
 
-
-    // =========================
     // UTILS
-    // =========================
-
     public boolean fullbright = false;
     public boolean reduceParticles = false;
     public boolean fpsBoost = false;
@@ -84,13 +68,8 @@ public class CrimsonConfig {
     public boolean optimized = false;
     public boolean glassAnimation = true;
 
-
-    // =========================
     // VISUAL SETTINGS
-    // =========================
-
     public int chinaHatColor = -1426112427;
-
     public boolean chinaHatRainbow = false;
 
     public float chinaHatHeight = 0.5f;
@@ -98,7 +77,6 @@ public class CrimsonConfig {
 
     public int trailsLength = 40;
     public int trailsColor = -1;
-
     public boolean trailsFade = true;
 
     public float jumpCircleSize = 1.0f;
@@ -109,12 +87,10 @@ public class CrimsonConfig {
 
     public float targetEspScale = 1.0f;
     public int targetEspColor = -1;
-
     public boolean targetEspRing = true;
 
     public float blockOverlayWidth = 2.0f;
     public boolean blockOverlayGradient = false;
-
     public int blockOverlayColor = -1;
 
     public int hitboxColor = -1;
@@ -128,11 +104,7 @@ public class CrimsonConfig {
 
     public int criticalStyle = 0;
 
-
-    // =========================
     // NO RENDER
-    // =========================
-
     public boolean hideFire = false;
     public boolean hideHurtCamera = false;
     public boolean hidePortal = false;
@@ -144,23 +116,13 @@ public class CrimsonConfig {
     public boolean hideWeather = false;
     public boolean hideParticles = false;
 
-
-    // =========================
     // CROSSHAIR
-    // =========================
-
     public int crosshairColor = -1;
-
     public float crosshairSize = 4.0f;
     public float crosshairGap = 2.0f;
-
     public int crosshairStyle = 0;
 
-
-    // =========================
     // HUD POSITIONS
-    // =========================
-
     public int watermarkX = 10;
     public int watermarkY = 10;
 
@@ -188,11 +150,24 @@ public class CrimsonConfig {
     public int durabilityHudX = 10;
     public int durabilityHudY = 520;
 
+    // KEYBINDS
+    // -1 означает, что клавиша не назначена.
+    public int bindKillAura = -1;
+    public int bindTriggerBot = -1;
+    public int bindAimAssist = -1;
+    public int bindESP = -1;
 
-    // =========================
+    public int bindTargetHUD = -1;
+    public int bindArmorHUD = -1;
+    public int bindTotemCounter = -1;
+    public int bindWatermark = -1;
+    public int bindKeystrokes = -1;
+    public int bindModuleList = -1;
+    public int bindInventoryHUD = -1;
+    public int bindPotionHUD = -1;
+    public int bindDurabilityHUD = -1;
+
     // KILL AURA
-    // =========================
-
     public boolean killAura = false;
 
     public double kaRange = 4.2;
@@ -207,16 +182,10 @@ public class CrimsonConfig {
     public boolean kaMobs = true;
 
     public float kaFov = 180f;
-
     public boolean kaOnlyCriticals = false;
-
     public float kaSmoothness = 0.28f;
 
-
-    // =========================
     // TRIGGER BOT
-    // =========================
-
     public boolean triggerBot = false;
 
     public double tbRange = 3.5;
@@ -229,11 +198,7 @@ public class CrimsonConfig {
 
     public boolean tbOnlyCriticals = false;
 
-
-    // =========================
     // AIM ASSIST
-    // =========================
-
     public boolean aimAssist = false;
 
     public double aaRange = 4.5;
@@ -247,11 +212,7 @@ public class CrimsonConfig {
     public boolean aaPlayers = true;
     public boolean aaMobs = true;
 
-
-    // =========================
     // ESP
-    // =========================
-
     public boolean esp = false;
 
     public boolean espPlayers = true;
@@ -259,11 +220,7 @@ public class CrimsonConfig {
 
     public boolean espThroughWalls = true;
 
-
-    // =========================
     // LOAD CONFIG
-    // =========================
-
     public static CrimsonConfig load() {
         try {
             if (Files.exists(FILE)) {
@@ -283,11 +240,7 @@ public class CrimsonConfig {
         return new CrimsonConfig();
     }
 
-
-    // =========================
     // SAVE CONFIG
-    // =========================
-
     public void save() {
         try {
             Files.createDirectories(FILE.getParent());
