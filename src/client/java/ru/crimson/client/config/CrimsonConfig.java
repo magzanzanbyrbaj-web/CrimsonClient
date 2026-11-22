@@ -1,3 +1,4 @@
+
 package ru.crimson.client.config;
 
 import com.google.gson.Gson;
@@ -219,6 +220,29 @@ public class CrimsonConfig {
     public boolean espMobs = false;
 
     public boolean espThroughWalls = true;
+
+    // CHEST ESP
+    public boolean chestEsp = false;
+    public boolean chestEspNormal = true;
+    public boolean chestEspTrapped = true;
+    public boolean chestEspEnder = true;
+    public boolean chestEspBarrel = true;
+    public boolean chestEspShulker = true;
+
+    public float chestEspLineWidth = 1.5f;
+    public int chestEspColor = 0xFFFFB347;
+    public boolean chestEspFilled = false;
+
+    // MOVEMENT MODULE SETTINGS
+    // Эти флаги являются настройками интерфейса.
+    // Реализация каждого модуля подключается отдельно.
+    public boolean freeCamera = false;
+    public boolean scaffold = false;
+    public boolean spider = false;
+    public boolean fly = false;
+
+    // PLAYER MODULE SETTINGS
+    public boolean chestStealer = false;
 
     // LOAD CONFIG
     public static CrimsonConfig load() {
