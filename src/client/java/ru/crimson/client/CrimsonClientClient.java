@@ -23,18 +23,29 @@ import ru.crimson.client.visual.CriticalEffects;
 import ru.crimson.client.visual.ReachDisplay;
 import ru.crimson.client.visual.PearlTracker;
 
+import ru.crimson.combat.module.KillAura;
+import ru.crimson.combat.module.TriggerBot;
+import ru.crimson.combat.module.AimAssist;
+import ru.crimson.combat.module.ESP;
+
 public class CrimsonClientClient implements ClientModInitializer {
 
     public static KeyMapping openMenuKey;
     public static CrimsonConfig config;
 
+    // Combat modules
+    public static KillAura killAura;
+    public static TriggerBot triggerBot;
+    public static AimAssist aimAssist;
+    public static ESP esp;
+
     @Override
     public void onInitializeClient() {
 
-        // Загружаем конфигурацию
+        // Load configuration
         config = CrimsonConfig.load();
 
-        // Клавиша открытия меню — Right Shift
+        // Register menu key
         openMenuKey = KeyBindingHelper.registerKeyBinding(
                 new KeyMapping(
                         "key.crimsonclient.open_menu",
@@ -43,10 +54,10 @@ public class CrimsonClientClient implements ClientModInitializer {
                 )
         );
 
-        // HUD
+        // Initialize HUD
         HudRenderer.init();
 
-        // Визуальные модули
+        // Visual modules
         BetterTargetEsp.init();
         ChinaHat.init();
         Trails.init();
@@ -55,15 +66,21 @@ public class CrimsonClientClient implements ClientModInitializer {
         JumpCircle.init();
         CustomSky.init();
 
-        // Эффекты
+        // Effects
         HitSound.init();
         CriticalEffects.init();
 
-        // Дополнительные модули
+        // Additional modules
         ReachDisplay.init();
         PearlTracker.init();
 
-        // Обработка клавиш и обновление клиента
+        // Initialize combat modules
+        killAura = new KillAura();
+        triggerBot = new TriggerBot();
+        aimAssist = new AimAssist();
+        esp = new ESP();
+
+        // Client tick
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
 
             while (openMenuKey.consumeClick()) {
@@ -78,6 +95,16 @@ public class CrimsonClientClient implements ClientModInitializer {
                     client.options.gamma().set(16.0);
                 }
             }
+
+            // Combat modules
+            if (client.player == null || client.level == null) {
+                return;
+            }
+
+            killAura.onTick();
+            triggerBot.onTick();
+            aimAssist.onTick();
+            esp.onTick();
         });
 
         CrimsonClient.LOGGER.info(
