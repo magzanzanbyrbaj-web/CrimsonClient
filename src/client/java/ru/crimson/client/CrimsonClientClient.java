@@ -1,4 +1,3 @@
-
 package ru.crimson.client;
 
 import net.fabricmc.api.ClientModInitializer;
@@ -13,6 +12,10 @@ import net.minecraft.network.chat.Component;
 import org.lwjgl.glfw.GLFW;
 
 import ru.crimson.client.config.CrimsonConfig;
+import ru.crimson.combat.module.AimAssist;
+import ru.crimson.combat.module.ChestESP;
+import ru.crimson.combat.module.KillAura;
+import ru.crimson.combat.module.TriggerBot;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,10 +27,13 @@ public class CrimsonClientClient implements ClientModInitializer {
 
     public static CrimsonConfig config;
 
-    private static final Map<Integer, Boolean> previousKeyStates =
-            new HashMap<>();
-
+    private static final Map<Integer, Boolean> previousKeyStates = new HashMap<>();
     private static KeyMapping openMenuKey;
+
+    private KillAura killAuraModule;
+    private TriggerBot triggerBotModule;
+    private AimAssist aimAssistModule;
+    private ChestESP chestEspModule;
 
     @Override
     public void onInitializeClient() {
@@ -53,9 +59,7 @@ public class CrimsonClientClient implements ClientModInitializer {
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             while (openMenuKey.consumeClick()) {
-                client.setScreen(
-                        new ru.crimson.client.gui.CrimsonMenuScreen()
-                );
+                client.setScreen(new ru.crimson.client.gui.CrimsonMenuScreen());
             }
         });
     }
@@ -68,7 +72,28 @@ public class CrimsonClientClient implements ClientModInitializer {
             }
 
             handleCustomBinds(client);
+
+            if (config != null) {
+                tickCombatModules();
+            }
         });
+    }
+
+    private void tickCombatModules() {
+        runSafe(killAuraModule, () -> killAuraModule.onTick());
+        runSafe(triggerBotModule, () -> triggerBotModule.onTick());
+        runSafe(aimAssistModule, () -> aimAssistModule.onTick());
+    }
+
+    private void runSafe(Object module, Runnable action) {
+        if (module == null) {
+            return;
+        }
+        try {
+            action.run();
+        } catch (Throwable ignored) {
+            // Изолируем ошибки отдельных модулей, чтобы не ронять клиентский тик
+        }
     }
 
     private void handleCustomBinds(Minecraft client) {
@@ -82,28 +107,19 @@ public class CrimsonClientClient implements ClientModInitializer {
         }
 
         long window = client.getWindow().handle();
-
-        Set<Integer> keys = new HashSet<>(
-                config.moduleBinds.values()
-        );
+        Set<Integer> keys = new HashSet<>(config.moduleBinds.values());
 
         for (int key : keys) {
             if (key <= 0 || key > GLFW.GLFW_KEY_LAST) {
                 continue;
             }
 
-            boolean down =
-                    GLFW.glfwGetKey(window, key) == GLFW.GLFW_PRESS;
-
-            boolean wasDown =
-                    previousKeyStates.getOrDefault(key, false);
+            boolean down = GLFW.glfwGetKey(window, key) == GLFW.GLFW_PRESS;
+            boolean wasDown = previousKeyStates.getOrDefault(key, false);
 
             if (down && !wasDown) {
-                for (Map.Entry<String, Integer> entry :
-                        config.moduleBinds.entrySet()) {
-
+                for (Map.Entry<String, Integer> entry : config.moduleBinds.entrySet()) {
                     Integer boundKey = entry.getValue();
-
                     if (boundKey != null && boundKey == key) {
                         toggleModule(entry.getKey());
                     }
@@ -170,7 +186,6 @@ public class CrimsonClientClient implements ClientModInitializer {
         config.save();
 
         Minecraft client = Minecraft.getInstance();
-
         if (client.player != null) {
             client.player.displayClientMessage(
                     Component.literal(
@@ -239,16 +254,13 @@ public class CrimsonClientClient implements ClientModInitializer {
             String trimmed = message.trim();
 
             if (!trimmed.equalsIgnoreCase(".bind") &&
-                    !trimmed.toLowerCase(Locale.ROOT)
-                            .startsWith(".bind ")) {
+                    !trimmed.toLowerCase(Locale.ROOT).startsWith(".bind ")) {
                 return true;
             }
 
             String[] args = trimmed.split("\\s+");
 
-            if (args.length == 2 &&
-                    args[1].equalsIgnoreCase("list")) {
-
+            if (args.length == 2 && args[1].equalsIgnoreCase("list")) {
                 if (config.moduleBinds.isEmpty()) {
                     sendMessage("Нет назначенных биндов.");
                 } else {
@@ -256,19 +268,15 @@ public class CrimsonClientClient implements ClientModInitializer {
                             sendMessage(module + " -> " + keyName(key))
                     );
                 }
-
                 return false;
             }
 
             if (args.length != 3) {
-                sendMessage(
-                        "Использование: .bind <module> <key|none>"
-                );
+                sendMessage("Использование: .bind <module> <key|none>");
                 return false;
             }
 
             String module = findModule(args[1]);
-
             if (module == null) {
                 sendMessage("Неизвестная функция: " + args[1]);
                 return false;
@@ -281,18 +289,13 @@ public class CrimsonClientClient implements ClientModInitializer {
             }
 
             int key = parseKey(args[2]);
-
             if (key < 0) {
                 sendMessage("Неизвестная клавиша: " + args[2]);
                 return false;
             }
 
             config.setBind(module, key);
-
-            sendMessage(
-                    "Назначено: " + module + " -> " + keyName(key)
-            );
-
+            sendMessage("Назначено: " + module + " -> " + keyName(key));
             return false;
         });
     }
@@ -336,28 +339,25 @@ public class CrimsonClientClient implements ClientModInitializer {
 
         if (key.length() == 1) {
             char c = key.charAt(0);
-
             if (c >= 'A' && c <= 'Z') {
                 return GLFW.GLFW_KEY_A + c - 'A';
             }
-
             if (c >= '0' && c <= '9') {
                 return GLFW.GLFW_KEY_0 + c - '0';
             }
         }
 
         if (key.matches("F([1-9]|1[0-2])")) {
-            return GLFW.GLFW_KEY_F1 +
-                    Integer.parseInt(key.substring(1)) - 1;
+            return GLFW.GLFW_KEY_F1 + Integer.parseInt(key.substring(1)) - 1;
         }
 
         return switch (key) {
             case "SPACE" -> GLFW.GLFW_KEY_SPACE;
             case "SHIFT", "LSHIFT" -> GLFW.GLFW_KEY_LEFT_SHIFT;
             case "RSHIFT" -> GLFW.GLFW_KEY_RIGHT_SHIFT;
-            case "CTRL" -> GLFW.GLFW_KEY_LEFT_CONTROL;
+            case "CTRL", "LCTRL" -> GLFW.GLFW_KEY_LEFT_CONTROL;
             case "RCTRL" -> GLFW.GLFW_KEY_RIGHT_CONTROL;
-            case "ALT" -> GLFW.GLFW_KEY_LEFT_ALT;
+            case "ALT", "LALT" -> GLFW.GLFW_KEY_LEFT_ALT;
             case "RALT" -> GLFW.GLFW_KEY_RIGHT_ALT;
             case "TAB" -> GLFW.GLFW_KEY_TAB;
             case "ENTER" -> GLFW.GLFW_KEY_ENTER;
@@ -372,21 +372,32 @@ public class CrimsonClientClient implements ClientModInitializer {
         if (key >= GLFW.GLFW_KEY_A && key <= GLFW.GLFW_KEY_Z) {
             return String.valueOf((char) ('A' + key - GLFW.GLFW_KEY_A));
         }
-
         if (key >= GLFW.GLFW_KEY_0 && key <= GLFW.GLFW_KEY_9) {
             return String.valueOf((char) ('0' + key - GLFW.GLFW_KEY_0));
         }
-
         if (key >= GLFW.GLFW_KEY_F1 && key <= GLFW.GLFW_KEY_F12) {
             return "F" + (key - GLFW.GLFW_KEY_F1 + 1);
         }
 
-        return "KEY_" + key;
+        return switch (key) {
+            case GLFW.GLFW_KEY_SPACE -> "SPACE";
+            case GLFW.GLFW_KEY_LEFT_SHIFT -> "LSHIFT";
+            case GLFW.GLFW_KEY_RIGHT_SHIFT -> "RSHIFT";
+            case GLFW.GLFW_KEY_LEFT_CONTROL -> "CTRL";
+            case GLFW.GLFW_KEY_RIGHT_CONTROL -> "RCTRL";
+            case GLFW.GLFW_KEY_LEFT_ALT -> "ALT";
+            case GLFW.GLFW_KEY_RIGHT_ALT -> "RALT";
+            case GLFW.GLFW_KEY_TAB -> "TAB";
+            case GLFW.GLFW_KEY_ENTER -> "ENTER";
+            case GLFW.GLFW_KEY_BACKSPACE -> "BACKSPACE";
+            case GLFW.GLFW_KEY_INSERT -> "INSERT";
+            case GLFW.GLFW_KEY_DELETE -> "DELETE";
+            default -> "KEY_" + key;
+        };
     }
 
     private void sendMessage(String message) {
         Minecraft client = Minecraft.getInstance();
-
         if (client.player != null) {
             client.player.displayClientMessage(
                     Component.literal("§c[Crimson] §f" + message),
@@ -396,10 +407,13 @@ public class CrimsonClientClient implements ClientModInitializer {
     }
 
     private void initializeVisuals() {
-        // Initialization is handled by the corresponding visual classes.
+        // Инициализация выполняется в соответствующих визуальных классах.
     }
 
     private void initializeCombatModules() {
-        // Initialization is handled by the corresponding module classes.
+        this.killAuraModule = new KillAura();
+        this.triggerBotModule = new TriggerBot();
+        this.aimAssistModule = new AimAssist();
+        this.chestEspModule = new ChestESP();
     }
 }
