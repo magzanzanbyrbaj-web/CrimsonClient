@@ -1,4 +1,3 @@
-
 package ru.crimson.client.config;
 
 import com.google.gson.Gson;
@@ -9,238 +8,120 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 public class CrimsonConfig {
+    private static final Gson GSON = new GsonBuilder().setPrettyPrinting().create();
+    private static final Path FILE = FabricLoader.getInstance().getConfigDir().resolve("crimsonclient.json");
 
-    private static final Gson GSON =
-            new GsonBuilder().setPrettyPrinting().create();
+    // RENDER
+    public boolean hitParticles = false, criticalEffects = false, hitSound = false;
+    public boolean hitmarker = false, damageNumbers = false, targetEsp = false;
+    public boolean customCrosshair = false, customSky = false, chinaHat = false;
+    public boolean trails = false, chatAnimations = false, jumpCircle = false;
+    public boolean customHitbox = false, blockOverlay = false, noRender = false;
+    public boolean inventoryBlur = false, smoothSword = false, itemSwitchAnim = false;
+    public boolean totemAnimation = false, reachDisplay = false, pearlTracker = false;
 
-    private static final Path FILE =
-            FabricLoader.getInstance().getConfigDir()
-                    .resolve("crimsonclient.json");
+    // PLAYER / HUD
+    public boolean targetHud = true, armorHud = true, totemCounter = true;
+    public boolean inventoryHud = false, potionHud = true, durabilityHud = true;
 
-    // ==================== RENDER ====================
+    // DISPLAY
+    public boolean watermark = true, keystrokes = false, moduleList = true;
 
-    public boolean hitParticles = false;
-    public boolean criticalEffects = false;
-    public boolean hitSound = false;
-    public boolean hitmarker = false;
-    public boolean damageNumbers = false;
-    public boolean targetEsp = false;
-    public boolean customCrosshair = false;
-    public boolean customSky = false;
-    public boolean chinaHat = false;
-    public boolean trails = false;
-    public boolean chatAnimations = false;
-    public boolean jumpCircle = false;
-    public boolean customHitbox = false;
-    public boolean blockOverlay = false;
-    public boolean noRender = false;
-    public boolean inventoryBlur = false;
-    public boolean smoothSword = false;
-    public boolean itemSwitchAnim = false;
-    public boolean totemAnimation = false;
-    public boolean reachDisplay = false;
-    public boolean pearlTracker = false;
+    // UTILS
+    public boolean fullbright = false, reduceParticles = false, fpsBoost = false;
+    public boolean optimized = false, glassAnimation = true;
 
-    // ==================== PLAYER / HUD ====================
-
-    public boolean targetHud = true;
-    public boolean armorHud = true;
-    public boolean totemCounter = true;
-    public boolean inventoryHud = false;
-    public boolean potionHud = true;
-    public boolean durabilityHud = true;
-
-    // ==================== DISPLAY ====================
-
-    public boolean watermark = true;
-    public boolean keystrokes = false;
-    public boolean moduleList = true;
-
-    // ==================== CONFIGS / UTILS ====================
-
-    public boolean fullbright = false;
-    public boolean reduceParticles = false;
-    public boolean fpsBoost = false;
-    public boolean optimized = false;
-    public boolean glassAnimation = true;
-
-    // ==================== CHINA HAT ====================
-
+    // VISUAL SETTINGS
     public int chinaHatColor = -1426112427;
     public boolean chinaHatRainbow = false;
-    public float chinaHatHeight = 0.5f;
-    public float chinaHatRadius = 0.6f;
-
-    // ==================== TRAILS ====================
-
-    public int trailsLength = 40;
-    public int trailsColor = -1;
+    public float chinaHatHeight = 0.5f, chinaHatRadius = 0.6f;
+    public int trailsLength = 40, trailsColor = -1;
     public boolean trailsFade = true;
-
-    // ==================== JUMP CIRCLE ====================
-
-    public float jumpCircleSize = 1.0f;
-    public float jumpCircleThickness = 1.5f;
+    public float jumpCircleSize = 1.0f, jumpCircleThickness = 1.5f;
     public int jumpCircleColor = -1;
     public boolean jumpCircleFade = true;
-
-    // ==================== TARGET ESP ====================
-
     public float targetEspScale = 1.0f;
     public int targetEspColor = -1;
     public boolean targetEspRing = true;
-
-    // ==================== BLOCK OVERLAY ====================
-
     public float blockOverlayWidth = 2.0f;
     public boolean blockOverlayGradient = false;
     public int blockOverlayColor = -1;
-
-    // ==================== HITBOX ====================
-
     public int hitboxColor = -1;
     public float hitboxWidth = 1.5f;
-
-    // ==================== SKY ====================
-
-    public int skyStyle = 0;
-    public int skyColor = -1;
-
-    // ==================== HIT SOUND ====================
-
+    public int skyStyle = 0, skyColor = -1;
     public int hitSoundType = 0;
     public float hitSoundVolume = 1.0f;
-
-    // ==================== CRITICAL EFFECTS ====================
-
     public int criticalStyle = 0;
 
-    // ==================== NO RENDER ====================
+    // NO RENDER
+    public boolean hideFire = false, hideHurtCamera = false, hidePortal = false;
+    public boolean hidePumpkin = false, hideVignette = false, hideNausea = false;
+    public boolean hideWeather = false, hideParticles = false;
 
-    public boolean hideFire = false;
-    public boolean hideHurtCamera = false;
-    public boolean hidePortal = false;
-    public boolean hidePumpkin = false;
-    public boolean hideVignette = false;
-    public boolean hideNausea = false;
-    public boolean hideWeather = false;
-    public boolean hideParticles = false;
-
-    // ==================== CUSTOM CROSSHAIR ====================
-
+    // CROSSHAIR
     public int crosshairColor = -1;
-    public float crosshairSize = 4.0f;
-    public float crosshairGap = 2.0f;
+    public float crosshairSize = 4.0f, crosshairGap = 2.0f;
     public int crosshairStyle = 0;
 
-    // ==================== HUD POSITIONS ====================
+    // HUD POSITIONS
+    public int watermarkX = 10, watermarkY = 10;
+    public int targetHudX = 10, targetHudY = 80;
+    public int armorHudX = 10, armorHudY = 160;
+    public int totemHudX = 10, totemHudY = 220;
+    public int keystrokesX = 10, keystrokesY = 280;
+    public int moduleListX = 10, moduleListY = 340;
+    public int inventoryHudX = 10, inventoryHudY = 400;
+    public int potionHudX = 10, potionHudY = 460;
+    public int durabilityHudX = 10, durabilityHudY = 520;
 
-    public int watermarkX = 10;
-    public int watermarkY = 10;
-
-    public int targetHudX = 10;
-    public int targetHudY = 80;
-
-    public int armorHudX = 10;
-    public int armorHudY = 160;
-
-    public int totemHudX = 10;
-    public int totemHudY = 220;
-
-    public int keystrokesX = 10;
-    public int keystrokesY = 280;
-
-    public int moduleListX = 10;
-    public int moduleListY = 340;
-
-    public int inventoryHudX = 10;
-    public int inventoryHudY = 400;
-
-    public int potionHudX = 10;
-    public int potionHudY = 460;
-
-    public int durabilityHudX = 10;
-    public int durabilityHudY = 520;
-
-    // ==================== KILL AURA ====================
-
+    // KILL AURA
     public boolean killAura = false;
     public double kaRange = 4.2;
     public int kaCps = 12;
-    public boolean kaSilent = true;
-    public boolean kaThroughWalls = false;
+    public boolean kaSilent = true, kaThroughWalls = false;
     public int kaPriority = 0;
-
-    public boolean kaPlayers = true;
-    public boolean kaMobs = true;
+    public boolean kaPlayers = true, kaMobs = true;
     public float kaFov = 180f;
+    public boolean kaOnlyCriticals = false;
+    public float kaSmoothness = 0.28f;
 
-    // ==================== TRIGGER BOT ====================
-
+    // TRIGGER BOT
     public boolean triggerBot = false;
     public double tbRange = 3.5;
     public int tbCps = 14;
     public boolean tbThroughWalls = false;
+    public boolean tbPlayers = true, tbMobs = true;
+    public boolean tbOnlyCriticals = false;
 
-    public boolean tbPlayers = true;
-    public boolean tbMobs = true;
-
-    // ==================== AIM ASSIST ====================
-
+    // AIM ASSIST
     public boolean aimAssist = false;
     public double aaRange = 4.5;
-    public float aaSpeed = 0.35f;
+    public float aaSpeed = 0.18f;
     public float aaFov = 90f;
-    public boolean aaSilent = false;
-    public boolean aaThroughWalls = false;
+    public boolean aaSilent = false, aaThroughWalls = false;
+    public boolean aaPlayers = true, aaMobs = true;
 
-    public boolean aaPlayers = true;
-    public boolean aaMobs = true;
-
-    // ==================== ESP ====================
-
+    // ESP
     public boolean esp = false;
-    public boolean espPlayers = true;
-    public boolean espMobs = false;
+    public boolean espPlayers = true, espMobs = false;
     public boolean espThroughWalls = true;
 
-    // ==================== LOAD CONFIG ====================
-
     public static CrimsonConfig load() {
-
         try {
             if (Files.exists(FILE)) {
-
-                String json = Files.readString(FILE);
-
-                CrimsonConfig loaded =
-                        GSON.fromJson(json, CrimsonConfig.class);
-
-                if (loaded != null) {
-                    return loaded;
-                }
+                CrimsonConfig loaded = GSON.fromJson(Files.readString(FILE), CrimsonConfig.class);
+                if (loaded != null) return loaded;
             }
-
         } catch (Exception e) {
             e.printStackTrace();
         }
-
         return new CrimsonConfig();
     }
 
-    // ==================== SAVE CONFIG ====================
-
     public void save() {
-
         try {
-
             Files.createDirectories(FILE.getParent());
-
-            Files.writeString(
-                    FILE,
-                    GSON.toJson(this)
-            );
-
+            Files.writeString(FILE, GSON.toJson(this));
         } catch (Exception e) {
             e.printStackTrace();
         }
