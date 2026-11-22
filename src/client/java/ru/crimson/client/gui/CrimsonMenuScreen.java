@@ -449,7 +449,6 @@ public class CrimsonMenuScreen extends Screen {
             case "InventoryHUD" -> cfg.bindInventoryHUD = key;
             case "PotionHUD" -> cfg.bindPotionHUD = key;
             case "DurabilityHUD" -> cfg.bindDurabilityHUD = key;
-            case "DurabilityHUD" -> cfg.bindDurabilityHUD = key;
         }
     }
 
