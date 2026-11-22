@@ -48,7 +48,6 @@ public class CrimsonClientClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-
         config = CrimsonConfig.load();
 
         openMenuKey = KeyBindingHelper.registerKeyBinding(
@@ -89,7 +88,6 @@ public class CrimsonClientClient implements ClientModInitializer {
         esp = new ESP();
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
-
             if (client.player == null || client.level == null) {
                 return;
             }
@@ -124,7 +122,6 @@ public class CrimsonClientClient implements ClientModInitializer {
     }
 
     private void handleCustomBinds(long window) {
-
         if (config == null) return;
 
         checkBind(window, config.bindKillAura, () -> {
