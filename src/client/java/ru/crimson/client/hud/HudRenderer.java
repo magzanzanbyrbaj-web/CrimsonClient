@@ -1,3 +1,4 @@
+
 package ru.crimson.client.hud;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -9,11 +10,11 @@ import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.entity.Entity;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.EquipmentSlot;
+import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
 
@@ -73,6 +74,14 @@ public final class HudRenderer {
         });
     }
 
+    // Вызывается боевыми модулями при атаке.
+    public static void setTarget(LivingEntity target) {
+        if (target == null) return;
+
+        lastTarget = target;
+        lastTargetTime = System.currentTimeMillis();
+    }
+
     public static void onHit() {
         lastHitmarker = System.currentTimeMillis();
     }
@@ -108,9 +117,7 @@ public final class HudRenderer {
             var info = mc.getConnection()
                     .getPlayerInfo(mc.player.getUUID());
 
-            if (info != null) {
-                ping = info.getLatency();
-            }
+            if (info != null) ping = info.getLatency();
         }
 
         int w = 154;
@@ -124,27 +131,17 @@ public final class HudRenderer {
         g.blit(
                 RenderPipelines.GUI_TEXTURED,
                 LOGO,
-                x + 5,
-                y + 3,
-                0f,
-                0f,
-                23,
-                23,
-                128,
-                128
+                x + 5, y + 3,
+                0f, 0f,
+                23, 23,
+                128, 128
         );
 
         text(g, "CRIMSON", x + 34, y + 5,
                 0xFFFFF2F4, true);
 
-        text(
-                g,
-                mc.getFps() + " FPS  " + ping + " MS",
-                x + 34,
-                y + 17,
-                0xFFB8B5C2,
-                false
-        );
+        text(g, mc.getFps() + " FPS  " + ping + " MS",
+                x + 34, y + 17, 0xFFB8B5C2, false);
     }
 
     private static void renderTarget(
@@ -153,17 +150,18 @@ public final class HudRenderer {
             int sw,
             int sh
     ) {
-        Entity entity = mc.crosshairPickEntity;
-
-        if (entity instanceof LivingEntity target && target.isAlive()) {
-            lastTarget = target;
-            lastTargetTime = System.currentTimeMillis();
+        // При наведении обновляем текущую цель.
+        if (mc.crosshairPickEntity instanceof LivingEntity target
+                && target.isAlive()) {
+            setTarget(target);
         }
 
         if (lastTarget == null) return;
 
-        if (!lastTarget.isAlive()
-                || System.currentTimeMillis() - lastTargetTime > TARGET_HUD_DELAY) {
+        // Не удаляем цель сразу после смерти.
+        // HUD остаётся видимым ещё 3 секунды.
+        if (System.currentTimeMillis() - lastTargetTime
+                > TARGET_HUD_DELAY) {
             lastTarget = null;
             return;
         }
@@ -185,16 +183,11 @@ public final class HudRenderer {
         float maxHp = Math.max(1, target.getMaxHealth());
         float percent = Math.min(1f, hp / maxHp);
 
-        text(g, name, x + 10, y + 9, 0xFFFFFFFF, true);
+        text(g, name, x + 10, y + 9,
+                0xFFFFFFFF, true);
 
-        text(
-                g,
-                String.format(Locale.ROOT, "%.1f HP", hp),
-                x + 10,
-                y + 23,
-                0xFFFF7584,
-                false
-        );
+        text(g, String.format(Locale.ROOT, "%.1f HP", hp),
+                x + 10, y + 23, 0xFFFF7584, false);
 
         String distance = String.format(
                 Locale.ROOT,
@@ -202,37 +195,17 @@ public final class HudRenderer {
                 mc.player.distanceTo(target)
         );
 
-        text(
-                g,
-                distance,
-                x + 120,
-                y + 23,
-                0xFFAAA8B4,
-                false
-        );
+        text(g, distance, x + 120, y + 23,
+                0xFFAAA8B4, false);
 
-        rounded(
-                g,
-                x + 10,
-                y + 39,
-                146,
-                5,
-                2,
-                0xFF35212A
-        );
+        rounded(g, x + 10, y + 39,
+                146, 5, 2, 0xFF35212A);
 
         int fill = (int) (146 * percent);
 
         if (fill > 0) {
-            rounded(
-                    g,
-                    x + 10,
-                    y + 39,
-                    fill,
-                    5,
-                    2,
-                    0xFFFF4358
-            );
+            rounded(g, x + 10, y + 39,
+                    fill, 5, 2, 0xFFFF4358);
         }
     }
 
@@ -260,10 +233,7 @@ public final class HudRenderer {
             if (!armor[i].isEmpty()) {
                 g.renderItem(armor[i], x + 2, iy + 2);
                 g.renderItemDecorations(
-                        mc.font,
-                        armor[i],
-                        x + 2,
-                        iy + 2
+                        mc.font, armor[i], x + 2, iy + 2
                 );
             }
         }
@@ -280,7 +250,6 @@ public final class HudRenderer {
         for (int i = 0;
              i < mc.player.getInventory().getContainerSize();
              i++) {
-
             ItemStack stack = mc.player.getInventory().getItem(i);
 
             if (stack.is(Items.TOTEM_OF_UNDYING)) {
@@ -295,8 +264,7 @@ public final class HudRenderer {
 
         g.renderItem(
                 new ItemStack(Items.TOTEM_OF_UNDYING),
-                x + 3,
-                y + 3
+                x + 3, y + 3
         );
 
         text(g, "x" + count, x + 24, y + 8,
@@ -340,24 +308,14 @@ public final class HudRenderer {
             String label,
             boolean down
     ) {
-        rounded(
-                g,
-                x,
-                y,
-                w,
-                17,
-                4,
-                down ? 0xDD8D293B : 0xBB111521
-        );
+        rounded(g, x, y, w, 17, 4,
+                down ? 0xDD8D293B : 0xBB111521);
 
-        text(
-                g,
-                label,
+        text(g, label,
                 x + (w - mc.font.width(label)) / 2,
                 y + 5,
                 down ? 0xFFFFFFFF : 0xFFD0CCD5,
-                false
-        );
+                false);
     }
 
     private static void renderModules(
@@ -422,27 +380,15 @@ public final class HudRenderer {
                 int sx = x + col * (slot + gap);
                 int sy = y + row * (slot + gap);
 
-                rounded(
-                        g,
-                        sx,
-                        sy,
-                        slot,
-                        slot,
-                        4,
-                        0xBB111521
-                );
+                rounded(g, sx, sy, slot, slot, 4, 0xBB111521);
 
                 ItemStack stack =
                         mc.player.getInventory().getItem(index);
 
                 if (!stack.isEmpty()) {
                     g.renderItem(stack, sx + 2, sy + 2);
-
                     g.renderItemDecorations(
-                            mc.font,
-                            stack,
-                            sx + 2,
-                            sy + 2
+                            mc.font, stack, sx + 2, sy + 2
                     );
                 }
             }
@@ -468,11 +414,7 @@ public final class HudRenderer {
                     + " "
                     + (seconds / 60)
                     + ":"
-                    + String.format(
-                            Locale.ROOT,
-                            "%02d",
-                            seconds % 60
-                    );
+                    + String.format(Locale.ROOT, "%02d", seconds % 60);
 
             panel(g, x, y, 125, 16);
 
@@ -498,31 +440,21 @@ public final class HudRenderer {
         if (!main.isEmpty() && main.isDamageableItem()) {
             int left = main.getMaxDamage() - main.getDamageValue();
 
-            text(
-                    g,
-                    left + "/" + main.getMaxDamage(),
-                    x,
-                    y,
+            text(g, left + "/" + main.getMaxDamage(),
+                    x, y,
                     left < main.getMaxDamage() / 5
-                            ? 0xFFFF4355
-                            : 0xFFCCCCCC,
-                    true
-            );
+                            ? 0xFFFF4355 : 0xFFCCCCCC,
+                    true);
         }
 
         if (!off.isEmpty() && off.isDamageableItem()) {
             int left = off.getMaxDamage() - off.getDamageValue();
 
-            text(
-                    g,
-                    left + "/" + off.getMaxDamage(),
-                    x,
-                    y + 12,
+            text(g, left + "/" + off.getMaxDamage(),
+                    x, y + 12,
                     left < off.getMaxDamage() / 5
-                            ? 0xFFFF4355
-                            : 0xFFCCCCCC,
-                    true
-            );
+                            ? 0xFFFF4355 : 0xFFCCCCCC,
+                    true);
         }
     }
 
@@ -678,4 +610,4 @@ public final class HudRenderer {
                 color
         );
     }
-                }
+}
