@@ -105,6 +105,12 @@ public class CrimsonConfig {
     public float hitSoundVolume = 1.0f;
     public int criticalStyle = 0;
 
+    // SMOOTH SWORD
+    public int swingStyle = 0;
+    public float swingSpeed = 1.0f;
+    public float swingScale = 1.0f;
+    public boolean swingOnlySword = true;
+
     // NO RENDER
     public boolean hideFire = false;
     public boolean hideHurtCamera = false;
