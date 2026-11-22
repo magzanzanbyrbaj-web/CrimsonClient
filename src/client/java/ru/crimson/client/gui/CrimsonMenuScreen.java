@@ -78,93 +78,88 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private void buildFeatures() {
-        // RENDER
-        add("HitParticles", "Particles on hit", () -> cfg.hitParticles,
-                v -> cfg.hitParticles = v, 0);
-        add("CriticalEffects", "Critical hit effects", () -> cfg.criticalEffects,
-                v -> cfg.criticalEffects = v, 0);
-        add("HitSound", "Custom hit sound", () -> cfg.hitSound,
-                v -> cfg.hitSound = v, 0);
-        add("Hitmarker", "Hit confirmation", () -> cfg.hitmarker,
-                v -> cfg.hitmarker = v, 0);
-        add("DamageNumbers", "Show damage numbers", () -> cfg.damageNumbers,
-                v -> cfg.damageNumbers = v, 0);
-        add("TargetESP", "Highlight current target", () -> cfg.targetEsp,
-                v -> cfg.targetEsp = v, 0);
-        add("CustomCrosshair", "Custom crosshair", () -> cfg.customCrosshair,
-                v -> cfg.customCrosshair = v, 0);
-        add("CustomSky", "Custom sky", () -> cfg.customSky,
-                v -> cfg.customSky = v, 0);
-        add("ChinaHat", "China hat effect", () -> cfg.chinaHat,
-                v -> cfg.chinaHat = v, 0);
-        add("Trails", "Movement trails", () -> cfg.trails,
-                v -> cfg.trails = v, 0);
-        add("ChatAnimations", "Smooth chat", () -> cfg.chatAnimations,
-                v -> cfg.chatAnimations = v, 0);
-        add("JumpCircle", "Jump circle", () -> cfg.jumpCircle,
-                v -> cfg.jumpCircle = v, 0);
-        add("CustomHitBox", "Custom hitboxes", () -> cfg.customHitbox,
-                v -> cfg.customHitbox = v, 0);
-        add("BlockOverlay", "Block outline", () -> cfg.blockOverlay,
-                v -> cfg.blockOverlay = v, 0);
-        add("NoRender", "Disable some effects", () -> cfg.noRender,
-                v -> cfg.noRender = v, 0);
-        add("InventoryBlur", "Inventory blur", () -> cfg.inventoryBlur,
-                v -> cfg.inventoryBlur = v, 0);
-        add("SmoothSword", "Smooth sword swing", () -> cfg.smoothSword,
-                v -> cfg.smoothSword = v, 0);
-        add("ItemSwitch", "Item switch animation", () -> cfg.itemSwitchAnim,
-                v -> cfg.itemSwitchAnim = v, 0);
-        add("TotemAnimation", "Totem animation", () -> cfg.totemAnimation,
-                v -> cfg.totemAnimation = v, 0);
-        add("ReachDisplay", "Show reach distance", () -> cfg.reachDisplay,
-                v -> cfg.reachDisplay = v, 0);
-        add("PearlTracker", "Pearl tracker", () -> cfg.pearlTracker,
-                v -> cfg.pearlTracker = v, 0);
+        add("HitParticles", "Particles on hit",
+                () -> cfg.hitParticles, v -> cfg.hitParticles = v, 0);
+        add("CriticalEffects", "Critical hit effects",
+                () -> cfg.criticalEffects, v -> cfg.criticalEffects = v, 0);
+        add("HitSound", "Custom hit sound",
+                () -> cfg.hitSound, v -> cfg.hitSound = v, 0);
+        add("Hitmarker", "Hit confirmation",
+                () -> cfg.hitmarker, v -> cfg.hitmarker = v, 0);
+        add("DamageNumbers", "Show damage numbers",
+                () -> cfg.damageNumbers, v -> cfg.damageNumbers = v, 0);
+        add("TargetESP", "Highlight current target",
+                () -> cfg.targetEsp, v -> cfg.targetEsp = v, 0);
+        add("CustomCrosshair", "Custom crosshair",
+                () -> cfg.customCrosshair, v -> cfg.customCrosshair = v, 0);
+        add("CustomSky", "Custom sky",
+                () -> cfg.customSky, v -> cfg.customSky = v, 0);
+        add("ChinaHat", "China hat effect",
+                () -> cfg.chinaHat, v -> cfg.chinaHat = v, 0);
+        add("Trails", "Movement trails",
+                () -> cfg.trails, v -> cfg.trails = v, 0);
+        add("ChatAnimations", "Smooth chat",
+                () -> cfg.chatAnimations, v -> cfg.chatAnimations = v, 0);
+        add("JumpCircle", "Jump circle",
+                () -> cfg.jumpCircle, v -> cfg.jumpCircle = v, 0);
+        add("CustomHitBox", "Custom hitboxes",
+                () -> cfg.customHitbox, v -> cfg.customHitbox = v, 0);
+        add("BlockOverlay", "Block outline",
+                () -> cfg.blockOverlay, v -> cfg.blockOverlay = v, 0);
+        add("NoRender", "Disable some effects",
+                () -> cfg.noRender, v -> cfg.noRender = v, 0);
+        add("InventoryBlur", "Inventory blur",
+                () -> cfg.inventoryBlur, v -> cfg.inventoryBlur = v, 0);
+        add("SmoothSword", "Smooth sword swing",
+                () -> cfg.smoothSword, v -> cfg.smoothSword = v, 0);
+        add("ItemSwitch", "Item switch animation",
+                () -> cfg.itemSwitchAnim, v -> cfg.itemSwitchAnim = v, 0);
+        add("TotemAnimation", "Totem animation",
+                () -> cfg.totemAnimation, v -> cfg.totemAnimation = v, 0);
+        add("ReachDisplay", "Show reach distance",
+                () -> cfg.reachDisplay, v -> cfg.reachDisplay = v, 0);
+        add("PearlTracker", "Pearl tracker",
+                () -> cfg.pearlTracker, v -> cfg.pearlTracker = v, 0);
 
-        // PLAYER
-        add("TargetHUD", "Target information", () -> cfg.targetHud,
-                v -> cfg.targetHud = v, 1);
-        add("ArmorHUD", "Armor display", () -> cfg.armorHud,
-                v -> cfg.armorHud = v, 1);
-        add("TotemCounter", "Totem counter", () -> cfg.totemCounter,
-                v -> cfg.totemCounter = v, 1);
-        add("InventoryHUD", "Inventory HUD", () -> cfg.inventoryHud,
-                v -> cfg.inventoryHud = v, 1);
-        add("PotionHUD", "Potion effects", () -> cfg.potionHud,
-                v -> cfg.potionHud = v, 1);
-        add("DurabilityHUD", "Item durability", () -> cfg.durabilityHud,
-                v -> cfg.durabilityHud = v, 1);
+        add("TargetHUD", "Target information",
+                () -> cfg.targetHud, v -> cfg.targetHud = v, 1);
+        add("ArmorHUD", "Armor display",
+                () -> cfg.armorHud, v -> cfg.armorHud = v, 1);
+        add("TotemCounter", "Totem counter",
+                () -> cfg.totemCounter, v -> cfg.totemCounter = v, 1);
+        add("InventoryHUD", "Inventory HUD",
+                () -> cfg.inventoryHud, v -> cfg.inventoryHud = v, 1);
+        add("PotionHUD", "Potion effects",
+                () -> cfg.potionHud, v -> cfg.potionHud = v, 1);
+        add("DurabilityHUD", "Item durability",
+                () -> cfg.durabilityHud, v -> cfg.durabilityHud = v, 1);
 
-        // DISPLAY
-        add("Watermark", "Client watermark", () -> cfg.watermark,
-                v -> cfg.watermark = v, 2);
-        add("Keystrokes", "Keystrokes display", () -> cfg.keystrokes,
-                v -> cfg.keystrokes = v, 2);
-        add("ModuleList", "Enabled modules list", () -> cfg.moduleList,
-                v -> cfg.moduleList = v, 2);
+        add("Watermark", "Client watermark",
+                () -> cfg.watermark, v -> cfg.watermark = v, 2);
+        add("Keystrokes", "Keystrokes display",
+                () -> cfg.keystrokes, v -> cfg.keystrokes = v, 2);
+        add("ModuleList", "Enabled modules list",
+                () -> cfg.moduleList, v -> cfg.moduleList = v, 2);
 
-        // COMBAT
-        add("KillAura", "Auto attack targets", () -> cfg.killAura,
-                v -> cfg.killAura = v, 3);
-        add("TriggerBot", "Attack on crosshair", () -> cfg.triggerBot,
-                v -> cfg.triggerBot = v, 3);
-        add("AimAssist", "Smooth aim assistance", () -> cfg.aimAssist,
-                v -> cfg.aimAssist = v, 3);
-        add("ESP", "Entity ESP", () -> cfg.esp,
-                v -> cfg.esp = v, 3);
+        add("KillAura", "Auto attack targets",
+                () -> cfg.killAura, v -> cfg.killAura = v, 3);
+        add("TriggerBot", "Attack on crosshair",
+                () -> cfg.triggerBot, v -> cfg.triggerBot = v, 3);
+        add("AimAssist", "Smooth aim assistance",
+                () -> cfg.aimAssist, v -> cfg.aimAssist = v, 3);
+        add("ESP", "Entity ESP",
+                () -> cfg.esp, v -> cfg.esp = v, 3);
 
-        // CONFIGS
-        add("Fullbright", "Fullbright", () -> cfg.fullbright,
-                v -> cfg.fullbright = v, 4);
-        add("ReduceParticles", "Reduce particles", () -> cfg.reduceParticles,
-                v -> cfg.reduceParticles = v, 4);
-        add("FPSBoost", "Performance boost", () -> cfg.fpsBoost,
-                v -> cfg.fpsBoost = v, 4);
-        add("Optimization", "Optimizations", () -> cfg.optimized,
-                v -> cfg.optimized = v, 4);
-        add("MenuAnimation", "Menu animation", () -> cfg.glassAnimation,
-                v -> cfg.glassAnimation = v, 4);
+        add("Fullbright", "Fullbright",
+                () -> cfg.fullbright, v -> cfg.fullbright = v, 4);
+        add("ReduceParticles", "Reduce particles",
+                () -> cfg.reduceParticles, v -> cfg.reduceParticles = v, 4);
+        add("FPSBoost", "Performance boost",
+                () -> cfg.fpsBoost, v -> cfg.fpsBoost = v, 4);
+        add("Optimization", "Optimizations",
+                () -> cfg.optimized, v -> cfg.optimized = v, 4);
+        add("MenuAnimation", "Menu animation",
+                () -> cfg.glassAnimation, v -> cfg.glassAnimation = v, 4);
     }
 
     private void add(
@@ -364,11 +359,7 @@ public class CrimsonMenuScreen extends Screen {
         super.render(g, mouseX, mouseY, partialTick);
     }
 
-    private void drawSidebar(
-            GuiGraphics g,
-            int mx,
-            int my
-    ) {
+    private void drawSidebar(GuiGraphics g, int mx, int my) {
         g.blit(
                 RenderPipelines.GUI_TEXTURED,
                 LOGO,
@@ -393,27 +384,10 @@ public class CrimsonMenuScreen extends Screen {
             boolean hover = hit(mx, my, bx, by, sidebar - 28, 32);
 
             if (active) {
-                rounded(
-                        g,
-                        bx,
-                        by,
-                        sidebar - 28,
-                        32,
-                        9,
-                        0xFF1A1A21
-                );
-
+                rounded(g, bx, by, sidebar - 28, 32, 9, 0xFF1A1A21);
                 rounded(g, bx, by + 8, 3, 16, 2, ACCENT);
             } else if (hover) {
-                rounded(
-                        g,
-                        bx,
-                        by,
-                        sidebar - 28,
-                        32,
-                        9,
-                        0xFF15151B
-                );
+                rounded(g, bx, by, sidebar - 28, 32, 9, 0xFF15151B);
             }
 
             text(
@@ -427,25 +401,8 @@ public class CrimsonMenuScreen extends Screen {
 
         int profileY = py + ph - 56;
 
-        rounded(
-                g,
-                px + 14,
-                profileY,
-                sidebar - 28,
-                38,
-                9,
-                0xFF131317
-        );
-
-        rounded(
-                g,
-                px + 20,
-                profileY + 8,
-                22,
-                22,
-                6,
-                0xFF28282F
-        );
+        rounded(g, px + 14, profileY, sidebar - 28, 38, 9, 0xFF131317);
+        rounded(g, px + 20, profileY + 8, 22, 22, 6, 0xFF28282F);
 
         String name = Minecraft.getInstance().player != null
                 ? Minecraft.getInstance().player.getName().getString()
@@ -465,13 +422,7 @@ public class CrimsonMenuScreen extends Screen {
 
         rounded(g, cx, py + 15, titleW, 28, 9, BG_CARD);
 
-        text(
-                g,
-                CATEGORIES[selected],
-                cx + 14,
-                py + 23,
-                TEXT_WHITE
-        );
+        text(g, CATEGORIES[selected], cx + 14, py + 23, TEXT_WHITE);
 
         int sx = px + pw - searchW - 16;
 
@@ -479,11 +430,7 @@ public class CrimsonMenuScreen extends Screen {
         text(g, "⌕", sx + searchW - 24, py + 22, TEXT_MUTED);
     }
 
-    private void drawCards(
-            GuiGraphics g,
-            int mx,
-            int my
-    ) {
+    private void drawCards(GuiGraphics g, int mx, int my) {
         List<Feature> visible = filteredFeatures();
 
         int areaW = cardAreaWidth();
@@ -560,13 +507,7 @@ public class CrimsonMenuScreen extends Screen {
                     enabled ? TEXT_WHITE : TEXT_MUTED
             );
 
-            text(
-                    g,
-                    feature.desc,
-                    x + 14,
-                    y + 29,
-                    TEXT_DIM
-            );
+            text(g, feature.desc, x + 14, y + 29, TEXT_DIM);
 
             int indX = x + cardW - 30;
             int indY = y + 17;
@@ -582,15 +523,7 @@ public class CrimsonMenuScreen extends Screen {
             );
 
             if (enabled) {
-                rounded(
-                        g,
-                        indX + 4,
-                        indY + 4,
-                        10,
-                        10,
-                        4,
-                        ACCENT
-                );
+                rounded(g, indX + 4, indY + 4, 10, 10, 4, ACCENT);
             }
 
             if (chosen) {
@@ -628,8 +561,8 @@ public class CrimsonMenuScreen extends Screen {
 
                 rows.add(new SettingRow(
                         "Only Criticals",
-                        () -> cfg.kaOnlyCritical,
-                        () -> cfg.kaOnlyCritical = !cfg.kaOnlyCritical
+                        () -> cfg.kaOnlyCriticals,
+                        () -> cfg.kaOnlyCriticals = !cfg.kaOnlyCriticals
                 ));
 
                 rows.add(new SettingRow(
@@ -648,8 +581,8 @@ public class CrimsonMenuScreen extends Screen {
 
                 rows.add(new SettingRow(
                         "Only Criticals",
-                        () -> cfg.tbOnlyCritical,
-                        () -> cfg.tbOnlyCritical = !cfg.tbOnlyCritical
+                        () -> cfg.tbOnlyCriticals,
+                        () -> cfg.tbOnlyCriticals = !cfg.tbOnlyCriticals
                 ));
             }
 
@@ -739,13 +672,7 @@ public class CrimsonMenuScreen extends Screen {
         text(g, "SETTINGS", x + 14, y + 15, ACCENT);
         text(g, settingsFeature.name, x + 14, y + 34, TEXT_WHITE);
 
-        g.fill(
-                x + 14,
-                y + 51,
-                x + panelW - 14,
-                y + 52,
-                BORDER
-        );
+        g.fill(x + 14, y + 51, x + panelW - 14, y + 52, BORDER);
 
         List<SettingRow> rows = getSettingsRows();
 
@@ -803,15 +730,7 @@ public class CrimsonMenuScreen extends Screen {
                     ? x + panelW - 29
                     : x + panelW - 36;
 
-            rounded(
-                    g,
-                    dotX,
-                    rowY + 10,
-                    9,
-                    9,
-                    4,
-                    TEXT_WHITE
-            );
+            rounded(g, dotX, rowY + 10, 9, 9, 4, TEXT_WHITE);
 
             rowY += rowHeight;
         }
@@ -826,13 +745,7 @@ public class CrimsonMenuScreen extends Screen {
                 0xFF18181E
         );
 
-        text(
-                g,
-                "LMB - Toggle",
-                x + 20,
-                y + panelH - 32,
-                TEXT_MUTED
-        );
+        text(g, "LMB - Toggle", x + 20, y + panelH - 32, TEXT_MUTED);
     }
 
     private String priorityName(int priority) {
@@ -878,7 +791,6 @@ public class CrimsonMenuScreen extends Screen {
             return super.mouseClicked(event, doubleClick);
         }
 
-        // CATEGORY CLICK
         if (button == 0) {
             for (int i = 0; i < CATEGORIES.length; i++) {
                 int bx = px + 14;
@@ -898,7 +810,6 @@ public class CrimsonMenuScreen extends Screen {
             }
         }
 
-        // SETTINGS PANEL CLICK
         if (settingsFeature != null) {
             int x = settingsPanelX();
             int y = py + 56;
@@ -928,14 +839,7 @@ public class CrimsonMenuScreen extends Screen {
                     );
 
                     for (int i = settingsScrollOffset; i < end; i++) {
-                        if (hit(
-                                mx,
-                                my,
-                                x + 10,
-                                rowY,
-                                162,
-                                29
-                        )) {
+                        if (hit(mx, my, x + 10, rowY, 162, 29)) {
                             rows.get(i).toggle.run();
                             cfg.save();
                             return true;
@@ -949,7 +853,6 @@ public class CrimsonMenuScreen extends Screen {
             }
         }
 
-        // FEATURE CARDS
         List<Feature> visible = filteredFeatures();
 
         int areaW = cardAreaWidth();
@@ -1024,6 +927,7 @@ public class CrimsonMenuScreen extends Screen {
                 ph - 74
         )) {
             int visibleRows = Math.max(1, (ph - 74 - 125) / 34);
+
             int maxScroll = Math.max(
                     0,
                     getSettingsRows().size() - visibleRows
