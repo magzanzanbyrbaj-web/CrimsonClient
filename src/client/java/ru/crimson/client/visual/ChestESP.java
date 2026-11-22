@@ -3,7 +3,6 @@ package ru.crimson.client.visual;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 import com.mojang.blaze3d.vertex.VertexConsumer;
-import com.mojang.math.Axis;
 
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
@@ -33,6 +32,8 @@ public final class ChestESP {
     private static final List<BlockPos> CHESTS = new ArrayList<>();
     private static int tickCounter;
 
+    private static final int SCAN_RADIUS = 12;
+
     private ChestESP() {}
 
     public static void init() {
@@ -40,7 +41,6 @@ public final class ChestESP {
             CrimsonConfig cfg = CrimsonClientClient.config;
 
             if (cfg == null || !cfg.chestEsp
-                    || !client.hasSingleplayerServer()
                     || client.player == null
                     || client.level == null) {
                 CHESTS.clear();
@@ -66,16 +66,15 @@ public final class ChestESP {
         }
 
         CrimsonConfig cfg = CrimsonClientClient.config;
+        if (cfg == null || !cfg.chestEsp) return;
 
         BlockPos center = mc.player.blockPosition();
-        int radius = 12;
-
         BlockPos.MutableBlockPos pos =
                 new BlockPos.MutableBlockPos();
 
-        for (int x = -radius; x <= radius; x++) {
-            for (int y = -radius; y <= radius; y++) {
-                for (int z = -radius; z <= radius; z++) {
+        for (int x = -SCAN_RADIUS; x <= SCAN_RADIUS; x++) {
+            for (int y = -SCAN_RADIUS; y <= SCAN_RADIUS; y++) {
+                for (int z = -SCAN_RADIUS; z <= SCAN_RADIUS; z++) {
 
                     pos.set(
                             center.getX() + x,
@@ -83,8 +82,7 @@ public final class ChestESP {
                             center.getZ() + z
                     );
 
-                    BlockState state =
-                            mc.level.getBlockState(pos);
+                    BlockState state = mc.level.getBlockState(pos);
 
                     if (isContainer(state, cfg)) {
                         CHESTS.add(pos.immutable());
@@ -125,7 +123,6 @@ public final class ChestESP {
         CrimsonConfig cfg = CrimsonClientClient.config;
 
         if (cfg == null || !cfg.chestEsp
-                || !mc.hasSingleplayerServer()
                 || mc.player == null
                 || mc.level == null
                 || CHESTS.isEmpty()) {
@@ -164,6 +161,8 @@ public final class ChestESP {
                     consumers.getBuffer(RenderTypes.lines());
 
             for (BlockPos pos : CHESTS) {
+                if (!mc.level.hasChunkAt(pos)) continue;
+
                 AABB box = new AABB(pos);
 
                 drawBox(
