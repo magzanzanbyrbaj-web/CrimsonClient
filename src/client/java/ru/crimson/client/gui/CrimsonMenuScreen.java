@@ -1,640 +1,291 @@
+
 package ru.crimson.client.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.client.input.KeyEvent;
-import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.FontDescription;
-import net.minecraft.network.chat.Style;
-import net.minecraft.resources.Identifier;
-import net.minecraft.util.Mth;
 import org.lwjgl.glfw.GLFW;
-
-import ru.crimson.client.CrimsonClientClient;
-import ru.crimson.client.config.CrimsonConfig;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
-import java.util.function.BooleanSupplier;
-import java.util.function.Consumer;
 
 public class CrimsonMenuScreen extends Screen {
 
-    private static final Identifier FONT =
-            Identifier.fromNamespaceAndPath("crimsonclient", "inter");
+    private static final int BG = 0xE9101015;
+    private static final int PANEL = 0xFF19191F;
+    private static final int ITEM = 0xFF222229;
+    private static final int ITEM_HOVER = 0xFF2B2B34;
+    private static final int RED = 0xFFE33448;
+    private static final int WHITE = 0xFFF3F3F5;
+    private static final int MUTED = 0xFF92929D;
 
-    private static final int BG = 0x99000000;
-    private static final int PANEL = 0xE51D1D21;
-    private static final int PANEL_HOVER = 0xFF29292F;
-    private static final int ROW = 0x55202025;
-    private static final int ROW_HOVER = 0xAA34343C;
-
-    private static final int ACCENT = 0xFF8798F5;
-    private static final int ACCENT_DARK = 0xFF5969B8;
-
-    private static final int WHITE = 0xFFF0F0F5;
-    private static final int MUTED = 0xFFB3B3BE;
-    private static final int DIM = 0xFF777782;
-    private static final int BORDER = 0x33202028;
-
-    private static final String[] CATEGORIES = {
-            "Combat", "Movement", "Render", "Player", "Misc"
-    };
-
-    private static final int PANEL_GAP = 12;
-    private static final int ROW_HEIGHT = 37;
-
-    private final CrimsonConfig cfg;
     private final List<Feature> features = new ArrayList<>();
-    private final int[] scroll = new int[5];
 
-    private int panelX;
-    private int panelY;
-    private int panelW;
-    private int panelH;
-    private int columnW;
-
-    private boolean waitingForBind;
-    private Feature bindingFeature;
+    private String category = "Combat";
+    private double scroll;
+    private int panelX, panelY, panelW, panelH;
+    private int mouseX, mouseY;
 
     public CrimsonMenuScreen() {
         super(Component.literal("Crimson Client"));
-        cfg = CrimsonClientClient.config;
-
-        if (cfg != null) {
-            buildFeatures();
-        }
+        buildFeatures();
     }
 
     private void buildFeatures() {
+        features.clear();
 
-        // COMBAT — визуальные эффекты боя
-        add("HitParticles", "Hit particles", 0,
-                () -> cfg.hitParticles, v -> cfg.hitParticles = v);
+        add("KillAura", "Combat");
+        add("AimAssist", "Combat");
+        add("TriggerBot", "Combat");
+        add("ESP", "Combat");
+        add("ChestESP", "Combat");
 
-        add("CriticalEffects", "Critical effects", 0,
-                () -> cfg.criticalEffects, v -> cfg.criticalEffects = v);
+        add("FreeCamera", "Movement");
+        add("Scaffold", "Movement");
+        add("Spider", "Movement");
+        add("Fly", "Movement");
 
-        add("HitSound", "Hit sound", 0,
-                () -> cfg.hitSound, v -> cfg.hitSound = v);
+        add("HitParticles", "Render");
+        add("TargetESP", "Render");
+        add("CustomCrosshair", "Render");
+        add("ChinaHat", "Render");
+        add("Trails", "Render");
+        add("JumpCircle", "Render");
+        add("Fullbright", "Render");
 
-        add("Hitmarker", "Hitmarker", 0,
-                () -> cfg.hitmarker, v -> cfg.hitmarker = v);
+        add("ChestStealer", "Player");
+        add("TargetHUD", "Player");
+        add("ArmorHUD", "Player");
+        add("TotemCounter", "Player");
 
-        add("DamageNumbers", "Damage numbers", 0,
-                () -> cfg.damageNumbers, v -> cfg.damageNumbers = v);
-
-        // MOVEMENT — визуальные эффекты движения
-        add("Trails", "Movement trails", 1,
-                () -> cfg.trails, v -> cfg.trails = v);
-
-        add("JumpCircle", "Jump circle", 1,
-                () -> cfg.jumpCircle, v -> cfg.jumpCircle = v);
-
-        add("SmoothSword", "Smooth sword", 1,
-                () -> cfg.smoothSword, v -> cfg.smoothSword = v);
-
-        add("ItemSwitch", "Item switch animation", 1,
-                () -> cfg.itemSwitchAnim, v -> cfg.itemSwitchAnim = v);
-
-        // RENDER — графика и визуальные эффекты
-        add("CustomCrosshair", "Custom crosshair", 2,
-                () -> cfg.customCrosshair, v -> cfg.customCrosshair = v);
-
-        add("CustomSky", "Custom sky", 2,
-                () -> cfg.customSky, v -> cfg.customSky = v);
-
-        add("ChinaHat", "China Hat", 2,
-                () -> cfg.chinaHat, v -> cfg.chinaHat = v);
-
-        add("BlockOverlay", "Block overlay", 2,
-                () -> cfg.blockOverlay, v -> cfg.blockOverlay = v);
-
-        add("NoRender", "No Render", 2,
-                () -> cfg.noRender, v -> cfg.noRender = v);
-
-        add("InventoryBlur", "Inventory blur", 2,
-                () -> cfg.inventoryBlur, v -> cfg.inventoryBlur = v);
-
-        add("TotemAnimation", "Totem animation", 2,
-                () -> cfg.totemAnimation, v -> cfg.totemAnimation = v);
-
-        add("Fullbright", "Full Bright", 2,
-                () -> cfg.fullbright, v -> cfg.fullbright = v);
-
-        add("ReduceParticles", "Reduce particles", 2,
-                () -> cfg.reduceParticles, v -> cfg.reduceParticles = v);
-
-        // PLAYER — HUD и информация
-        add("TargetHUD", "Target HUD", 3,
-                () -> cfg.targetHud, v -> cfg.targetHud = v);
-
-        add("ArmorHUD", "Armor HUD", 3,
-                () -> cfg.armorHud, v -> cfg.armorHud = v);
-
-        add("TotemCounter", "Totem counter", 3,
-                () -> cfg.totemCounter, v -> cfg.totemCounter = v);
-
-        add("InventoryHUD", "Inventory HUD", 3,
-                () -> cfg.inventoryHud, v -> cfg.inventoryHud = v);
-
-        add("PotionHUD", "Potion HUD", 3,
-                () -> cfg.potionHud, v -> cfg.potionHud = v);
-
-        add("DurabilityHUD", "Durability HUD", 3,
-                () -> cfg.durabilityHud, v -> cfg.durabilityHud = v);
-
-        add("Keystrokes", "Keystrokes", 3,
-                () -> cfg.keystrokes, v -> cfg.keystrokes = v);
-
-        // MISC — интерфейс и производительность
-        add("Watermark", "Watermark", 4,
-                () -> cfg.watermark, v -> cfg.watermark = v);
-
-        add("ModuleList", "Module list", 4,
-                () -> cfg.moduleList, v -> cfg.moduleList = v);
-
-        add("FPSBoost", "FPS Boost", 4,
-                () -> cfg.fpsBoost, v -> cfg.fpsBoost = v);
-
-        add("Optimization", "Optimization", 4,
-                () -> cfg.optimized, v -> cfg.optimized = v);
-
-        add("MenuAnimation", "Menu animation", 4,
-                () -> cfg.glassAnimation, v -> cfg.glassAnimation = v);
+        add("Watermark", "Misc");
+        add("ModuleList", "Misc");
+        add("FPSBoost", "Misc");
+        add("Keystrokes", "Misc");
     }
 
-    private void add(String name, String description, int category,
-                     BooleanSupplier getter, Consumer<Boolean> setter) {
-        features.add(new Feature(
-                name, description, category, getter, setter
-        ));
-    }
-
-    private void calculateLayout() {
-        panelW = Math.min(width - 28, 1500);
-        panelH = Math.min(height - 28, 680);
-
-        panelX = (width - panelW) / 2;
-        panelY = (height - panelH) / 2;
-
-        columnW = (panelW - 32 - PANEL_GAP * 4) / 5;
+    private void add(String name, String category) {
+        features.add(new Feature(name, category));
     }
 
     @Override
     protected void init() {
-        calculateLayout();
+        panelW = Math.min(650, width - 30);
+        panelH = Math.min(390, height - 30);
+        panelX = (width - panelW) / 2;
+        panelY = (height - panelH) / 2;
     }
 
-    private void drawText(GuiGraphics g, String value,
-                          int x, int y, int color) {
-        Component component = Component.literal(value)
-                .setStyle(Style.EMPTY.withFont(
-                        new FontDescription.Resource(FONT)
-                ));
+    @Override
+    public void render(
+            GuiGraphics g,
+            int mouseX,
+            int mouseY,
+            float delta
+    ) {
+        this.mouseX = mouseX;
+        this.mouseY = mouseY;
 
-        g.drawString(font, component, x, y, color, false);
-    }
+        g.fill(0, 0, width, height, 0x99000000);
+        g.fill(panelX, panelY, panelX + panelW,
+                panelY + panelH, BG);
 
-    private void rounded(GuiGraphics g, int x, int y,
-                         int w, int h, int radius, int color) {
-        if (w <= 0 || h <= 0) return;
+        drawHeader(g);
+        drawCategories(g);
+        drawFeatures(g);
 
-        radius = Math.max(1, Math.min(
-                radius, Math.min(w / 2, h / 2)
-        ));
-
-        for (int i = 0; i < radius; i++) {
-            int inset = (int) Math.ceil(
-                    radius - Math.sqrt(
-                            radius * radius
-                                    - (radius - i) * (radius - i)
-                    )
-            );
-
-            g.fill(x + inset, y + i,
-                    x + w - inset, y + i + 1, color);
-
-            g.fill(x + inset, y + h - i - 1,
-                    x + w - inset, y + h - i, color);
-        }
-
-        g.fill(x, y + radius, x + w, y + h - radius, color);
-    }
-
-    private boolean inside(int mx, int my,
-                           int x, int y, int w, int h) {
-        return mx >= x && mx <= x + w
-                && my >= y && my <= y + h;
-    }
-
-    private int getColumnX(int category) {
-        return panelX + 8 + category * (columnW + PANEL_GAP);
-    }
-
-    private List<Feature> getFeatures(int category) {
-        List<Feature> result = new ArrayList<>();
-
-        for (Feature feature : features) {
-            if (feature.category == category) {
-                result.add(feature);
-            }
-        }
-
-        return result;
-    }
-
-    private void drawBackground(GuiGraphics g) {
-        g.fill(0, 0, width, height, BG);
-
-        rounded(g,
-                panelX + 3, panelY + 5,
-                panelW, panelH,
-                16, 0x55000000
-        );
-
-        rounded(g,
-                panelX, panelY,
-                panelW, panelH,
-                16, 0x44202025
-        );
+        super.render(g, mouseX, mouseY, delta);
     }
 
     private void drawHeader(GuiGraphics g) {
-        String title = "CRIMSON CLIENT";
-        String subtitle = "VISUAL MODULES";
+        g.drawString(font, "CRIMSON",
+                panelX + 20, panelY + 17, RED, false);
 
-        int titleWidth = font.width(title);
-        int subtitleWidth = font.width(subtitle);
+        g.drawString(font, "CLIENT",
+                panelX + 84, panelY + 17, WHITE, false);
 
-        drawText(g, title,
-                width / 2 - titleWidth / 2,
-                panelY - 17,
-                WHITE
-        );
+        g.drawString(font, "1.21.11",
+                panelX + panelW - 65,
+                panelY + 18, MUTED, false);
 
-        drawText(g, subtitle,
-                width / 2 - subtitleWidth / 2,
-                panelY - 5,
-                MUTED
-        );
-
-        int buttonW = 78;
-        int buttonH = 23;
-        int buttonX = panelX + panelW - buttonW - 12;
-        int buttonY = panelY + 10;
-
-        rounded(g, buttonX, buttonY,
-                buttonW, buttonH, 7, 0xAA292930);
-
-        drawText(g, "CONFIGS",
-                buttonX + 12, buttonY + 7,
-                MUTED
-        );
+        g.fill(panelX + 15, panelY + 38,
+                panelX + panelW - 15,
+                panelY + 39, 0xFF303039);
     }
 
-    private void drawColumn(GuiGraphics g, int category,
-                            int mouseX, int mouseY) {
-        int x = getColumnX(category);
-        int y = panelY + 10;
-        int h = panelH - 20;
-
-        boolean panelHover = inside(
-                mouseX, mouseY, x, y, columnW, h
-        );
-
-        rounded(g, x, y, columnW, h, 16,
-                panelHover ? 0xEE25252A : PANEL
-        );
-
-        g.fill(x + 1, y + 1,
-                x + columnW - 1, y + 2,
-                BORDER
-        );
-
-        drawText(g, CATEGORIES[category],
-                x + 17, y + 17, WHITE
-        );
-
-        drawCategoryIcon(g, category,
-                x + columnW - 28, y + 16
-        );
-
-        g.fill(x + 12, y + 42,
-                x + columnW - 12, y + 43,
-                0x33202028
-        );
-
-        List<Feature> list = getFeatures(category);
-
-        int startY = y + 53;
-        int bottom = y + h - 12;
-        int visibleRows = Math.max(
-                1, (bottom - startY) / ROW_HEIGHT
-        );
-
-        int maxScroll = Math.max(
-                0, list.size() - visibleRows
-        );
-
-        scroll[category] = Mth.clamp(
-                scroll[category], 0, maxScroll
-        );
-
-        int end = Math.min(
-                list.size(), scroll[category] + visibleRows
-        );
-
-        for (int i = scroll[category]; i < end; i++) {
-            Feature feature = list.get(i);
-
-            int rowY = startY
-                    + (i - scroll[category]) * ROW_HEIGHT;
-
-            drawFeature(g, feature,
-                    x + 9, rowY,
-                    columnW - 18,
-                    mouseX, mouseY
-            );
-        }
-
-        if (maxScroll > 0) {
-            drawText(g,
-                    (scroll[category] + 1) + "/" + (maxScroll + 1),
-                    x + columnW - 42,
-                    y + h - 17,
-                    DIM
-            );
-        }
-    }
-
-    private void drawCategoryIcon(GuiGraphics g, int category,
-                                  int x, int y) {
-        String icon = switch (category) {
-            case 0 -> "⚔";
-            case 1 -> "➤";
-            case 2 -> "▣";
-            case 3 -> "♟";
-            default -> "✦";
+    private void drawCategories(GuiGraphics g) {
+        String[] categories = {
+                "Combat", "Movement", "Render", "Player", "Misc"
         };
 
-        drawText(g, icon, x, y, MUTED);
+        int x = panelX + 17;
+        int y = panelY + 52;
+
+        for (String name : categories) {
+            int w = 83;
+            boolean selected = category.equals(name);
+            boolean hover = mouseX >= x && mouseX <= x + w
+                    && mouseY >= y && mouseY <= y + 27;
+
+            g.fill(x, y, x + w, y + 27,
+                    selected ? 0xFF3A2028 :
+                            hover ? ITEM_HOVER : PANEL);
+
+            int color = selected ? RED : WHITE;
+            int textW = font.width(name);
+
+            g.drawString(font, name,
+                    x + (w - textW) / 2,
+                    y + 9, color, false);
+
+            if (selected) {
+                g.fill(x + 12, y + 25,
+                        x + w - 12, y + 27, RED);
+            }
+
+            x += w + 5;
+        }
     }
 
-    private void drawFeature(GuiGraphics g, Feature feature,
-                             int x, int y, int w,
-                             int mouseX, int mouseY) {
-        boolean enabled = feature.enabled.getAsBoolean();
+    private void drawFeatures(GuiGraphics g) {
+        int startX = panelX + 17;
+        int startY = panelY + 94;
+        int cardW = (panelW - 45) / 2;
+        int cardH = 43;
+        int gap = 7;
 
-        boolean hover = inside(
-                mouseX, mouseY, x, y, w, ROW_HEIGHT - 3
-        );
+        int index = 0;
 
-        if (hover) {
-            rounded(g, x, y, w, ROW_HEIGHT - 3,
-                    8, ROW_HOVER);
-        }
+        for (Feature feature : features) {
+            if (!feature.category.equals(category)) {
+                continue;
+            }
 
-        drawText(g, feature.name,
-                x + 10, y + 12,
-                enabled ? WHITE : MUTED
-        );
+            int col = index % 2;
+            int row = index / 2;
 
-        // Три точки справа
-        drawText(g, "...",
-                x + w - 44, y + 12,
-                DIM
-        );
+            int x = startX + col * (cardW + gap);
+            int y = startY + row * (cardH + gap)
+                    - (int) scroll;
 
-        // Переключатель
-        int switchX = x + w - 29;
-        int switchY = y + 9;
+            index++;
 
-        rounded(g, switchX, switchY,
-                20, 14, 7,
-                enabled ? ACCENT_DARK : 0xFF414149
-        );
+            if (y < startY - cardH ||
+                    y > panelY + panelH - cardH) {
+                continue;
+            }
 
-        int circleX = enabled
-                ? switchX + 10
-                : switchX + 2;
+            boolean hover = mouseX >= x && mouseX <= x + cardW
+                    && mouseY >= y && mouseY <= y + cardH;
 
-        rounded(g, circleX, switchY + 2,
-                10, 10, 5,
-                enabled ? WHITE : 0xFFAAAAAF
-        );
+            g.fill(x, y, x + cardW, y + cardH,
+                    hover ? ITEM_HOVER : ITEM);
 
-        if (hover) {
-            drawText(g, feature.description,
-                    x + 10, y + 25, DIM
-            );
+            g.fill(x, y, x + 2, y + cardH,
+                    feature.enabled ? RED : 0xFF41414A);
+
+            g.drawString(font, feature.name,
+                    x + 12, y + 10, WHITE, false);
+
+            String state = feature.enabled ? "ON" : "OFF";
+            int stateColor = feature.enabled ? RED : MUTED;
+            int stateW = font.width(state);
+
+            g.drawString(font, state,
+                    x + cardW - stateW - 13,
+                    y + 15, stateColor, false);
         }
     }
 
     @Override
-    public void render(GuiGraphics g, int mouseX,
-                       int mouseY, float partialTick) {
-        calculateLayout();
-
-        drawBackground(g);
-        drawHeader(g);
-
-        for (int i = 0; i < CATEGORIES.length; i++) {
-            drawColumn(g, i, mouseX, mouseY);
+    public boolean mouseClicked(
+            double mouseX,
+            double mouseY,
+            int button
+    ) {
+        if (button != GLFW.GLFW_MOUSE_BUTTON_LEFT
+                && button != GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            return super.mouseClicked(mouseX, mouseY, button);
         }
 
-        if (waitingForBind && bindingFeature != null) {
-            String message = "PRESS A KEY TO BIND  |  DELETE - CLEAR  |  ESC - CANCEL";
-
-            int w = font.width(message) + 24;
-            int x = (width - w) / 2;
-            int y = panelY + panelH - 31;
-
-            rounded(g, x, y, w, 23,
-                    7, 0xEE25252D);
-
-            drawText(g, message,
-                    x + 12, y + 7, ACCENT
-            );
-        }
-
-        super.render(g, mouseX, mouseY, partialTick);
-    }
-
-    private Feature getFeatureAt(int mx, int my) {
-        for (int category = 0; category < 5; category++) {
-            int x = getColumnX(category);
-            int y = panelY + 10;
-            int startY = y + 53;
-            int bottom = y + panelH - 22;
-
-            int visibleRows = Math.max(
-                    1, (bottom - startY) / ROW_HEIGHT
-            );
-
-            List<Feature> list = getFeatures(category);
-
-            int end = Math.min(
-                    list.size(),
-                    scroll[category] + visibleRows
-            );
-
-            for (int i = scroll[category]; i < end; i++) {
-                int rowY = startY
-                        + (i - scroll[category]) * ROW_HEIGHT;
-
-                if (inside(mx, my,
-                        x + 9, rowY,
-                        columnW - 18, ROW_HEIGHT - 3)) {
-                    return list.get(i);
-                }
-            }
-        }
-
-        return null;
-    }
-
-    @Override
-    public boolean mouseClicked(MouseButtonEvent event,
-                                boolean doubleClick) {
-        int mx = (int) event.x();
-        int my = (int) event.y();
-
-        if (waitingForBind) {
-            return true;
-        }
-
-        int buttonX = panelX + panelW - 78 - 12;
-        int buttonY = panelY + 10;
-
-        if (event.button() == 0
-                && inside(mx, my, buttonX, buttonY, 78, 23)) {
-            Minecraft.getInstance().setScreen(
-                    new ConfigsScreen(this)
-            );
-            return true;
-        }
-
-        Feature feature = getFeatureAt(mx, my);
-
-        if (feature != null) {
-            if (event.button() == 0) {
-                feature.setter.accept(
-                        !feature.enabled.getAsBoolean()
-                );
-
-                cfg.save();
-                return true;
-            }
-
-            if (event.button() == 1) {
-                if (getBind(feature.name) != Integer.MIN_VALUE) {
-                    waitingForBind = true;
-                    bindingFeature = feature;
-                }
-
-                return true;
-            }
-        }
-
-        return super.mouseClicked(event, doubleClick);
-    }
-
-    @Override
-    public boolean mouseScrolled(double mouseX, double mouseY,
-                                 double deltaX, double deltaY) {
-        for (int category = 0; category < 5; category++) {
-            int x = getColumnX(category);
-            int y = panelY + 10;
-
-            if (inside((int) mouseX, (int) mouseY,
-                    x, y, columnW, panelH - 20)) {
-                int maxScroll = Math.max(
-                        0,
-                        getFeatures(category).size() - 1
-                );
-
-                scroll[category] = Mth.clamp(
-                        scroll[category] + (deltaY < 0 ? 1 : -1),
-                        0, maxScroll
-                );
-
-                return true;
-            }
-        }
-
-        return super.mouseScrolled(
-                mouseX, mouseY, deltaX, deltaY
-        );
-    }
-
-    private int getBind(String feature) {
-        return switch (feature) {
-            case "TargetHUD" -> cfg.bindTargetHUD;
-            case "ArmorHUD" -> cfg.bindArmorHUD;
-            case "TotemCounter" -> cfg.bindTotemCounter;
-            case "Watermark" -> cfg.bindWatermark;
-            case "Keystrokes" -> cfg.bindKeystrokes;
-            case "ModuleList" -> cfg.bindModuleList;
-            case "InventoryHUD" -> cfg.bindInventoryHUD;
-            case "PotionHUD" -> cfg.bindPotionHUD;
-            case "DurabilityHUD" -> cfg.bindDurabilityHUD;
-            default -> Integer.MIN_VALUE;
+        String[] categories = {
+                "Combat", "Movement", "Render", "Player", "Misc"
         };
-    }
 
-    private void setBind(String feature, int key) {
-        switch (feature) {
-            case "TargetHUD" -> cfg.bindTargetHUD = key;
-            case "ArmorHUD" -> cfg.bindArmorHUD = key;
-            case "TotemCounter" -> cfg.bindTotemCounter = key;
-            case "Watermark" -> cfg.bindWatermark = key;
-            case "Keystrokes" -> cfg.bindKeystrokes = key;
-            case "ModuleList" -> cfg.bindModuleList = key;
-            case "InventoryHUD" -> cfg.bindInventoryHUD = key;
-            case "PotionHUD" -> cfg.bindPotionHUD = key;
-            case "DurabilityHUD" -> cfg.bindDurabilityHUD = key;
-        }
-    }
+        int x = panelX + 17;
+        int y = panelY + 52;
 
-    @Override
-    public boolean keyPressed(KeyEvent event) {
-        int key = event.key();
+        for (String name : categories) {
+            int w = 83;
 
-        if (waitingForBind && bindingFeature != null) {
-            if (key == GLFW.GLFW_KEY_ESCAPE) {
-                waitingForBind = false;
-                bindingFeature = null;
+            if (mouseX >= x && mouseX <= x + w
+                    && mouseY >= y && mouseY <= y + 27) {
+                category = name;
+                scroll = 0;
                 return true;
             }
 
-            if (key == GLFW.GLFW_KEY_DELETE
-                    || key == GLFW.GLFW_KEY_BACKSPACE) {
-                setBind(bindingFeature.name, -1);
-            } else {
-                setBind(bindingFeature.name, key);
-            }
-
-            waitingForBind = false;
-            bindingFeature = null;
-
-            cfg.save();
-            return true;
+            x += w + 5;
         }
 
-        return super.keyPressed(event);
+        int startX = panelX + 17;
+        int startY = panelY + 94;
+        int cardW = (panelW - 45) / 2;
+        int cardH = 43;
+        int gap = 7;
+        int index = 0;
+
+        for (Feature feature : features) {
+            if (!feature.category.equals(category)) {
+                continue;
+            }
+
+            int col = index % 2;
+            int row = index / 2;
+
+            int fx = startX + col * (cardW + gap);
+            int fy = startY + row * (cardH + gap)
+                    - (int) scroll;
+
+            index++;
+
+            if (mouseX >= fx && mouseX <= fx + cardW
+                    && mouseY >= fy && mouseY <= fy + cardH) {
+                if (button == GLFW.GLFW_MOUSE_BUTTON_LEFT) {
+                    feature.enabled = !feature.enabled;
+                }
+                return true;
+            }
+        }
+
+        return super.mouseClicked(mouseX, mouseY, button);
     }
 
     @Override
-    public void onClose() {
-        if (cfg != null) {
-            cfg.save();
+    public boolean mouseScrolled(
+            double mouseX,
+            double mouseY,
+            double horizontal,
+            double vertical
+    ) {
+        scroll = Math.max(0, Math.min(500,
+                scroll - vertical * 20));
+        return true;
+    }
+
+    @Override
+    public boolean keyPressed(
+            int keyCode,
+            int scanCode,
+            int modifiers
+    ) {
+        if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+            onClose();
+            return true;
         }
 
-        super.onClose();
+        return super.keyPressed(keyCode, scanCode, modifiers);
     }
 
     @Override
@@ -642,11 +293,14 @@ public class CrimsonMenuScreen extends Screen {
         return false;
     }
 
-    private record Feature(
-            String name,
-            String description,
-            int category,
-            BooleanSupplier enabled,
-            Consumer<Boolean> setter
-    ) {}
-            }
+    private static class Feature {
+        final String name;
+        final String category;
+        boolean enabled;
+
+        Feature(String name, String category) {
+            this.name = name;
+            this.category = category;
+        }
+    }
+}
