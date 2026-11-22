@@ -1,4 +1,3 @@
-
 package ru.crimson.combat.module;
 
 import net.minecraft.client.Minecraft;
@@ -83,7 +82,6 @@ public class KillAura {
         mc.player.swing(InteractionHand.MAIN_HAND);
 
         HudRenderer.setTarget(target);
-
         lastAttack = now;
     }
 }
