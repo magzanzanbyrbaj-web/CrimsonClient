@@ -1,4 +1,3 @@
-
 package ru.crimson.client.hud;
 
 import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
@@ -33,7 +32,6 @@ public final class HudRenderer {
             Identifier.fromNamespaceAndPath("crimsonclient", "crimson_logo.png");
 
     private static long lastHitmarker;
-
     private static LivingEntity lastTarget;
     private static long lastTargetTime;
 
@@ -74,7 +72,6 @@ public final class HudRenderer {
         });
     }
 
-    // Вызывается боевыми модулями при атаке.
     public static void setTarget(LivingEntity target) {
         if (target == null) return;
 
@@ -150,7 +147,6 @@ public final class HudRenderer {
             int sw,
             int sh
     ) {
-        // При наведении обновляем текущую цель.
         if (mc.crosshairPickEntity instanceof LivingEntity target
                 && target.isAlive()) {
             setTarget(target);
@@ -158,8 +154,6 @@ public final class HudRenderer {
 
         if (lastTarget == null) return;
 
-        // Не удаляем цель сразу после смерти.
-        // HUD остаётся видимым ещё 3 секунды.
         if (System.currentTimeMillis() - lastTargetTime
                 > TARGET_HUD_DELAY) {
             lastTarget = null;
@@ -610,4 +604,4 @@ public final class HudRenderer {
                 color
         );
     }
-}
+            }
