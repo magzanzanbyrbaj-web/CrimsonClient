@@ -3,6 +3,7 @@ package ru.crimson.client.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
@@ -10,6 +11,9 @@ import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+import net.minecraft.network.chat.FontDescription;
+import net.minecraft.network.chat.Style;
+import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -20,11 +24,50 @@ public final class CrimsonTitleScreen extends Screen {
     private static final int TEXT = 0xFFF4F3F7;
     private static final int MUTED = 0xFFAAA8B4;
 
+    private static final Identifier FONT =
+            Identifier.fromNamespaceAndPath(
+                    "crimsonclient", "inter"
+            );
+
+    private static final Identifier LOGO =
+            Identifier.fromNamespaceAndPath(
+                    "crimsonclient", "crimson_logo.png"
+            );
+
     private final List<MenuButton> buttons = new ArrayList<>();
     private long openedAt;
 
     public CrimsonTitleScreen() {
         super(Component.literal("Crimson Client"));
+    }
+
+    private Component styled(String value) {
+        return Component.literal(value)
+                .setStyle(Style.EMPTY.withFont(
+                        new FontDescription.Resource(FONT)
+                ));
+    }
+
+    private int textWidth(String value) {
+        return font.width(styled(value));
+    }
+
+    private void drawText(
+            GuiGraphics g,
+            String value,
+            int x,
+            int y,
+            int color,
+            boolean shadow
+    ) {
+        g.drawString(
+                font,
+                styled(value),
+                x,
+                y,
+                color,
+                shadow
+        );
     }
 
     @Override
@@ -59,8 +102,10 @@ public final class CrimsonTitleScreen extends Screen {
                 buttonWidth, buttonHeight,
                 "SETTINGS",
                 () -> Minecraft.getInstance().setScreen(
-                        new OptionsScreen(this,
-                                Minecraft.getInstance().options))
+                        new OptionsScreen(
+                                this,
+                                Minecraft.getInstance().options
+                        ))
         ));
 
         buttons.add(new MenuButton(
@@ -92,20 +137,13 @@ public final class CrimsonTitleScreen extends Screen {
         }
 
         String footer = "CRIMSON CLIENT  •  1.21.11";
-        g.drawString(
-                font,
-                footer,
-                12,
-                height - 18,
-                0x887F7D89,
-                false
-        );
+        drawText(g, footer, 12, height - 18, 0x887F7D89, false);
 
         String version = "MINECRAFT 1.21.11";
-        g.drawString(
-                font,
+        drawText(
+                g,
                 version,
-                width - font.width(version) - 12,
+                width - textWidth(version) - 12,
                 height - 18,
                 0x887F7D89,
                 false
@@ -118,7 +156,6 @@ public final class CrimsonTitleScreen extends Screen {
 
         g.fill(0, 0, width, height, 0xFF080A12);
 
-        // Animated atmospheric bands
         for (int i = 0; i < 8; i++) {
             float phase = t * 0.18f + i * 0.82f;
 
@@ -138,7 +175,6 @@ public final class CrimsonTitleScreen extends Screen {
 
             int radiusX = Math.max(90, width / 5 + i * 13);
             int radiusY = Math.max(55, height / 7 + i * 7);
-
             int alpha = 7 + (i % 3) * 3;
 
             int color = (alpha << 24)
@@ -153,7 +189,6 @@ public final class CrimsonTitleScreen extends Screen {
             );
         }
 
-        // Drifting stars
         for (int i = 0; i < 72; i++) {
             double seed = i * 127.1;
 
@@ -183,51 +218,66 @@ public final class CrimsonTitleScreen extends Screen {
             g.fill(x, y, x + size, y + size, color);
         }
 
-        // Dark edges
         g.fill(0, 0, width, 34, 0x55000000);
         g.fill(0, height - 46, width, height, 0x66000000);
     }
 
     private void drawBrand(GuiGraphics g) {
+        int centerX = width / 2;
+
+        // Client logo
+        int logoSize = 76;
+        int logoX = centerX - logoSize / 2;
+        int logoY = height / 4 - 78;
+
+        g.blit(
+                RenderPipelines.GUI_TEXTURED,
+                LOGO,
+                logoX,
+                logoY,
+                0f,
+                0f,
+                logoSize,
+                logoSize,
+                128,
+                128
+        );
+
         String title = "CRIMSON";
         String subtitle = "CLIENT";
+        String slogan = "A cleaner way to play";
 
-        int centerX = width / 2;
-        int titleWidth = font.width(title);
-
-        g.drawString(
-                font,
+        drawText(
+                g,
                 title,
-                centerX - titleWidth / 2,
-                height / 4 - 2,
+                centerX - textWidth(title) / 2,
+                height / 4 + 4,
                 TEXT,
                 true
         );
 
         g.fill(
                 centerX - 47,
-                height / 4 + 13,
+                height / 4 + 19,
                 centerX + 47,
-                height / 4 + 15,
+                height / 4 + 21,
                 ACCENT
         );
 
-        g.drawString(
-                font,
+        drawText(
+                g,
                 subtitle,
-                centerX - font.width(subtitle) / 2,
-                height / 4 + 24,
+                centerX - textWidth(subtitle) / 2,
+                height / 4 + 29,
                 MUTED,
                 false
         );
 
-        String slogan = "A cleaner way to play";
-
-        g.drawString(
-                font,
+        drawText(
+                g,
                 slogan,
-                centerX - font.width(slogan) / 2,
-                height / 4 + 39,
+                centerX - textWidth(slogan) / 2,
+                height / 4 + 44,
                 0xFF777581,
                 false
         );
@@ -274,10 +324,10 @@ public final class CrimsonTitleScreen extends Screen {
                 border
         );
 
-        int labelWidth = font.width(button.label);
+        int labelWidth = textWidth(button.label);
 
-        g.drawString(
-                font,
+        drawText(
+                g,
                 button.label,
                 button.x + (button.width - labelWidth) / 2,
                 button.y + (button.height - 8) / 2,
@@ -305,9 +355,7 @@ public final class CrimsonTitleScreen extends Screen {
             int radius,
             int color
     ) {
-        if (w <= 0 || h <= 0) {
-            return;
-        }
+        if (w <= 0 || h <= 0) return;
 
         radius = Math.max(
                 1,
