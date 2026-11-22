@@ -1,187 +1,129 @@
-
 package ru.crimson.combat.module;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import com.mojang.blaze3d.vertex.VertexConsumer;
-
+import net.fabricmc.api.EnvType;
+import net.fabricmc.api.Environment;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
-
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.rendertype.RenderTypes;
-import net.minecraft.core.BlockPos;
-import net.minecraft.world.level.block.entity.BarrelBlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.ChestBlockEntity;
-import net.minecraft.world.level.block.entity.EnderChestBlockEntity;
-import net.minecraft.world.level.block.entity.ShulkerBoxBlockEntity;
-import net.minecraft.world.level.block.entity.TrappedChestBlockEntity;
-import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.Vec3;
-
+import net.minecraft.class_12249;
+import net.minecraft.class_2338;
+import net.minecraft.class_238;
+import net.minecraft.class_243;
+import net.minecraft.class_2586;
+import net.minecraft.class_2595;
+import net.minecraft.class_2611;
+import net.minecraft.class_2627;
+import net.minecraft.class_2646;
+import net.minecraft.class_310;
+import net.minecraft.class_3719;
+import net.minecraft.class_4587;
+import net.minecraft.class_4588;
+import net.minecraft.class_4597;
 import org.joml.Matrix4f;
-
+import org.joml.Matrix4fc;
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
 
+@Environment(EnvType.CLIENT)
 public final class ChestESP {
-
-    private static boolean registered;
-
-    private static final int SCAN_RADIUS = 8;
+    private static boolean registered = false;
+    private static final int SCAN_RADIUS = 10;
 
     public ChestESP() {
         if (registered) return;
-
         registered = true;
-        WorldRenderEvents.AFTER_ENTITIES.register(
-                ChestESP::render
-        );
+        WorldRenderEvents.AFTER_ENTITIES.register(ChestESP::render);
     }
 
     public void onTick() {
-        // Rendering is handled by WorldRenderEvents.
+        // Empty - rendering is event-driven
     }
 
     private static void render(WorldRenderContext context) {
-        Minecraft mc = Minecraft.getInstance();
+        class_310 mc = class_310.method_1551();
         CrimsonConfig cfg = CrimsonClientClient.config;
 
-        if (cfg == null || !cfg.chestEsp
-                || mc.level == null || mc.player == null) {
+        if (cfg == null || !cfg.chestEsp || mc.field_1687 == null || mc.field_1724 == null) {
             return;
         }
 
-        PoseStack pose = context.matrices();
-        MultiBufferSource consumers = context.consumers();
-
+        class_4587 pose = context.matrices();
+        class_4597 consumers = context.consumers();
         if (pose == null || consumers == null) return;
 
-        Vec3 camera = context.gameRenderer()
-                .getMainCamera().position();
+        class_243 camera = context.gameRenderer().method_19418().method_71156();
+        class_2338 center = mc.field_1724.method_24515();
 
-        BlockPos center = mc.player.blockPosition();
-
-        pose.pushPose();
-
+        pose.method_22903();
         try {
-            pose.translate(-camera.x, -camera.y, -camera.z);
+            pose.method_22904(-camera.field_1352, -camera.field_1351, -camera.field_1350);
+            Matrix4f matrix = pose.method_23760().method_23761();
+            class_4588 buffer = consumers.method_73477(class_12249.method_76015());
 
-            Matrix4f matrix = pose.last().pose();
-            VertexConsumer buffer =
-                    consumers.getBuffer(RenderTypes.lines());
+            for (int x = -SCAN_RADIUS; x <= SCAN_RADIUS; x++) {
+                for (int y = -SCAN_RADIUS; y <= SCAN_RADIUS; y++) {
+                    for (int z = -SCAN_RADIUS; z <= SCAN_RADIUS; z++) {
+                        class_2338 pos = center.method_10069(x, y, z);
+                        class_2586 be = mc.field_1687.method_8321(pos);
+                        if (be == null || !isEnabledType(be, cfg)) continue;
 
-            int radius = SCAN_RADIUS;
-
-            for (int x = -radius; x <= radius; x++) {
-                for (int y = -radius; y <= radius; y++) {
-                    for (int z = -radius; z <= radius; z++) {
-
-                        BlockPos pos = center.offset(x, y, z);
-
-                        BlockEntity blockEntity =
-                                mc.level.getBlockEntity(pos);
-
-                        if (blockEntity == null) continue;
-
-                        if (!isEnabledType(blockEntity, cfg)) {
-                            continue;
-                        }
-
-                        AABB box = new AABB(pos)
-                                .inflate(0.002);
-
-                        drawBox(
-                                buffer,
-                                matrix,
-                                box,
-                                cfg.chestEspColor
-                        );
+                        class_238 box = new class_238(pos).method_1014(0.002);
+                        drawBox(buffer, matrix, box, cfg.chestEspColor);
                     }
                 }
             }
         } finally {
-            pose.popPose();
+            pose.method_22909();
         }
     }
 
-    private static boolean isEnabledType(
-            BlockEntity entity,
-            CrimsonConfig cfg
-    ) {
-        if (entity instanceof TrappedChestBlockEntity) {
-            return cfg.chestEspTrapped;
-        }
-
-        if (entity instanceof ChestBlockEntity) {
-            return cfg.chestEspNormal;
-        }
-
-        if (entity instanceof EnderChestBlockEntity) {
-            return cfg.chestEspEnder;
-        }
-
-        if (entity instanceof BarrelBlockEntity) {
-            return cfg.chestEspBarrel;
-        }
-
-        if (entity instanceof ShulkerBoxBlockEntity) {
-            return cfg.chestEspShulker;
-        }
-
+    private static boolean isEnabledType(class_2586 entity, CrimsonConfig cfg) {
+        if (entity instanceof class_2646) return cfg.chestEspTrapped;      // Trapped Chest
+        if (entity instanceof class_2595) return cfg.chestEspNormal;       // Chest
+        if (entity instanceof class_2611) return cfg.chestEspEnder;        // Ender Chest
+        if (entity instanceof class_3719) return cfg.chestEspBarrel;       // Barrel
+        if (entity instanceof class_2627) return cfg.chestEspShulker;      // Shulker
         return false;
     }
 
-    private static void drawBox(
-            VertexConsumer out,
-            Matrix4f matrix,
-            AABB box,
-            int color
-    ) {
-        float red = ((color >> 16) & 255) / 255.0f;
-        float green = ((color >> 8) & 255) / 255.0f;
-        float blue = (color & 255) / 255.0f;
+    private static void drawBox(class_4588 out, Matrix4f matrix, class_238 box, int color) {
+        float r = (float) ((color >> 16) & 0xFF) / 255.0f;
+        float g = (float) ((color >> 8) & 0xFF) / 255.0f;
+        float b = (float) (color & 0xFF) / 255.0f;
 
-        float x1 = (float) box.minX;
-        float y1 = (float) box.minY;
-        float z1 = (float) box.minZ;
+        float x1 = (float) box.field_1323;
+        float y1 = (float) box.field_1322;
+        float z1 = (float) box.field_1321;
+        float x2 = (float) box.field_1320;
+        float y2 = (float) box.field_1325;
+        float z2 = (float) box.field_1324;
 
-        float x2 = (float) box.maxX;
-        float y2 = (float) box.maxY;
-        float z2 = (float) box.maxZ;
+        // Bottom
+        line(out, matrix, x1, y1, z1, x2, y1, z1, r, g, b);
+        line(out, matrix, x2, y1, z1, x2, y1, z2, r, g, b);
+        line(out, matrix, x2, y1, z2, x1, y1, z2, r, g, b);
+        line(out, matrix, x1, y1, z2, x1, y1, z1, r, g, b);
 
-        line(out, matrix, x1,y1,z1, x2,y1,z1, red,green,blue);
-        line(out, matrix, x2,y1,z1, x2,y1,z2, red,green,blue);
-        line(out, matrix, x2,y1,z2, x1,y1,z2, red,green,blue);
-        line(out, matrix, x1,y1,z2, x1,y1,z1, red,green,blue);
+        // Top
+        line(out, matrix, x1, y2, z1, x2, y2, z1, r, g, b);
+        line(out, matrix, x2, y2, z1, x2, y2, z2, r, g, b);
+        line(out, matrix, x2, y2, z2, x1, y2, z2, r, g, b);
+        line(out, matrix, x1, y2, z2, x1, y2, z1, r, g, b);
 
-        line(out, matrix, x1,y2,z1, x2,y2,z1, red,green,blue);
-        line(out, matrix, x2,y2,z1, x2,y2,z2, red,green,blue);
-        line(out, matrix, x2,y2,z2, x1,y2,z2, red,green,blue);
-        line(out, matrix, x1,y2,z2, x1,y2,z1, red,green,blue);
-
-        line(out, matrix, x1,y1,z1, x1,y2,z1, red,green,blue);
-        line(out, matrix, x2,y1,z1, x2,y2,z1, red,green,blue);
-        line(out, matrix, x2,y1,z2, x2,y2,z2, red,green,blue);
-        line(out, matrix, x1,y1,z2, x1,y2,z2, red,green,blue);
+        // Verticals
+        line(out, matrix, x1, y1, z1, x1, y2, z1, r, g, b);
+        line(out, matrix, x2, y1, z1, x2, y2, z1, r, g, b);
+        line(out, matrix, x2, y1, z2, x2, y2, z2, r, g, b);
+        line(out, matrix, x1, y1, z2, x1, y2, z2, r, g, b);
     }
 
-    private static void line(
-            VertexConsumer out,
-            Matrix4f matrix,
-            float x1, float y1, float z1,
-            float x2, float y2, float z2,
-            float red, float green, float blue
-    ) {
-        out.addVertex(matrix, x1, y1, z1)
-                .setColor(red, green, blue, 1.0f)
-                .setLineWidth(1.5f)
-                .setNormal(0, 1, 0);
-
-        out.addVertex(matrix, x2, y2, z2)
-                .setColor(red, green, blue, 1.0f)
-                .setLineWidth(1.5f)
-                .setNormal(0, 1, 0);
+    private static void line(class_4588 out, Matrix4f matrix, float x1, float y1, float z1, float x2, float y2, float z2, float r, float g, float b) {
+        out.method_22918((Matrix4fc) matrix, x1, y1, z1)
+                .method_22915(r, g, b, 1.0f)
+                .method_75298(1.5f)
+                .method_22914(0.0f, 1.0f, 0.0f);
+        out.method_22918((Matrix4fc) matrix, x2, y2, z2)
+                .method_22915(r, g, b, 1.0f)
+                .method_75298(1.5f)
+                .method_22914(0.0f, 1.0f, 0.0f);
     }
 }
