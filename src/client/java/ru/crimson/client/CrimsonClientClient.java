@@ -88,7 +88,7 @@ public class CrimsonClientClient implements ClientModInitializer {
         );
 
         for (int key : keys) {
-            if (key <= 0 || key >= GLFW.GLFW_KEY_LAST) {
+            if (key <= 0 || key > GLFW.GLFW_KEY_LAST) {
                 continue;
             }
 
@@ -102,8 +102,9 @@ public class CrimsonClientClient implements ClientModInitializer {
                 for (Map.Entry<String, Integer> entry :
                         config.moduleBinds.entrySet()) {
 
-                    if (entry.getValue() != null &&
-                            entry.getValue() == key) {
+                    Integer boundKey = entry.getValue();
+
+                    if (boundKey != null && boundKey == key) {
                         toggleModule(entry.getKey());
                     }
                 }
@@ -115,128 +116,51 @@ public class CrimsonClientClient implements ClientModInitializer {
 
     private void toggleModule(String name) {
         switch (name) {
-            case "KillAura" ->
-                    config.killAura = !config.killAura;
+            case "KillAura" -> config.killAura = !config.killAura;
+            case "AimAssist" -> config.aimAssist = !config.aimAssist;
+            case "TriggerBot" -> config.triggerBot = !config.triggerBot;
+            case "ESP" -> config.esp = !config.esp;
+            case "ChestESP" -> config.chestEsp = !config.chestEsp;
+            case "HitParticles" -> config.hitParticles = !config.hitParticles;
+            case "CriticalEffects" -> config.criticalEffects = !config.criticalEffects;
+            case "HitSound" -> config.hitSound = !config.hitSound;
+            case "Hitmarker" -> config.hitmarker = !config.hitmarker;
+            case "DamageNumbers" -> config.damageNumbers = !config.damageNumbers;
+            case "TargetESP" -> config.targetEsp = !config.targetEsp;
 
-            case "AimAssist" ->
-                    config.aimAssist = !config.aimAssist;
+            case "FreeCamera" -> config.freeCamera = !config.freeCamera;
+            case "Scaffold" -> config.scaffold = !config.scaffold;
+            case "Spider" -> config.spider = !config.spider;
+            case "Fly" -> config.fly = !config.fly;
+            case "Trails" -> config.trails = !config.trails;
+            case "JumpCircle" -> config.jumpCircle = !config.jumpCircle;
+            case "SmoothSword" -> config.smoothSword = !config.smoothSword;
+            case "ItemSwitch" -> config.itemSwitchAnim = !config.itemSwitchAnim;
 
-            case "TriggerBot" ->
-                    config.triggerBot = !config.triggerBot;
+            case "CustomCrosshair" -> config.customCrosshair = !config.customCrosshair;
+            case "CustomSky" -> config.customSky = !config.customSky;
+            case "ChinaHat" -> config.chinaHat = !config.chinaHat;
+            case "BlockOverlay" -> config.blockOverlay = !config.blockOverlay;
+            case "NoRender" -> config.noRender = !config.noRender;
+            case "InventoryBlur" -> config.inventoryBlur = !config.inventoryBlur;
+            case "TotemAnimation" -> config.totemAnimation = !config.totemAnimation;
+            case "Fullbright" -> config.fullbright = !config.fullbright;
+            case "ReduceParticles" -> config.reduceParticles = !config.reduceParticles;
 
-            case "ESP" ->
-                    config.esp = !config.esp;
+            case "ChestStealer" -> config.chestStealer = !config.chestStealer;
+            case "TargetHUD" -> config.targetHud = !config.targetHud;
+            case "ArmorHUD" -> config.armorHud = !config.armorHud;
+            case "TotemCounter" -> config.totemCounter = !config.totemCounter;
+            case "InventoryHUD" -> config.inventoryHud = !config.inventoryHud;
+            case "PotionHUD" -> config.potionHud = !config.potionHud;
+            case "DurabilityHUD" -> config.durabilityHud = !config.durabilityHud;
+            case "Keystrokes" -> config.keystrokes = !config.keystrokes;
 
-            case "ChestESP" ->
-                    config.chestEsp = !config.chestEsp;
-
-            case "HitParticles" ->
-                    config.hitParticles = !config.hitParticles;
-
-            case "CriticalEffects" ->
-                    config.criticalEffects = !config.criticalEffects;
-
-            case "HitSound" ->
-                    config.hitSound = !config.hitSound;
-
-            case "Hitmarker" ->
-                    config.hitmarker = !config.hitmarker;
-
-            case "DamageNumbers" ->
-                    config.damageNumbers = !config.damageNumbers;
-
-            case "TargetESP" ->
-                    config.targetEsp = !config.targetEsp;
-
-            case "FreeCamera" ->
-                    config.freeCamera = !config.freeCamera;
-
-            case "Scaffold" ->
-                    config.scaffold = !config.scaffold;
-
-            case "Spider" ->
-                    config.spider = !config.spider;
-
-            case "Fly" ->
-                    config.fly = !config.fly;
-
-            case "Trails" ->
-                    config.trails = !config.trails;
-
-            case "JumpCircle" ->
-                    config.jumpCircle = !config.jumpCircle;
-
-            case "SmoothSword" ->
-                    config.smoothSword = !config.smoothSword;
-
-            case "ItemSwitch" ->
-                    config.itemSwitchAnim = !config.itemSwitchAnim;
-
-            case "CustomCrosshair" ->
-                    config.customCrosshair = !config.customCrosshair;
-
-            case "CustomSky" ->
-                    config.customSky = !config.customSky;
-
-            case "ChinaHat" ->
-                    config.chinaHat = !config.chinaHat;
-
-            case "BlockOverlay" ->
-                    config.blockOverlay = !config.blockOverlay;
-
-            case "NoRender" ->
-                    config.noRender = !config.noRender;
-
-            case "InventoryBlur" ->
-                    config.inventoryBlur = !config.inventoryBlur;
-
-            case "TotemAnimation" ->
-                    config.totemAnimation = !config.totemAnimation;
-
-            case "Fullbright" ->
-                    config.fullbright = !config.fullbright;
-
-            case "ReduceParticles" ->
-                    config.reduceParticles = !config.reduceParticles;
-
-            case "ChestStealer" ->
-                    config.chestStealer = !config.chestStealer;
-
-            case "TargetHUD" ->
-                    config.targetHud = !config.targetHud;
-
-            case "ArmorHUD" ->
-                    config.armorHud = !config.armorHud;
-
-            case "TotemCounter" ->
-                    config.totemCounter = !config.totemCounter;
-
-            case "InventoryHUD" ->
-                    config.inventoryHud = !config.inventoryHud;
-
-            case "PotionHUD" ->
-                    config.potionHud = !config.potionHud;
-
-            case "DurabilityHUD" ->
-                    config.durabilityHud = !config.durabilityHud;
-
-            case "Keystrokes" ->
-                    config.keystrokes = !config.keystrokes;
-
-            case "Watermark" ->
-                    config.watermark = !config.watermark;
-
-            case "ModuleList" ->
-                    config.moduleList = !config.moduleList;
-
-            case "FPSBoost" ->
-                    config.fpsBoost = !config.fpsBoost;
-
-            case "Optimization" ->
-                    config.optimized = !config.optimized;
-
-            case "MenuAnimation" ->
-                    config.glassAnimation = !config.glassAnimation;
+            case "Watermark" -> config.watermark = !config.watermark;
+            case "ModuleList" -> config.moduleList = !config.moduleList;
+            case "FPSBoost" -> config.fpsBoost = !config.fpsBoost;
+            case "Optimization" -> config.optimized = !config.optimized;
+            case "MenuAnimation" -> config.glassAnimation = !config.glassAnimation;
 
             default -> {
                 return;
@@ -271,6 +195,7 @@ public class CrimsonClientClient implements ClientModInitializer {
             case "Hitmarker" -> config.hitmarker;
             case "DamageNumbers" -> config.damageNumbers;
             case "TargetESP" -> config.targetEsp;
+
             case "FreeCamera" -> config.freeCamera;
             case "Scaffold" -> config.scaffold;
             case "Spider" -> config.spider;
@@ -279,6 +204,7 @@ public class CrimsonClientClient implements ClientModInitializer {
             case "JumpCircle" -> config.jumpCircle;
             case "SmoothSword" -> config.smoothSword;
             case "ItemSwitch" -> config.itemSwitchAnim;
+
             case "CustomCrosshair" -> config.customCrosshair;
             case "CustomSky" -> config.customSky;
             case "ChinaHat" -> config.chinaHat;
@@ -288,6 +214,7 @@ public class CrimsonClientClient implements ClientModInitializer {
             case "TotemAnimation" -> config.totemAnimation;
             case "Fullbright" -> config.fullbright;
             case "ReduceParticles" -> config.reduceParticles;
+
             case "ChestStealer" -> config.chestStealer;
             case "TargetHUD" -> config.targetHud;
             case "ArmorHUD" -> config.armorHud;
@@ -296,11 +223,13 @@ public class CrimsonClientClient implements ClientModInitializer {
             case "PotionHUD" -> config.potionHud;
             case "DurabilityHUD" -> config.durabilityHud;
             case "Keystrokes" -> config.keystrokes;
+
             case "Watermark" -> config.watermark;
             case "ModuleList" -> config.moduleList;
             case "FPSBoost" -> config.fpsBoost;
             case "Optimization" -> config.optimized;
             case "MenuAnimation" -> config.glassAnimation;
+
             default -> false;
         };
     }
@@ -323,7 +252,7 @@ public class CrimsonClientClient implements ClientModInitializer {
                 if (config.moduleBinds.isEmpty()) {
                     sendMessage("Нет назначенных биндов.");
                 } else {
-                    config.moduleBinds.forEach((module, key ->
+                    config.moduleBinds.forEach((module, key) ->
                             sendMessage(module + " -> " + keyName(key))
                     );
                 }
@@ -467,10 +396,10 @@ public class CrimsonClientClient implements ClientModInitializer {
     }
 
     private void initializeVisuals() {
-        // Existing visual modules are initialized by their own classes.
+        // Initialization is handled by the corresponding visual classes.
     }
 
     private void initializeCombatModules() {
-        // Existing combat modules are initialized by their own classes.
+        // Initialization is handled by the corresponding module classes.
     }
 }
