@@ -1,47 +1,40 @@
 package ru.crimson.combat.module;
 
 import net.minecraft.client.Minecraft;
-import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.InteractionHand;
-import ru.crimson.client.config.CrimsonConfig;
+import net.minecraft.world.entity.LivingEntity;
 import ru.crimson.client.CrimsonClientClient;
+import ru.crimson.client.config.CrimsonConfig;
 import ru.crimson.combat.util.TargetUtils;
 
 public class KillAura {
-
-    private long lastAttack = 0;
+    private long lastAttack;
 
     public void onTick() {
         Minecraft mc = Minecraft.getInstance();
         CrimsonConfig cfg = CrimsonClientClient.config;
+        if (cfg == null || !cfg.killAura || mc.player == null || mc.level == null || mc.gameMode == null) return;
 
-        if (cfg == null || !cfg.killAura || mc.player == null || mc.level == null) return;
-
-        long delay = 1000L / Math.max(1, cfg.kaCps);
-        if (System.currentTimeMillis() - lastAttack < delay) return;
-
-        LivingEntity target = TargetUtils.findTarget(
-                cfg.kaRange,
-                cfg.kaFov,
-                cfg.kaPlayers,
-                cfg.kaMobs,
-                cfg.kaThroughWalls,
-                cfg.kaPriority
-        );
-
+        LivingEntity target = TargetUtils.findTarget(cfg.kaRange, cfg.kaFov,
+                cfg.kaPlayers, cfg.kaMobs, cfg.kaThroughWalls, cfg.kaPriority);
         if (target == null) return;
 
-        float[] rots = TargetUtils.getRotations(target);
-
         if (!cfg.kaSilent) {
-            mc.player.setYRot(rots[0]);
-            mc.player.setXRot(rots[1]);
+            float[] rotations = TargetUtils.getRotations(target);
+            float smooth = Math.max(0.02f, Math.min(1.0f, cfg.kaSmoothness));
+            mc.player.setYRot(TargetUtils.smoothAngle(mc.player.getYRot(), rotations[0], smooth));
+            mc.player.setXRot(TargetUtils.smoothAngle(mc.player.getXRot(), rotations[1], smooth));
         }
 
-        if (mc.player.getAttackStrengthScale(0.5f) >= 0.9f) {
-            mc.gameMode.attack(mc.player, target);
-            mc.player.swing(InteractionHand.MAIN_HAND);
-            lastAttack = System.currentTimeMillis();
-        }
+        if (cfg.kaOnlyCriticals && !TargetUtils.isCriticalHitReady()) return;
+
+        long delay = 1000L / Math.max(1, Math.min(20, cfg.kaCps));
+        long now = System.currentTimeMillis();
+        if (now - lastAttack < delay) return;
+        if (mc.player.getAttackStrengthScale(0.5f) < 0.9f) return;
+
+        mc.gameMode.attack(mc.player, target);
+        mc.player.swing(InteractionHand.MAIN_HAND);
+        lastAttack = now;
     }
 }
