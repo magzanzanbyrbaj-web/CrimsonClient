@@ -8,7 +8,8 @@ import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderContext;
 import net.fabricmc.fabric.api.client.rendering.v1.world.WorldRenderEvents;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderType;
+import net.minecraft.client.renderer.rendertype.RenderTypes;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.block.entity.BarrelBlockEntity;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -50,14 +51,15 @@ public final class ChestESP {
         MultiBufferSource consumers = context.consumers();
         if (pose == null || consumers == null) return;
 
-        Vec3 camera = context.gameRenderer().getMainCamera().getPosition();
+        Vec3 camera = context.gameRenderer().getMainCamera().position();
         BlockPos center = mc.player.blockPosition();
 
         pose.pushPose();
         try {
             pose.translate(-camera.x, -camera.y, -camera.z);
             Matrix4f matrix = pose.last().pose();
-            VertexConsumer buffer = consumers.getBuffer(RenderType.lines());
+            RenderType lineType = RenderTypes.lines();
+            VertexConsumer buffer = consumers.getBuffer(lineType);
 
             for (int x = -SCAN_RADIUS; x <= SCAN_RADIUS; x++) {
                 for (int y = -SCAN_RADIUS; y <= SCAN_RADIUS; y++) {
@@ -119,11 +121,9 @@ public final class ChestESP {
     private static void line(VertexConsumer out, Matrix4f matrix, float x1, float y1, float z1, float x2, float y2, float z2, float r, float g, float b) {
         out.addVertex((Matrix4fc) matrix, x1, y1, z1)
                 .setColor(r, g, b, 1.0f)
-                .setLineWidth(1.5f)
                 .setNormal(0.0f, 1.0f, 0.0f);
         out.addVertex((Matrix4fc) matrix, x2, y2, z2)
                 .setColor(r, g, b, 1.0f)
-                .setLineWidth(1.5f)
                 .setNormal(0.0f, 1.0f, 0.0f);
     }
 }
