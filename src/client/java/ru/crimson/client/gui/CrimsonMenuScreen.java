@@ -1,7 +1,9 @@
+
 package ru.crimson.client.gui;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.KeyEvent;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -20,185 +22,44 @@ import java.util.List;
 import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
-public class CrimsonMenuScreen extends Screen {
+public final class CrimsonMenuScreen extends Screen {
 
     private static final Identifier FONT =
             Identifier.fromNamespaceAndPath("crimsonclient", "inter");
 
-    private static final int BG = 0x99000000;
-    private static final int PANEL = 0xE51D1D21;
-    private static final int ROW_HOVER = 0xAA34343C;
+    private static final Identifier LOGO =
+            Identifier.fromNamespaceAndPath(
+                    "crimsonclient", "crimson_logo.png"
+            );
 
-    private static final int ACCENT = 0xFF8798F5;
-    private static final int ACCENT_DARK = 0xFF5969B8;
-
-    private static final int WHITE = 0xFFF0F0F5;
-    private static final int MUTED = 0xFFB3B3BE;
-    private static final int DIM = 0xFF777782;
-    private static final int BORDER = 0x33202028;
+    private static final int ACCENT = 0xFFFF465F;
+    private static final int WHITE = 0xFFF3F3F7;
+    private static final int MUTED = 0xFF9999A5;
+    private static final int PANEL = 0xEE171820;
+    private static final int ROW_HOVER = 0xFF292B36;
 
     private static final String[] CATEGORIES = {
             "Combat", "Movement", "Render", "Player", "Misc"
     };
 
-    private static final int PANEL_GAP = 12;
-    private static final int ROW_HEIGHT = 37;
+    private static final int ROW_HEIGHT = 36;
+    private static final int GAP = 10;
+    private static final int HEADER_HEIGHT = 48;
 
     private final CrimsonConfig cfg;
     private final List<Feature> features = new ArrayList<>();
     private final int[] scroll = new int[5];
 
-    private int panelX;
-    private int panelY;
-    private int panelW;
-    private int panelH;
-    private int columnW;
+    private int panelX, panelY, panelW, panelH, columnW;
 
     private boolean waitingForBind;
     private Feature bindingFeature;
 
     public CrimsonMenuScreen() {
         super(Component.literal("Crimson Client"));
-
         cfg = CrimsonClientClient.config;
 
-        if (cfg != null) {
-            buildFeatures();
-        }
-    }
-
-    private void buildFeatures() {
-        features.clear();
-
-        // COMBAT
-
-        add("KillAura", "Kill Aura", 0,
-                () -> cfg.killAura, v -> cfg.killAura = v);
-
-        add("AimAssist", "Aim Assist", 0,
-                () -> cfg.aimAssist, v -> cfg.aimAssist = v);
-
-        add("TriggerBot", "Trigger Bot", 0,
-                () -> cfg.triggerBot, v -> cfg.triggerBot = v);
-
-        add("ESP", "Entity ESP", 0,
-                () -> cfg.esp, v -> cfg.esp = v);
-
-        add("ChestESP", "Chest ESP (singleplayer)", 0,
-                () -> cfg.chestEsp, v -> cfg.chestEsp = v);
-
-        add("HitParticles", "Hit particles", 0,
-                () -> cfg.hitParticles, v -> cfg.hitParticles = v);
-
-        add("CriticalEffects", "Critical effects", 0,
-                () -> cfg.criticalEffects, v -> cfg.criticalEffects = v);
-
-        add("HitSound", "Hit sound", 0,
-                () -> cfg.hitSound, v -> cfg.hitSound = v);
-
-        add("Hitmarker", "Hitmarker", 0,
-                () -> cfg.hitmarker, v -> cfg.hitmarker = v);
-
-        add("DamageNumbers", "Damage numbers", 0,
-                () -> cfg.damageNumbers, v -> cfg.damageNumbers = v);
-
-        // MOVEMENT
-
-        add("FreeCamera", "Free Camera", 1,
-                () -> cfg.freeCamera, v -> cfg.freeCamera = v);
-
-        add("Scaffold", "Scaffold", 1,
-                () -> cfg.scaffold, v -> cfg.scaffold = v);
-
-        add("Spider", "Spider", 1,
-                () -> cfg.spider, v -> cfg.spider = v);
-
-        add("Fly", "Fly", 1,
-                () -> cfg.fly, v -> cfg.fly = v);
-
-        add("Trails", "Movement trails", 1,
-                () -> cfg.trails, v -> cfg.trails = v);
-
-        add("JumpCircle", "Jump circle", 1,
-                () -> cfg.jumpCircle, v -> cfg.jumpCircle = v);
-
-        add("SmoothSword", "Smooth sword", 1,
-                () -> cfg.smoothSword, v -> cfg.smoothSword = v);
-
-        add("ItemSwitch", "Item switch animation", 1,
-                () -> cfg.itemSwitchAnim, v -> cfg.itemSwitchAnim = v);
-
-        // RENDER
-
-        add("CustomCrosshair", "Custom crosshair", 2,
-                () -> cfg.customCrosshair, v -> cfg.customCrosshair = v);
-
-        add("CustomSky", "Custom sky", 2,
-                () -> cfg.customSky, v -> cfg.customSky = v);
-
-        add("ChinaHat", "China Hat", 2,
-                () -> cfg.chinaHat, v -> cfg.chinaHat = v);
-
-        add("BlockOverlay", "Block overlay", 2,
-                () -> cfg.blockOverlay, v -> cfg.blockOverlay = v);
-
-        add("NoRender", "No Render", 2,
-                () -> cfg.noRender, v -> cfg.noRender = v);
-
-        add("InventoryBlur", "Inventory blur", 2,
-                () -> cfg.inventoryBlur, v -> cfg.inventoryBlur = v);
-
-        add("TotemAnimation", "Totem animation", 2,
-                () -> cfg.totemAnimation, v -> cfg.totemAnimation = v);
-
-        add("Fullbright", "Full Bright", 2,
-                () -> cfg.fullbright, v -> cfg.fullbright = v);
-
-        add("ReduceParticles", "Reduce particles", 2,
-                () -> cfg.reduceParticles, v -> cfg.reduceParticles = v);
-
-        // PLAYER
-
-        add("ChestStealer", "Chest Stealer", 3,
-                () -> cfg.chestStealer, v -> cfg.chestStealer = v);
-
-        add("TargetHUD", "Target HUD", 3,
-                () -> cfg.targetHud, v -> cfg.targetHud = v);
-
-        add("ArmorHUD", "Armor HUD", 3,
-                () -> cfg.armorHud, v -> cfg.armorHud = v);
-
-        add("TotemCounter", "Totem counter", 3,
-                () -> cfg.totemCounter, v -> cfg.totemCounter = v);
-
-        add("InventoryHUD", "Inventory HUD", 3,
-                () -> cfg.inventoryHud, v -> cfg.inventoryHud = v);
-
-        add("PotionHUD", "Potion HUD", 3,
-                () -> cfg.potionHud, v -> cfg.potionHud = v);
-
-        add("DurabilityHUD", "Durability HUD", 3,
-                () -> cfg.durabilityHud, v -> cfg.durabilityHud = v);
-
-        add("Keystrokes", "Keystrokes", 3,
-                () -> cfg.keystrokes, v -> cfg.keystrokes = v);
-
-        // MISC
-
-        add("Watermark", "Watermark", 4,
-                () -> cfg.watermark, v -> cfg.watermark = v);
-
-        add("ModuleList", "Module list", 4,
-                () -> cfg.moduleList, v -> cfg.moduleList = v);
-
-        add("FPSBoost", "FPS Boost", 4,
-                () -> cfg.fpsBoost, v -> cfg.fpsBoost = v);
-
-        add("Optimization", "Optimization", 4,
-                () -> cfg.optimized, v -> cfg.optimized = v);
-
-        add("MenuAnimation", "Menu animation", 4,
-                () -> cfg.glassAnimation, v -> cfg.glassAnimation = v);
+        if (cfg != null) buildFeatures();
     }
 
     private void add(
@@ -213,14 +74,106 @@ public class CrimsonMenuScreen extends Screen {
         ));
     }
 
-    private void calculateLayout() {
-        panelW = Math.min(width - 28, 1500);
-        panelH = Math.min(height - 28, 680);
+    private void buildFeatures() {
+        features.clear();
 
+        // COMBAT
+        add("KillAura", "Kill Aura", 0,
+                () -> cfg.killAura, v -> cfg.killAura = v);
+        add("AimAssist", "Aim Assist", 0,
+                () -> cfg.aimAssist, v -> cfg.aimAssist = v);
+        add("TriggerBot", "Trigger Bot", 0,
+                () -> cfg.triggerBot, v -> cfg.triggerBot = v);
+        add("ESP", "Entity ESP", 0,
+                () -> cfg.esp, v -> cfg.esp = v);
+        add("ChestESP", "Chest ESP", 0,
+                () -> cfg.chestEsp, v -> cfg.chestEsp = v);
+        add("HitParticles", "Hit particles", 0,
+                () -> cfg.hitParticles, v -> cfg.hitParticles = v);
+        add("CriticalEffects", "Critical effects", 0,
+                () -> cfg.criticalEffects, v -> cfg.criticalEffects = v);
+        add("HitSound", "Hit sound", 0,
+                () -> cfg.hitSound, v -> cfg.hitSound = v);
+        add("Hitmarker", "Hitmarker", 0,
+                () -> cfg.hitmarker, v -> cfg.hitmarker = v);
+        add("DamageNumbers", "Damage numbers", 0,
+                () -> cfg.damageNumbers, v -> cfg.damageNumbers = v);
+
+        // MOVEMENT
+        add("FreeCamera", "Free Camera", 1,
+                () -> cfg.freeCamera, v -> cfg.freeCamera = v);
+        add("Scaffold", "Scaffold", 1,
+                () -> cfg.scaffold, v -> cfg.scaffold = v);
+        add("Spider", "Spider", 1,
+                () -> cfg.spider, v -> cfg.spider = v);
+        add("Fly", "Fly", 1,
+                () -> cfg.fly, v -> cfg.fly = v);
+        add("Trails", "Movement trails", 1,
+                () -> cfg.trails, v -> cfg.trails = v);
+        add("JumpCircle", "Jump circle", 1,
+                () -> cfg.jumpCircle, v -> cfg.jumpCircle = v);
+        add("SmoothSword", "Smooth sword", 1,
+                () -> cfg.smoothSword, v -> cfg.smoothSword = v);
+        add("ItemSwitch", "Item switch animation", 1,
+                () -> cfg.itemSwitchAnim, v -> cfg.itemSwitchAnim = v);
+
+        // RENDER
+        add("CustomCrosshair", "Custom crosshair", 2,
+                () -> cfg.customCrosshair, v -> cfg.customCrosshair = v);
+        add("CustomSky", "Custom sky", 2,
+                () -> cfg.customSky, v -> cfg.customSky = v);
+        add("ChinaHat", "China Hat", 2,
+                () -> cfg.chinaHat, v -> cfg.chinaHat = v);
+        add("BlockOverlay", "Block overlay", 2,
+                () -> cfg.blockOverlay, v -> cfg.blockOverlay = v);
+        add("NoRender", "No Render", 2,
+                () -> cfg.noRender, v -> cfg.noRender = v);
+        add("InventoryBlur", "Inventory blur", 2,
+                () -> cfg.inventoryBlur, v -> cfg.inventoryBlur = v);
+        add("TotemAnimation", "Totem animation", 2,
+                () -> cfg.totemAnimation, v -> cfg.totemAnimation = v);
+        add("Fullbright", "Full Bright", 2,
+                () -> cfg.fullbright, v -> cfg.fullbright = v);
+        add("ReduceParticles", "Reduce particles", 2,
+                () -> cfg.reduceParticles, v -> cfg.reduceParticles = v);
+
+        // PLAYER
+        add("ChestStealer", "Chest Stealer", 3,
+                () -> cfg.chestStealer, v -> cfg.chestStealer = v);
+        add("TargetHUD", "Target HUD", 3,
+                () -> cfg.targetHud, v -> cfg.targetHud = v);
+        add("ArmorHUD", "Armor HUD", 3,
+                () -> cfg.armorHud, v -> cfg.armorHud = v);
+        add("TotemCounter", "Totem counter", 3,
+                () -> cfg.totemCounter, v -> cfg.totemCounter = v);
+        add("InventoryHUD", "Inventory HUD", 3,
+                () -> cfg.inventoryHud, v -> cfg.inventoryHud = v);
+        add("PotionHUD", "Potion HUD", 3,
+                () -> cfg.potionHud, v -> cfg.potionHud = v);
+        add("DurabilityHUD", "Durability HUD", 3,
+                () -> cfg.durabilityHud, v -> cfg.durabilityHud = v);
+        add("Keystrokes", "Keystrokes", 3,
+                () -> cfg.keystrokes, v -> cfg.keystrokes = v);
+
+        // MISC
+        add("Watermark", "Watermark", 4,
+                () -> cfg.watermark, v -> cfg.watermark = v);
+        add("ModuleList", "Module list", 4,
+                () -> cfg.moduleList, v -> cfg.moduleList = v);
+        add("FPSBoost", "FPS Boost", 4,
+                () -> cfg.fpsBoost, v -> cfg.fpsBoost = v);
+        add("Optimization", "Optimization", 4,
+                () -> cfg.optimized, v -> cfg.optimized = v);
+        add("MenuAnimation", "Menu animation", 4,
+                () -> cfg.glassAnimation, v -> cfg.glassAnimation = v);
+    }
+
+    private void calculateLayout() {
+        panelW = Math.min(width - 24, 1500);
+        panelH = Math.min(height - 24, 680);
         panelX = (width - panelW) / 2;
         panelY = (height - panelH) / 2;
-
-        columnW = (panelW - 32 - PANEL_GAP * 4) / 5;
+        columnW = (panelW - 24 - GAP * 4) / 5;
     }
 
     @Override
@@ -228,29 +181,23 @@ public class CrimsonMenuScreen extends Screen {
         calculateLayout();
     }
 
-    private void drawText(
-            GuiGraphics g,
-            String value,
-            int x,
-            int y,
-            int color
-    ) {
-        Component component = Component.literal(value)
-                .setStyle(Style.EMPTY.withFont(
-                        new FontDescription.Resource(FONT)
-                ));
+    private Component styled(String value) {
+        return Component.literal(value).setStyle(
+                Style.EMPTY.withFont(new FontDescription.Resource(FONT))
+        );
+    }
 
-        g.drawString(font, component, x, y, color, false);
+    private void text(
+            GuiGraphics g, String value,
+            int x, int y, int color
+    ) {
+        g.drawString(font, styled(value), x, y, color, false);
     }
 
     private void rounded(
             GuiGraphics g,
-            int x,
-            int y,
-            int w,
-            int h,
-            int radius,
-            int color
+            int x, int y, int w, int h,
+            int radius, int color
     ) {
         if (w <= 0 || h <= 0) return;
 
@@ -261,14 +208,12 @@ public class CrimsonMenuScreen extends Screen {
         for (int i = 0; i < radius; i++) {
             int inset = (int) Math.ceil(
                     radius - Math.sqrt(
-                            radius * radius
-                                    - (radius - i) * (radius - i)
+                            radius * radius - (radius - i) * (radius - i)
                     )
             );
 
             g.fill(x + inset, y + i,
                     x + w - inset, y + i + 1, color);
-
             g.fill(x + inset, y + h - i - 1,
                     x + w - inset, y + h - i, color);
         }
@@ -277,231 +222,154 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     private boolean inside(
-            int mx,
-            int my,
-            int x,
-            int y,
-            int w,
-            int h
+            int mx, int my, int x, int y, int w, int h
     ) {
         return mx >= x && mx <= x + w
                 && my >= y && my <= y + h;
     }
 
-    private int getColumnX(int category) {
-        return panelX + 8 + category * (columnW + PANEL_GAP);
+    private int columnX(int category) {
+        return panelX + 8 + category * (columnW + GAP);
     }
 
-    private List<Feature> getFeatures(int category) {
+    private List<Feature> categoryFeatures(int category) {
         List<Feature> result = new ArrayList<>();
-
         for (Feature feature : features) {
-            if (feature.category == category) {
-                result.add(feature);
-            }
+            if (feature.category == category) result.add(feature);
         }
-
         return result;
     }
 
-    private void drawBackground(GuiGraphics g) {
-        g.fill(0, 0, width, height, BG);
+    private void drawLogo(GuiGraphics g) {
+        int size = 27;
+        int x = panelX + 13;
+        int y = panelY + 10;
 
-        rounded(g,
-                panelX + 3, panelY + 5,
-                panelW, panelH,
-                16, 0x55000000
-        );
+        // Подложка и резервная эмблема C
+        rounded(g, x, y, size, size, 8, ACCENT);
+        text(g, "C", x + 8, y + 8, WHITE);
 
-        rounded(g,
-                panelX, panelY,
-                panelW, panelH,
-                16, 0x44202025
+        // Поверх эмблемы загружается PNG
+        g.blit(
+                RenderPipelines.GUI_TEXTURED,
+                LOGO,
+                x, y,
+                0f, 0f,
+                size, size,
+                128, 128
         );
     }
 
     private void drawHeader(GuiGraphics g) {
-        String title = "CRIMSON CLIENT";
-        String subtitle = "MODULES";
+        drawLogo(g);
 
-        int titleWidth = font.width(title);
-        int subtitleWidth = font.width(subtitle);
+        text(g, "CRIMSON", panelX + 49, panelY + 10, WHITE);
+        text(g, "CLIENT  /  MODULES",
+                panelX + 49, panelY + 25, MUTED);
 
-        drawText(g, title,
-                width / 2 - titleWidth / 2,
-                panelY - 17,
-                WHITE
-        );
+        int buttonW = 82;
+        int buttonH = 25;
+        int bx = panelX + panelW - buttonW - 13;
+        int by = panelY + 11;
 
-        drawText(g, subtitle,
-                width / 2 - subtitleWidth / 2,
-                panelY - 5,
-                MUTED
-        );
+        rounded(g, bx, by, buttonW, buttonH, 7, 0xFF292B35);
+        text(g, "CONFIGS", bx + 12, by + 8, WHITE);
 
-        int buttonW = 78;
-        int buttonH = 23;
-        int buttonX = panelX + panelW - buttonW - 12;
-        int buttonY = panelY + 10;
+        g.fill(panelX + 12, panelY + HEADER_HEIGHT - 1,
+                panelX + panelW - 12, panelY + HEADER_HEIGHT,
+                0x44FFFFFF);
+    }
 
-        rounded(g, buttonX, buttonY,
-                buttonW, buttonH, 7, 0xAA292930);
+    private void drawBackground(GuiGraphics g) {
+        g.fill(0, 0, width, height, 0x9906080E);
 
-        drawText(g, "CONFIGS",
-                buttonX + 12, buttonY + 7,
-                MUTED
-        );
+        rounded(g,
+                panelX + 3, panelY + 5,
+                panelW, panelH, 15, 0x66000000);
+
+        rounded(g,
+                panelX, panelY,
+                panelW, panelH, 15, 0xF014151D);
+
+        g.fill(panelX + 1, panelY + 1,
+                panelX + panelW - 1, panelY + 2,
+                ACCENT);
     }
 
     private void drawColumn(
-            GuiGraphics g,
-            int category,
-            int mouseX,
-            int mouseY
+            GuiGraphics g, int category,
+            int mouseX, int mouseY
     ) {
-        int x = getColumnX(category);
-        int y = panelY + 10;
-        int h = panelH - 20;
+        int x = columnX(category);
+        int y = panelY + HEADER_HEIGHT + 7;
+        int h = panelH - HEADER_HEIGHT - 17;
 
-        boolean panelHover = inside(
-                mouseX, mouseY, x, y, columnW, h
-        );
+        boolean hovered = inside(mouseX, mouseY, x, y, columnW, h);
 
-        rounded(g, x, y, columnW, h, 16,
-                panelHover ? 0xEE25252A : PANEL
-        );
+        rounded(g, x, y, columnW, h, 11,
+                hovered ? 0xFF22242E : PANEL);
 
-        g.fill(x + 1, y + 1,
-                x + columnW - 1, y + 2,
-                BORDER
-        );
+        text(g, CATEGORIES[category], x + 12, y + 13, WHITE);
 
-        drawText(g, CATEGORIES[category],
-                x + 17, y + 17, WHITE
-        );
+        g.fill(x + 10, y + 36,
+                x + columnW - 10, y + 37, 0x334F5260);
 
-        drawCategoryIcon(g, category,
-                x + columnW - 28, y + 16
-        );
+        List<Feature> list = categoryFeatures(category);
 
-        g.fill(x + 12, y + 42,
-                x + columnW - 12, y + 43,
-                0x33202028
-        );
-
-        List<Feature> list = getFeatures(category);
-
-        int startY = y + 53;
-        int bottom = y + h - 12;
-
-        int visibleRows = Math.max(
-                1, (bottom - startY) / ROW_HEIGHT
-        );
-
-        int maxScroll = Math.max(
-                0, list.size() - visibleRows
-        );
+        int startY = y + 45;
+        int bottom = y + h - 10;
+        int visible = Math.max(1, (bottom - startY) / ROW_HEIGHT);
+        int maxScroll = Math.max(0, list.size() - visible);
 
         scroll[category] = Mth.clamp(
                 scroll[category], 0, maxScroll
         );
 
-        int end = Math.min(
-                list.size(), scroll[category] + visibleRows
-        );
+        int end = Math.min(list.size(), scroll[category] + visible);
 
         for (int i = scroll[category]; i < end; i++) {
             Feature feature = list.get(i);
+            int rowY = startY + (i - scroll[category]) * ROW_HEIGHT;
 
-            int rowY = startY
-                    + (i - scroll[category]) * ROW_HEIGHT;
-
-            drawFeature(g, feature,
-                    x + 9, rowY,
-                    columnW - 18,
-                    mouseX, mouseY
-            );
+            drawFeature(g, feature, x + 7, rowY,
+                    columnW - 14, mouseX, mouseY);
         }
 
         if (maxScroll > 0) {
-            drawText(g,
-                    (scroll[category] + 1) + "/" + (maxScroll + 1),
-                    x + columnW - 42,
-                    y + h - 17,
-                    DIM
-            );
+            text(g, (scroll[category] + 1) + "/" + (maxScroll + 1),
+                    x + columnW - 36, y + h - 16, MUTED);
         }
-    }
-
-    private void drawCategoryIcon(
-            GuiGraphics g,
-            int category,
-            int x,
-            int y
-    ) {
-        String icon = switch (category) {
-            case 0 -> "C";
-            case 1 -> "M";
-            case 2 -> "R";
-            case 3 -> "P";
-            default -> "X";
-        };
-
-        drawText(g, icon, x, y, MUTED);
     }
 
     private void drawFeature(
             GuiGraphics g,
             Feature feature,
-            int x,
-            int y,
-            int w,
-            int mouseX,
-            int mouseY
+            int x, int y, int w,
+            int mouseX, int mouseY
     ) {
         boolean enabled = feature.enabled.getAsBoolean();
-
-        boolean hover = inside(
-                mouseX, mouseY, x, y, w, ROW_HEIGHT - 3
+        boolean hovered = inside(
+                mouseX, mouseY, x, y, w, ROW_HEIGHT - 2
         );
 
-        if (hover) {
-            rounded(g, x, y, w, ROW_HEIGHT - 3,
-                    8, ROW_HOVER);
+        if (hovered) {
+            rounded(g, x, y, w, ROW_HEIGHT - 2, 6, ROW_HOVER);
         }
 
-        drawText(g, feature.name,
-                x + 10, y + 12,
-                enabled ? WHITE : MUTED
-        );
+        text(g, feature.name, x + 8, y + 7,
+                enabled ? WHITE : MUTED);
 
-        drawText(g, "...",
-                x + w - 44, y + 12,
-                DIM
-        );
+        text(g, feature.description, x + 8, y + 21, 0xFF777986);
 
-        int switchX = x + w - 29;
-        int switchY = y + 9;
+        int sx = x + w - 28;
+        int sy = y + 10;
 
-        rounded(g, switchX, switchY,
-                20, 14, 7,
-                enabled ? ACCENT_DARK : 0xFF414149
-        );
+        rounded(g, sx, sy, 20, 12, 6,
+                enabled ? ACCENT : 0xFF444650);
 
-        int circleX = enabled
-                ? switchX + 10
-                : switchX + 2;
-
-        rounded(g, circleX, switchY + 2,
-                10, 10, 5,
-                enabled ? WHITE : 0xFFAAAAAF
-        );
-
-        if (hover) {
-            drawText(g, feature.description,
-                    x + 10, y + 25, DIM
-            );
-        }
+        rounded(g,
+                enabled ? sx + 10 : sx + 2,
+                sy + 2, 8, 8, 4, WHITE);
     }
 
     @Override
@@ -521,19 +389,13 @@ public class CrimsonMenuScreen extends Screen {
         }
 
         if (waitingForBind && bindingFeature != null) {
-            String message =
-                    "PRESS A KEY TO BIND | DELETE - CLEAR | ESC - CANCEL";
-
-            int w = font.width(message) + 24;
+            String message = "PRESS A KEY  |  DELETE: CLEAR  |  ESC: CANCEL";
+            int w = font.width(styled(message)) + 24;
             int x = (width - w) / 2;
-            int y = panelY + panelH - 31;
+            int y = panelY + panelH - 30;
 
-            rounded(g, x, y, w, 23,
-                    7, 0xEE25252D);
-
-            drawText(g, message,
-                    x + 12, y + 7, ACCENT
-            );
+            rounded(g, x, y, w, 22, 6, 0xFF292B35);
+            text(g, message, x + 12, y + 7, ACCENT);
         }
 
         super.render(g, mouseX, mouseY, partialTick);
@@ -541,123 +403,31 @@ public class CrimsonMenuScreen extends Screen {
 
     private Feature getFeatureAt(int mx, int my) {
         for (int category = 0; category < 5; category++) {
-            int x = getColumnX(category);
-            int y = panelY + 10;
-            int startY = y + 53;
-            int bottom = y + panelH - 22;
+            int x = columnX(category);
+            int y = panelY + HEADER_HEIGHT + 7;
+            int startY = y + 45;
+            int bottom = y + panelH - HEADER_HEIGHT - 27;
 
-            int visibleRows = Math.max(
-                    1, (bottom - startY) / ROW_HEIGHT
-            );
+            int visible = Math.max(1,
+                    (bottom - startY) / ROW_HEIGHT);
 
-            List<Feature> list = getFeatures(category);
-
-            int end = Math.min(
-                    list.size(),
-                    scroll[category] + visibleRows
-            );
+            List<Feature> list = categoryFeatures(category);
+            int end = Math.min(list.size(), scroll[category] + visible);
 
             for (int i = scroll[category]; i < end; i++) {
-                int rowY = startY
-                        + (i - scroll[category]) * ROW_HEIGHT;
+                int rowY = startY + (i - scroll[category]) * ROW_HEIGHT;
 
-                if (inside(mx, my,
-                        x + 9, rowY,
-                        columnW - 18, ROW_HEIGHT - 3)) {
+                if (inside(mx, my, x + 7, rowY,
+                        columnW - 14, ROW_HEIGHT - 2)) {
                     return list.get(i);
                 }
             }
         }
-
         return null;
     }
 
-    @Override
-    public boolean mouseClicked(
-            MouseButtonEvent event,
-            boolean doubleClick
-    ) {
-        int mx = (int) event.x();
-        int my = (int) event.y();
-
-        if (waitingForBind) {
-            return true;
-        }
-
-        int buttonX = panelX + panelW - 78 - 12;
-        int buttonY = panelY + 10;
-
-        if (event.button() == 0
-                && inside(mx, my, buttonX, buttonY, 78, 23)) {
-            Minecraft.getInstance().setScreen(
-                    new ConfigsScreen(this)
-            );
-            return true;
-        }
-
-        Feature feature = getFeatureAt(mx, my);
-
-        if (feature != null) {
-            if (event.button() == 0) {
-                feature.setter.accept(
-                        !feature.enabled.getAsBoolean()
-                );
-
-                if (cfg != null) {
-                    cfg.save();
-                }
-
-                return true;
-            }
-
-            if (event.button() == 1) {
-                if (getBind(feature.name) != Integer.MIN_VALUE) {
-                    waitingForBind = true;
-                    bindingFeature = feature;
-                }
-
-                return true;
-            }
-        }
-
-        return super.mouseClicked(event, doubleClick);
-    }
-
-    @Override
-    public boolean mouseScrolled(
-            double mouseX,
-            double mouseY,
-            double deltaX,
-            double deltaY
-    ) {
-        for (int category = 0; category < 5; category++) {
-            int x = getColumnX(category);
-            int y = panelY + 10;
-
-            if (inside((int) mouseX, (int) mouseY,
-                    x, y, columnW, panelH - 20)) {
-
-                int maxScroll = Math.max(
-                        0,
-                        getFeatures(category).size() - 1
-                );
-
-                scroll[category] = Mth.clamp(
-                        scroll[category] + (deltaY < 0 ? 1 : -1),
-                        0, maxScroll
-                );
-
-                return true;
-            }
-        }
-
-        return super.mouseScrolled(
-                mouseX, mouseY, deltaX, deltaY
-        );
-    }
-
-    private int getBind(String feature) {
-        return switch (feature) {
+    private int getBind(String name) {
+        return switch (name) {
             case "KillAura" -> cfg.bindKillAura;
             case "TriggerBot" -> cfg.bindTriggerBot;
             case "AimAssist" -> cfg.bindAimAssist;
@@ -676,8 +446,8 @@ public class CrimsonMenuScreen extends Screen {
         };
     }
 
-    private void setBind(String feature, int key) {
-        switch (feature) {
+    private void setBind(String name, int key) {
+        switch (name) {
             case "KillAura" -> cfg.bindKillAura = key;
             case "TriggerBot" -> cfg.bindTriggerBot = key;
             case "AimAssist" -> cfg.bindAimAssist = key;
@@ -696,6 +466,72 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     @Override
+    public boolean mouseClicked(
+            MouseButtonEvent event,
+            boolean doubleClick
+    ) {
+        int mx = (int) event.x();
+        int my = (int) event.y();
+
+        if (waitingForBind) return true;
+
+        int bx = panelX + panelW - 95;
+        int by = panelY + 11;
+
+        if (event.button() == 0 &&
+                inside(mx, my, bx, by, 82, 25)) {
+            Minecraft.getInstance().setScreen(new ConfigsScreen(this));
+            return true;
+        }
+
+        Feature feature = getFeatureAt(mx, my);
+
+        if (feature != null) {
+            if (event.button() == 0) {
+                feature.setter.accept(!feature.enabled.getAsBoolean());
+                if (cfg != null) cfg.save();
+                return true;
+            }
+
+            if (event.button() == 1 &&
+                    getBind(feature.name) != Integer.MIN_VALUE) {
+                waitingForBind = true;
+                bindingFeature = feature;
+                return true;
+            }
+        }
+
+        return super.mouseClicked(event, doubleClick);
+    }
+
+    @Override
+    public boolean mouseScrolled(
+            double mouseX,
+            double mouseY,
+            double deltaX,
+            double deltaY
+    ) {
+        for (int category = 0; category < 5; category++) {
+            int x = columnX(category);
+            int y = panelY + HEADER_HEIGHT + 7;
+
+            if (inside((int) mouseX, (int) mouseY,
+                    x, y, columnW, panelH - HEADER_HEIGHT - 17)) {
+                int max = Math.max(0,
+                        categoryFeatures(category).size() - 1);
+
+                scroll[category] = Mth.clamp(
+                        scroll[category] + (deltaY < 0 ? 1 : -1),
+                        0, max
+                );
+                return true;
+            }
+        }
+
+        return super.mouseScrolled(mouseX, mouseY, deltaX, deltaY);
+    }
+
+    @Override
     public boolean keyPressed(KeyEvent event) {
         int key = event.key();
 
@@ -706,20 +542,14 @@ public class CrimsonMenuScreen extends Screen {
                 return true;
             }
 
-            if (key == GLFW.GLFW_KEY_DELETE
-                    || key == GLFW.GLFW_KEY_BACKSPACE) {
-                setBind(bindingFeature.name, -1);
-            } else {
-                setBind(bindingFeature.name, key);
-            }
+            setBind(bindingFeature.name,
+                    key == GLFW.GLFW_KEY_DELETE ||
+                    key == GLFW.GLFW_KEY_BACKSPACE ? -1 : key);
 
             waitingForBind = false;
             bindingFeature = null;
 
-            if (cfg != null) {
-                cfg.save();
-            }
-
+            if (cfg != null) cfg.save();
             return true;
         }
 
@@ -728,10 +558,7 @@ public class CrimsonMenuScreen extends Screen {
 
     @Override
     public void onClose() {
-        if (cfg != null) {
-            cfg.save();
-        }
-
+        if (cfg != null) cfg.save();
         super.onClose();
     }
 
@@ -747,4 +574,4 @@ public class CrimsonMenuScreen extends Screen {
             BooleanSupplier enabled,
             Consumer<Boolean> setter
     ) {}
-             }
+}
