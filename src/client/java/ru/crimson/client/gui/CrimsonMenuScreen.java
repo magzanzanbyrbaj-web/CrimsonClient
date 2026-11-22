@@ -59,7 +59,9 @@ public final class CrimsonMenuScreen extends Screen {
         super(Component.literal("Crimson Client"));
         cfg = CrimsonClientClient.config;
 
-        if (cfg != null) buildFeatures();
+        if (cfg != null) {
+            buildFeatures();
+        }
     }
 
     private void add(
@@ -98,6 +100,8 @@ public final class CrimsonMenuScreen extends Screen {
                 () -> cfg.hitmarker, v -> cfg.hitmarker = v);
         add("DamageNumbers", "Damage numbers", 0,
                 () -> cfg.damageNumbers, v -> cfg.damageNumbers = v);
+        add("TargetESP", "Target ESP", 0,
+                () -> cfg.targetEsp, v -> cfg.targetEsp = v);
 
         // MOVEMENT
         add("FreeCamera", "Free Camera", 1,
@@ -234,9 +238,13 @@ public final class CrimsonMenuScreen extends Screen {
 
     private List<Feature> categoryFeatures(int category) {
         List<Feature> result = new ArrayList<>();
+
         for (Feature feature : features) {
-            if (feature.category == category) result.add(feature);
+            if (feature.category == category) {
+                result.add(feature);
+            }
         }
+
         return result;
     }
 
@@ -245,11 +253,9 @@ public final class CrimsonMenuScreen extends Screen {
         int x = panelX + 13;
         int y = panelY + 10;
 
-        // Подложка и резервная эмблема C
         rounded(g, x, y, size, size, 8, ACCENT);
         text(g, "C", x + 8, y + 8, WHITE);
 
-        // Поверх эмблемы загружается PNG
         g.blit(
                 RenderPipelines.GUI_TEXTURED,
                 LOGO,
@@ -341,6 +347,50 @@ public final class CrimsonMenuScreen extends Screen {
         }
     }
 
+    private String keyName(int key) {
+        if (key >= GLFW.GLFW_KEY_A && key <= GLFW.GLFW_KEY_Z) {
+            return String.valueOf((char) ('A' + key - GLFW.GLFW_KEY_A));
+        }
+
+        if (key >= GLFW.GLFW_KEY_0 && key <= GLFW.GLFW_KEY_9) {
+            return String.valueOf((char) ('0' + key - GLFW.GLFW_KEY_0));
+        }
+
+        if (key >= GLFW.GLFW_KEY_F1 && key <= GLFW.GLFW_KEY_F12) {
+            return "F" + (key - GLFW.GLFW_KEY_F1 + 1);
+        }
+
+        return switch (key) {
+            case GLFW.GLFW_KEY_SPACE -> "SPACE";
+            case GLFW.GLFW_KEY_LEFT_SHIFT -> "LSHIFT";
+            case GLFW.GLFW_KEY_RIGHT_SHIFT -> "RSHIFT";
+            case GLFW.GLFW_KEY_LEFT_CONTROL -> "LCTRL";
+            case GLFW.GLFW_KEY_RIGHT_CONTROL -> "RCTRL";
+            case GLFW.GLFW_KEY_LEFT_ALT -> "LALT";
+            case GLFW.GLFW_KEY_RIGHT_ALT -> "RALT";
+            case GLFW.GLFW_KEY_TAB -> "TAB";
+            case GLFW.GLFW_KEY_ENTER -> "ENTER";
+            case GLFW.GLFW_KEY_BACKSPACE -> "BACKSPACE";
+            case GLFW.GLFW_KEY_INSERT -> "INSERT";
+            case GLFW.GLFW_KEY_DELETE -> "DELETE";
+            default -> "KEY_" + key;
+        };
+    }
+
+    private int getBind(String name) {
+        if (cfg == null || cfg.moduleBinds == null) {
+            return -1;
+        }
+
+        return cfg.moduleBinds.getOrDefault(name, -1);
+    }
+
+    private void setBind(String name, int key) {
+        if (cfg == null) return;
+
+        cfg.setBind(name, key);
+    }
+
     private void drawFeature(
             GuiGraphics g,
             Feature feature,
@@ -359,7 +409,11 @@ public final class CrimsonMenuScreen extends Screen {
         text(g, feature.name, x + 8, y + 7,
                 enabled ? WHITE : MUTED);
 
-        text(g, feature.description, x + 8, y + 21, 0xFF777986);
+        int bind = getBind(feature.name);
+        String bindText = bind < 0 ? "NONE" : keyName(bind);
+
+        text(g, feature.description + " [" + bindText + "]",
+                x + 8, y + 21, 0xFF777986);
 
         int sx = x + w - 28;
         int sy = y + 10;
@@ -423,46 +477,8 @@ public final class CrimsonMenuScreen extends Screen {
                 }
             }
         }
+
         return null;
-    }
-
-    private int getBind(String name) {
-        return switch (name) {
-            case "KillAura" -> cfg.bindKillAura;
-            case "TriggerBot" -> cfg.bindTriggerBot;
-            case "AimAssist" -> cfg.bindAimAssist;
-            case "ESP" -> cfg.bindESP;
-            case "ChestESP" -> cfg.bindChestESP;
-            case "TargetHUD" -> cfg.bindTargetHUD;
-            case "ArmorHUD" -> cfg.bindArmorHUD;
-            case "TotemCounter" -> cfg.bindTotemCounter;
-            case "Watermark" -> cfg.bindWatermark;
-            case "Keystrokes" -> cfg.bindKeystrokes;
-            case "ModuleList" -> cfg.bindModuleList;
-            case "InventoryHUD" -> cfg.bindInventoryHUD;
-            case "PotionHUD" -> cfg.bindPotionHUD;
-            case "DurabilityHUD" -> cfg.bindDurabilityHUD;
-            default -> Integer.MIN_VALUE;
-        };
-    }
-
-    private void setBind(String name, int key) {
-        switch (name) {
-            case "KillAura" -> cfg.bindKillAura = key;
-            case "TriggerBot" -> cfg.bindTriggerBot = key;
-            case "AimAssist" -> cfg.bindAimAssist = key;
-            case "ESP" -> cfg.bindESP = key;
-            case "ChestESP" -> cfg.bindChestESP = key;
-            case "TargetHUD" -> cfg.bindTargetHUD = key;
-            case "ArmorHUD" -> cfg.bindArmorHUD = key;
-            case "TotemCounter" -> cfg.bindTotemCounter = key;
-            case "Watermark" -> cfg.bindWatermark = key;
-            case "Keystrokes" -> cfg.bindKeystrokes = key;
-            case "ModuleList" -> cfg.bindModuleList = key;
-            case "InventoryHUD" -> cfg.bindInventoryHUD = key;
-            case "PotionHUD" -> cfg.bindPotionHUD = key;
-            case "DurabilityHUD" -> cfg.bindDurabilityHUD = key;
-        }
     }
 
     @Override
@@ -473,7 +489,9 @@ public final class CrimsonMenuScreen extends Screen {
         int mx = (int) event.x();
         int my = (int) event.y();
 
-        if (waitingForBind) return true;
+        if (waitingForBind) {
+            return true;
+        }
 
         int bx = panelX + panelW - 95;
         int by = panelY + 11;
@@ -489,12 +507,19 @@ public final class CrimsonMenuScreen extends Screen {
         if (feature != null) {
             if (event.button() == 0) {
                 feature.setter.accept(!feature.enabled.getAsBoolean());
+
                 if (cfg != null) cfg.save();
                 return true;
             }
 
-            if (event.button() == 1 &&
-                    getBind(feature.name) != Integer.MIN_VALUE) {
+            if (event.button() == 1) {
+                Minecraft.getInstance().setScreen(
+                        new ModuleSettingsScreen(this, feature.name)
+                );
+                return true;
+            }
+
+            if (event.button() == 2) {
                 waitingForBind = true;
                 bindingFeature = feature;
                 return true;
@@ -524,6 +549,7 @@ public final class CrimsonMenuScreen extends Screen {
                         scroll[category] + (deltaY < 0 ? 1 : -1),
                         0, max
                 );
+
                 return true;
             }
         }
@@ -542,14 +568,15 @@ public final class CrimsonMenuScreen extends Screen {
                 return true;
             }
 
-            setBind(bindingFeature.name,
+            setBind(
+                    bindingFeature.name,
                     key == GLFW.GLFW_KEY_DELETE ||
-                    key == GLFW.GLFW_KEY_BACKSPACE ? -1 : key);
+                    key == GLFW.GLFW_KEY_BACKSPACE ? -1 : key
+            );
 
             waitingForBind = false;
             bindingFeature = null;
 
-            if (cfg != null) cfg.save();
             return true;
         }
 
@@ -558,7 +585,10 @@ public final class CrimsonMenuScreen extends Screen {
 
     @Override
     public void onClose() {
-        if (cfg != null) cfg.save();
+        if (cfg != null) {
+            cfg.save();
+        }
+
         super.onClose();
     }
 
