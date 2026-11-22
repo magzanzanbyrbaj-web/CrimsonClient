@@ -46,7 +46,7 @@ public final class ChestESP {
 
     private static final RenderType ESP_LINES_TYPE = RenderType.create(
             "crimsonclient_esp_lines",
-            RenderSetup.builder(ESP_LINES_PIPELINE).createRenderSetup(false)
+            RenderSetup.builder(ESP_LINES_PIPELINE).createRenderSetup()
     );
 
     private static final RenderPipeline ESP_FILL_PIPELINE = RenderPipeline.builder()
@@ -62,7 +62,7 @@ public final class ChestESP {
 
     private static final RenderType ESP_FILL_TYPE = RenderType.create(
             "crimsonclient_esp_fill",
-            RenderSetup.builder(ESP_FILL_PIPELINE).createRenderSetup(false)
+            RenderSetup.builder(ESP_FILL_PIPELINE).createRenderSetup()
     );
 
     public ChestESP() {
