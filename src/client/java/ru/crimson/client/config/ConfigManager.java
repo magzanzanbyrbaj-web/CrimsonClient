@@ -4,10 +4,12 @@ package ru.crimson.client.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import net.fabricmc.loader.api.FabricLoader;
+import ru.crimson.client.CrimsonClientClient;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Stream;
@@ -40,7 +42,8 @@ public final class ConfigManager {
                         .sorted()
                         .toList();
             }
-        } catch (IOException exception) {
+        } catch (IOException e) {
+            e.printStackTrace();
             return List.of();
         }
     }
@@ -54,9 +57,11 @@ public final class ConfigManager {
 
         try {
             Files.createDirectories(DIRECTORY);
+            config.save();
             Files.writeString(path, GSON.toJson(config));
             return true;
-        } catch (IOException exception) {
+        } catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -78,11 +83,17 @@ public final class ConfigManager {
                 return false;
             }
 
-            ru.crimson.client.CrimsonClientClient.config = loaded;
+            if (loaded.moduleBinds == null) {
+                loaded.moduleBinds = new HashMap<>();
+            }
+
+            CrimsonClientClient.config = loaded;
             loaded.save();
 
             return true;
-        } catch (Exception exception) {
+
+        } catch (Exception e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -96,7 +107,8 @@ public final class ConfigManager {
 
         try {
             return Files.deleteIfExists(path);
-        } catch (IOException exception) {
+        } catch (IOException e) {
+            e.printStackTrace();
             return false;
         }
     }
@@ -104,7 +116,8 @@ public final class ConfigManager {
     public static Path getDirectory() {
         try {
             Files.createDirectories(DIRECTORY);
-        } catch (IOException ignored) {
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
         return DIRECTORY;
