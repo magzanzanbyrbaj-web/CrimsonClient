@@ -1,4 +1,3 @@
-
 package ru.crimson.client.gui;
 
 import net.minecraft.client.gui.GuiGraphics;
@@ -698,4 +697,4 @@ public class HudEditorScreen extends Screen {
     private interface PositionSetter {
         void accept(int x, int y);
     }
-}
+                     }
