@@ -1,4 +1,3 @@
-
 package ru.crimson.combat.module;
 
 import com.mojang.blaze3d.vertex.PoseStack;
@@ -60,19 +59,13 @@ public final class ESP {
         pose.pushPose();
 
         try {
-            pose.translate(
-                    -camera.x,
-                    -camera.y,
-                    -camera.z
-            );
+            pose.translate(-camera.x, -camera.y, -camera.z);
 
             Matrix4f matrix = pose.last().pose();
-
             VertexConsumer buffer =
                     consumers.getBuffer(RenderTypes.lines());
 
             for (Entity entity : mc.level.entitiesForRendering()) {
-
                 if (!(entity instanceof LivingEntity living)
                         || !living.isAlive()) {
                     continue;
@@ -86,13 +79,8 @@ public final class ESP {
 
                 boolean player = living instanceof Player;
 
-                if (player && !cfg.espPlayers) {
-                    continue;
-                }
-
-                if (!player && !cfg.espMobs) {
-                    continue;
-                }
+                if (player && !cfg.espPlayers) continue;
+                if (!player && !cfg.espMobs) continue;
 
                 AABB box = living.getBoundingBox().inflate(0.025);
 
@@ -100,16 +88,8 @@ public final class ESP {
                 float green = player ? 0.20f : 0.90f;
                 float blue = player ? 0.28f : 0.45f;
 
-                drawBox(
-                        buffer,
-                        matrix,
-                        box,
-                        red,
-                        green,
-                        blue
-                );
+                drawBox(buffer, matrix, box, red, green, blue);
             }
-
         } finally {
             pose.popPose();
         }
@@ -126,7 +106,6 @@ public final class ESP {
         float x1 = (float) box.minX;
         float y1 = (float) box.minY;
         float z1 = (float) box.minZ;
-
         float x2 = (float) box.maxX;
         float y2 = (float) box.maxY;
         float z2 = (float) box.maxZ;
