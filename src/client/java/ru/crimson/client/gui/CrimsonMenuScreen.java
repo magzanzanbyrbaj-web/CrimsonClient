@@ -12,6 +12,7 @@ import net.minecraft.network.chat.FontDescription;
 import net.minecraft.network.chat.Style;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.Mth;
+import org.lwjgl.glfw.GLFW;
 
 import ru.crimson.client.CrimsonClientClient;
 import ru.crimson.client.config.CrimsonConfig;
@@ -64,12 +65,14 @@ public class CrimsonMenuScreen extends Screen {
 
     private Feature settingsFeature;
 
+    private boolean waitingForBind = false;
+    private String bindingFeature = null;
+
     private float animProgress = 1f;
     private long animStart = 0;
 
     public CrimsonMenuScreen() {
         super(Component.literal("Crimson Client"));
-
         cfg = CrimsonClientClient.config;
 
         if (cfg != null) {
@@ -194,6 +197,8 @@ public class CrimsonMenuScreen extends Screen {
         scrollOffset = 0;
         settingsScrollOffset = 0;
         settingsFeature = null;
+        waitingForBind = false;
+        bindingFeature = null;
 
         if (searchBox != null) {
             searchBox.setValue("");
@@ -355,6 +360,16 @@ public class CrimsonMenuScreen extends Screen {
         drawSettings(g);
 
         g.pose().popMatrix();
+
+        if (waitingForBind) {
+            String message = "PRESS A KEY  |  DELETE - UNBIND  |  ESC - CANCEL";
+            int w = font.width(message) + 24;
+            int x = (width - w) / 2;
+            int y = height - 34;
+
+            rounded(g, x, y, w, 24, 8, 0xFF21171B);
+            text(g, message, x + 12, y + 8, ACCENT);
+        }
 
         super.render(g, mouseX, mouseY, partialTick);
     }
@@ -535,8 +550,34 @@ public class CrimsonMenuScreen extends Screen {
     private record SettingRow(
             String name,
             BooleanSupplier enabled,
-            Runnable toggle
+            Runnable toggle,
+            boolean bindRow
     ) {}
+
+    private SettingRow toggleRow(
+            String name,
+            BooleanSupplier enabled,
+            Runnable toggle
+    ) {
+        return new SettingRow(name, enabled, toggle, false);
+    }
+
+    private SettingRow bindRow() {
+        String name = waitingForBind && settingsFeature != null
+                && settingsFeature.name.equals(bindingFeature)
+                ? "Bind: Press a key..."
+                : "Bind: " + keyName(getBind(settingsFeature.name));
+
+        return new SettingRow(
+                name,
+                () -> getBind(settingsFeature.name) != -1,
+                () -> {
+                    waitingForBind = true;
+                    bindingFeature = settingsFeature.name;
+                },
+                true
+        );
+    }
 
     private List<SettingRow> getSettingsRows() {
         if (settingsFeature == null) {
@@ -547,25 +588,28 @@ public class CrimsonMenuScreen extends Screen {
 
         switch (settingsFeature.name) {
             case "KillAura" -> {
-                rows.add(new SettingRow(
-                        "Silent rotation",
+                rows.add(toggleRow("Silent rotation",
                         () -> cfg.kaSilent,
-                        () -> cfg.kaSilent = !cfg.kaSilent
-                ));
+                        () -> cfg.kaSilent = !cfg.kaSilent));
 
-                rows.add(new SettingRow(
-                        "Through walls",
+                rows.add(toggleRow("Through walls",
                         () -> cfg.kaThroughWalls,
-                        () -> cfg.kaThroughWalls = !cfg.kaThroughWalls
-                ));
+                        () -> cfg.kaThroughWalls = !cfg.kaThroughWalls));
 
-                rows.add(new SettingRow(
-                        "Only Criticals",
+                rows.add(toggleRow("Only Criticals",
                         () -> cfg.kaOnlyCriticals,
-                        () -> cfg.kaOnlyCriticals = !cfg.kaOnlyCriticals
+                        () -> cfg.kaOnlyCriticals = !cfg.kaOnlyCriticals));
+
+                rows.add(toggleRow(
+                        "Range: " + String.format(Locale.ROOT, "%.1f", cfg.kaRange),
+                        () -> true,
+                        () -> {
+                            cfg.kaRange += 0.5;
+                            if (cfg.kaRange > 6.0) cfg.kaRange = 1.0;
+                        }
                 ));
 
-                rows.add(new SettingRow(
+                rows.add(toggleRow(
                         "Priority: " + priorityName(cfg.kaPriority),
                         () -> true,
                         () -> cfg.kaPriority = (cfg.kaPriority + 1) % 3
@@ -573,90 +617,169 @@ public class CrimsonMenuScreen extends Screen {
             }
 
             case "TriggerBot" -> {
-                rows.add(new SettingRow(
-                        "Through walls",
+                rows.add(toggleRow("Through walls",
                         () -> cfg.tbThroughWalls,
-                        () -> cfg.tbThroughWalls = !cfg.tbThroughWalls
-                ));
+                        () -> cfg.tbThroughWalls = !cfg.tbThroughWalls));
 
-                rows.add(new SettingRow(
-                        "Only Criticals",
+                rows.add(toggleRow("Only Criticals",
                         () -> cfg.tbOnlyCriticals,
-                        () -> cfg.tbOnlyCriticals = !cfg.tbOnlyCriticals
+                        () -> cfg.tbOnlyCriticals = !cfg.tbOnlyCriticals));
+
+                rows.add(toggleRow(
+                        "Range: " + String.format(Locale.ROOT, "%.1f", cfg.tbRange),
+                        () -> true,
+                        () -> {
+                            cfg.tbRange += 0.5;
+                            if (cfg.tbRange > 6.0) cfg.tbRange = 1.0;
+                        }
                 ));
             }
 
             case "AimAssist" -> {
-                rows.add(new SettingRow(
-                        "Silent rotation",
+                rows.add(toggleRow("Silent rotation",
                         () -> cfg.aaSilent,
-                        () -> cfg.aaSilent = !cfg.aaSilent
-                ));
+                        () -> cfg.aaSilent = !cfg.aaSilent));
 
-                rows.add(new SettingRow(
-                        "Through walls",
+                rows.add(toggleRow("Through walls",
                         () -> cfg.aaThroughWalls,
-                        () -> cfg.aaThroughWalls = !cfg.aaThroughWalls
+                        () -> cfg.aaThroughWalls = !cfg.aaThroughWalls));
+
+                rows.add(toggleRow(
+                        "Range: " + String.format(Locale.ROOT, "%.1f", cfg.aaRange),
+                        () -> true,
+                        () -> {
+                            cfg.aaRange += 0.5;
+                            if (cfg.aaRange > 6.0) cfg.aaRange = 1.0;
+                        }
                 ));
             }
 
             case "ESP" -> {
-                rows.add(new SettingRow(
-                        "Players",
+                rows.add(toggleRow("Players",
                         () -> cfg.espPlayers,
-                        () -> cfg.espPlayers = !cfg.espPlayers
-                ));
+                        () -> cfg.espPlayers = !cfg.espPlayers));
 
-                rows.add(new SettingRow(
-                        "Mobs",
+                rows.add(toggleRow("Mobs",
                         () -> cfg.espMobs,
-                        () -> cfg.espMobs = !cfg.espMobs
-                ));
+                        () -> cfg.espMobs = !cfg.espMobs));
             }
 
-            case "HitSound" -> rows.add(new SettingRow(
+            case "HitSound" -> rows.add(toggleRow(
                     "Sound: " + hitSoundName(),
                     () -> true,
                     () -> cfg.hitSoundType = (cfg.hitSoundType + 1) % 7
             ));
 
-            case "CriticalEffects" -> rows.add(new SettingRow(
+            case "CriticalEffects" -> rows.add(toggleRow(
                     "Style: " + criticalName(),
                     () -> true,
                     () -> cfg.criticalStyle = (cfg.criticalStyle + 1) % 4
             ));
 
-            case "ChinaHat" -> rows.add(new SettingRow(
+            case "ChinaHat" -> rows.add(toggleRow(
                     "Rainbow",
                     () -> cfg.chinaHatRainbow,
                     () -> cfg.chinaHatRainbow = !cfg.chinaHatRainbow
             ));
 
-            case "Trails" -> rows.add(new SettingRow(
+            case "Trails" -> rows.add(toggleRow(
                     "Length: " + cfg.trailsLength,
                     () -> true,
                     () -> {
                         cfg.trailsLength += 10;
-                        if (cfg.trailsLength > 100) {
-                            cfg.trailsLength = 20;
-                        }
+                        if (cfg.trailsLength > 100) cfg.trailsLength = 20;
                     }
             ));
 
-            case "TargetESP" -> rows.add(new SettingRow(
+            case "TargetESP" -> rows.add(toggleRow(
                     "Ring",
                     () -> cfg.targetEspRing,
                     () -> cfg.targetEspRing = !cfg.targetEspRing
             ));
 
-            case "NoRender" -> rows.add(new SettingRow(
+            case "NoRender" -> rows.add(toggleRow(
                     "Hide fire",
                     () -> cfg.hideFire,
                     () -> cfg.hideFire = !cfg.hideFire
             ));
         }
 
+        rows.add(bindRow());
         return rows;
+    }
+
+    private int getBind(String feature) {
+        if (feature == null) return -1;
+
+        return switch (feature) {
+            case "KillAura" -> cfg.bindKillAura;
+            case "TriggerBot" -> cfg.bindTriggerBot;
+            case "AimAssist" -> cfg.bindAimAssist;
+            case "ESP" -> cfg.bindESP;
+            case "TargetHUD" -> cfg.bindTargetHUD;
+            case "ArmorHUD" -> cfg.bindArmorHUD;
+            case "TotemCounter" -> cfg.bindTotemCounter;
+            case "Watermark" -> cfg.bindWatermark;
+            case "Keystrokes" -> cfg.bindKeystrokes;
+            case "ModuleList" -> cfg.bindModuleList;
+            case "InventoryHUD" -> cfg.bindInventoryHUD;
+            case "PotionHUD" -> cfg.bindPotionHUD;
+            case "DurabilityHUD" -> cfg.bindDurabilityHUD;
+            default -> -1;
+        };
+    }
+
+    private void setBind(String feature, int key) {
+        if (feature == null) return;
+
+        switch (feature) {
+            case "KillAura" -> cfg.bindKillAura = key;
+            case "TriggerBot" -> cfg.bindTriggerBot = key;
+            case "AimAssist" -> cfg.bindAimAssist = key;
+            case "ESP" -> cfg.bindESP = key;
+            case "TargetHUD" -> cfg.bindTargetHUD = key;
+            case "ArmorHUD" -> cfg.bindArmorHUD = key;
+            case "TotemCounter" -> cfg.bindTotemCounter = key;
+            case "Watermark" -> cfg.bindWatermark = key;
+            case "Keystrokes" -> cfg.bindKeystrokes = key;
+            case "ModuleList" -> cfg.bindModuleList = key;
+            case "InventoryHUD" -> cfg.bindInventoryHUD = key;
+            case "PotionHUD" -> cfg.bindPotionHUD = key;
+            case "DurabilityHUD" -> cfg.bindDurabilityHUD = key;
+        }
+    }
+
+    private String keyName(int key) {
+        if (key < 0) return "NONE";
+
+        String name = GLFW.glfwGetKeyName(key, 0);
+
+        if (name != null) {
+            return name.toUpperCase(Locale.ROOT);
+        }
+
+        return switch (key) {
+            case GLFW.GLFW_KEY_SPACE -> "SPACE";
+            case GLFW.GLFW_KEY_LEFT_SHIFT -> "L-SHIFT";
+            case GLFW.GLFW_KEY_RIGHT_SHIFT -> "R-SHIFT";
+            case GLFW.GLFW_KEY_LEFT_CONTROL -> "L-CTRL";
+            case GLFW.GLFW_KEY_RIGHT_CONTROL -> "R-CTRL";
+            case GLFW.GLFW_KEY_LEFT_ALT -> "L-ALT";
+            case GLFW.GLFW_KEY_RIGHT_ALT -> "R-ALT";
+            case GLFW.GLFW_KEY_F1 -> "F1";
+            case GLFW.GLFW_KEY_F2 -> "F2";
+            case GLFW.GLFW_KEY_F3 -> "F3";
+            case GLFW.GLFW_KEY_F4 -> "F4";
+            case GLFW.GLFW_KEY_F5 -> "F5";
+            case GLFW.GLFW_KEY_F6 -> "F6";
+            case GLFW.GLFW_KEY_F7 -> "F7";
+            case GLFW.GLFW_KEY_F8 -> "F8";
+            case GLFW.GLFW_KEY_F9 -> "F9";
+            case GLFW.GLFW_KEY_F10 -> "F10";
+            case GLFW.GLFW_KEY_F11 -> "F11";
+            case GLFW.GLFW_KEY_F12 -> "F12";
+            default -> "KEY " + key;
+        };
     }
 
     private void drawSettings(GuiGraphics g) {
@@ -705,7 +828,9 @@ public class CrimsonMenuScreen extends Screen {
                     panelW - 20,
                     29,
                     7,
-                    enabled ? 0xFF21171B : 0xFF19191F
+                    row.bindRow
+                            ? 0xFF24191D
+                            : enabled ? 0xFF21171B : 0xFF19191F
             );
 
             text(
@@ -713,24 +838,26 @@ public class CrimsonMenuScreen extends Screen {
                     row.name,
                     x + 18,
                     rowY + 10,
-                    enabled ? TEXT_WHITE : TEXT_MUTED
+                    row.bindRow ? ACCENT : enabled ? TEXT_WHITE : TEXT_MUTED
             );
 
-            rounded(
-                    g,
-                    x + panelW - 39,
-                    rowY + 8,
-                    19,
-                    13,
-                    6,
-                    enabled ? ACCENT : 0xFF303038
-            );
+            if (!row.bindRow) {
+                rounded(
+                        g,
+                        x + panelW - 39,
+                        rowY + 8,
+                        19,
+                        13,
+                        6,
+                        enabled ? ACCENT : 0xFF303038
+                );
 
-            int dotX = enabled
-                    ? x + panelW - 29
-                    : x + panelW - 36;
+                int dotX = enabled
+                        ? x + panelW - 29
+                        : x + panelW - 36;
 
-            rounded(g, dotX, rowY + 10, 9, 9, 4, TEXT_WHITE);
+                rounded(g, dotX, rowY + 10, 9, 9, 4, TEXT_WHITE);
+            }
 
             rowY += rowHeight;
         }
@@ -786,6 +913,10 @@ public class CrimsonMenuScreen extends Screen {
         int my = (int) event.y();
         int button = event.button();
 
+        if (waitingForBind) {
+            return true;
+        }
+
         if (searchBox != null
                 && searchBox.isMouseOver(event.x(), event.y())) {
             return super.mouseClicked(event, doubleClick);
@@ -840,8 +971,16 @@ public class CrimsonMenuScreen extends Screen {
 
                     for (int i = settingsScrollOffset; i < end; i++) {
                         if (hit(mx, my, x + 10, rowY, 162, 29)) {
-                            rows.get(i).toggle.run();
-                            cfg.save();
+                            SettingRow row = rows.get(i);
+
+                            if (row.bindRow) {
+                                waitingForBind = true;
+                                bindingFeature = settingsFeature.name;
+                            } else {
+                                row.toggle.run();
+                                cfg.save();
+                            }
+
                             return true;
                         }
 
@@ -911,6 +1050,31 @@ public class CrimsonMenuScreen extends Screen {
     }
 
     @Override
+    public boolean keyPressed(int keyCode, int scanCode, int modifiers) {
+        if (waitingForBind) {
+            if (keyCode == GLFW.GLFW_KEY_ESCAPE) {
+                waitingForBind = false;
+                bindingFeature = null;
+                return true;
+            }
+
+            if (keyCode == GLFW.GLFW_KEY_DELETE
+                    || keyCode == GLFW.GLFW_KEY_BACKSPACE) {
+                setBind(bindingFeature, -1);
+            } else {
+                setBind(bindingFeature, keyCode);
+            }
+
+            waitingForBind = false;
+            bindingFeature = null;
+            cfg.save();
+            return true;
+        }
+
+        return super.keyPressed(keyCode, scanCode, modifiers);
+    }
+
+    @Override
     public boolean mouseScrolled(
             double mouseX,
             double mouseY,
@@ -959,6 +1123,12 @@ public class CrimsonMenuScreen extends Screen {
         }
 
         return super.mouseScrolled(mouseX, mouseY, deltaX, deltaY);
+    }
+
+    @Override
+    public void onClose() {
+        if (cfg != null) cfg.save();
+        super.onClose();
     }
 
     @Override
